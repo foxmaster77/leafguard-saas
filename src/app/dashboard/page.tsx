@@ -479,7 +479,7 @@ export default function Dashboard() {
               {[
                 { label: 'CROP NAME', val: result.cropName },
                 { label: 'DISEASE DETECTED', val: result.disease },
-                { label: 'CONFIDENCE', val: result.confidence + '%' },
+                { label: 'CONFIDENCE', val: result.confidence  },
                 { label: 'RISK LEVEL', val: result.riskLevel, color: 
                   result.riskLevel === 'Critical' ? 'text-[#FF4F4F]' :
                   result.riskLevel === 'High' ? 'text-orange-400' :
@@ -602,7 +602,7 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {[
                   { l: 'DETECTED', v: result?.disease?.toUpperCase() || 'MODERATE FUNGAL STRESS', c: 'text-white' },
-                  { l: 'CONFIDENCE', v: (result?.confidence || 91) + '%', c: 'text-[#C8F53E]' },
+                  { l: 'CONFIDENCE', v: (result?.confidence || 91) , c: 'text-[#C8F53E]' },
                   { l: 'CROP', v: result?.cropName?.toUpperCase() || 'RICE', c: 'text-white' }
                 ].map((row, i) => (
                   <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-white/5 border border-white/5">
