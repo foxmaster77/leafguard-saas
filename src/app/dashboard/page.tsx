@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import {
   ShieldCheck, Terminal, Search, Map as MapIcon, Activity, Database, Settings,
@@ -31,13 +31,10 @@ const Ticker = () => (
 export default function Dashboard() {
   const [time, setTime] = useState('');
   const [isMounted, setIsMounted] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
-  const [scanResult, setScanResult] = useState<any>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  
-  // New States for Task
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [result, setResult] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const [recentUploads, setRecentUploads] = useState([
     { name: 'North Block', time: '8m ago', dot: 'bg-[#C8F53E]' },
@@ -45,13 +42,33 @@ export default function Dashboard() {
     { name: 'Sector 4-B', time: '31m ago', dot: 'bg-[#FF4F4F]' }
   ]);
   const [recentScans, setRecentScans] = useState([
-    { f: 'Sector 4-B', c: 'Soybean', s: '🔴 RUST DETECTED', co: '94%', t: '2m ago' },
-    { f: 'North Block', c: 'Wheat', s: '🟢 HEALTHY', co: '97%', t: '8m ago' },
-    { f: 'Zone 7', c: 'Cotton', s: '🟡 MOISTURE STRESS', co: '88%', t: '15m ago' },
-    { f: 'East Grid', c: 'Maize', s: '🔴 APHID RISK', co: '91%', t: '31m ago' },
-    { f: 'South Field', c: 'Rice', s: '🟢 HEALTHY', co: '95%', t: '1h ago' }
+    { field: 'Sector 4-B', cropName: 'Soybean', disease: '🔴 RUST DETECTED', confidence: '94%', time: '2m ago' },
+    { field: 'North Block', cropName: 'Wheat', disease: '🟢 HEALTHY', confidence: '97%', time: '8m ago' },
+    { field: 'Zone 7', cropName: 'Cotton', disease: '🟡 MOISTURE STRESS', confidence: '88%', time: '15m ago' },
+    { field: 'East Grid', cropName: 'Maize', disease: '🔴 APHID RISK', confidence: '91%', time: '31m ago' },
+    { field: 'South Field', cropName: 'Rice', disease: '🟢 HEALTHY', confidence: '95%', time: '1h ago' }
   ]);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Terminal Animation Logic
+  const [terminalIndex, setTerminalIndex] = useState(0);
+  const lines = [
+    "> Uploading field source...",
+    "> Extracting visual data...",
+    "> Running pathogen detection...",
+    "> Generating report..."
+  ];
+
+  useEffect(() => {
+    if (uploadState === 'uploading') {
+      const timer = setInterval(() => {
+        setTerminalIndex(prev => (prev < lines.length ? prev + 1 : prev));
+      }, 700);
+      return () => clearInterval(timer);
+    } else {
+      setTerminalIndex(0);
+    }
+  }, [uploadState]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -64,20 +81,50 @@ export default function Dashboard() {
   const resetUpload = () => {
     setUploadState('idle');
     setPreview(null);
-    setScanResult(null);
-    setErrorMsg(null);
+    setResult(null);
+    setErrorMsg('');
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleFileSelect = async (file: File) => {
     setUploadState('uploading');
+    setErrorMsg('');
     setPreview(URL.createObjectURL(file));
 
+    let fileToUpload = file;
+
+    // Handle Video Frame Extraction
+    if (file.type.startsWith('video/')) {
+      try {
+        const video = document.createElement('video');
+        video.src = URL.createObjectURL(file);
+        video.muted = true;
+        video.playsInline = true;
+        await new Promise((resolve, reject) => {
+          video.onloadeddata = resolve;
+          video.onerror = reject;
+          video.load();
+        });
+        video.currentTime = 1;
+        await new Promise((resolve) => {
+          video.onseeked = resolve;
+        });
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise<Blob>((resolve) => {
+          canvas.toBlob((b) => resolve(b!), 'image/jpeg');
+        });
+        fileToUpload = new File([blob], 'frame.jpg', { type: 'image/jpeg' });
+      } catch (err) {
+        console.error('Frame extraction failed', err);
+      }
+    }
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('image', fileToUpload);
 
     try {
       const res = await fetch('/api/analyze', {
@@ -87,10 +134,18 @@ export default function Dashboard() {
       const data = await res.json();
       
       if (data.success) {
-        setScanResult(data.report);
+        setResult(data.report);
         setUploadState('success');
         // Update Recents
         setRecentUploads(prev => [{ name: file.name, time: 'Just now', dot: 'bg-[#C8F53E]' }, ...prev.slice(0, 2)]);
+        const newScan = {
+          field: file.name,
+          cropName: data.report.cropName,
+          disease: data.report.disease.toUpperCase(),
+          confidence: data.report.confidence + '%',
+          time: 'Just now'
+        };
+        setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
       } else {
         setErrorMsg(data.error || 'Analysis failed');
         setUploadState('error');
@@ -306,13 +361,18 @@ export default function Dashboard() {
               accept="image/*,video/*" 
               className="hidden" 
               ref={fileInputRef} 
-              onChange={handleFileSelect} 
+              onChange={(e) => { 
+                const f = e.target.files?.[0]; if(f) handleFileSelect(f); 
+              }}
             />
             
             {/* Background Layer */}
             <div className="absolute inset-0 z-0">
               {preview ? (
-                <img src={preview} className="w-full h-full object-cover opacity-30" />
+                <div className="w-full h-full relative">
+                  <img src={preview} className="w-full h-full object-cover opacity-30" />
+                  {uploadState === 'uploading' && <div className="scan-line" />}
+                </div>
               ) : (
                 <video 
                   autoPlay muted loop playsInline 
@@ -352,10 +412,14 @@ export default function Dashboard() {
               )}
 
               {uploadState === 'uploading' && (
-                <div className="flex-grow flex flex-col items-center justify-center">
+                <div className="flex-grow flex flex-col items-center justify-center font-mono text-[10px] space-y-2">
                   <div className="sweep-animation" />
-                  <Activity size={40} className="text-[#C8F53E] animate-pulse mb-4" />
-                  <p className="font-mono text-[10px] text-[#C8F53E] animate-pulse tracking-[0.2em] uppercase font-black">NEURAL ANALYSIS IN PROGRESS...</p>
+                  {lines.slice(0, terminalIndex).map((line, i) => (
+                    <p key={i} className="text-[#C8F53E] tracking-widest uppercase self-start">
+                      {line}
+                      {i === terminalIndex - 1 && <span className="animate-pulse">_</span>}
+                    </p>
+                  ))}
                 </div>
               )}
 
@@ -364,31 +428,17 @@ export default function Dashboard() {
                   <div className="bg-black/80 backdrop-blur-md p-6 rounded-3xl border border-[#C8F53E]/30 space-y-4">
                     <div className="flex items-center gap-3 text-[#C8F53E]">
                       <CheckCircle size={18} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">THREAT IDENTIFIED</span>
+                      <span className="text-[10px] font-black uppercase tracking-widest">ANALYSIS COMPLETE</span>
                     </div>
-                    <div>
-                      <p className="text-[9px] font-black text-white/30 uppercase mb-1">DISEASE</p>
-                      <p className="text-xl font-black italic text-white uppercase">{scanResult?.diseaseName}</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-[9px] font-black text-white/30 uppercase mb-1">CONFIDENCE</p>
-                        <p className="text-lg font-black text-[#C8F53E]">{scanResult?.confidence}</p>
-                      </div>
-                      <div>
-                        <p className="text-[9px] font-black text-white/30 uppercase mb-1">SEVERITY</p>
-                        <p className="text-lg font-black text-[#FF4F4F]">{scanResult?.riskLevel}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black text-white/30 uppercase mb-1">TREATMENT</p>
-                      <p className="text-[10px] font-bold text-white/70 leading-relaxed line-clamp-2">{scanResult?.pesticides?.[0]?.name}: {scanResult?.pesticides?.[0]?.dose}</p>
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-black text-white/30 uppercase mb-1">DETECTION</p>
+                      <p className="text-xl font-black italic text-white uppercase">{result?.disease}</p>
                     </div>
                     <button 
                       onClick={resetUpload}
-                      className="w-full bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10 transition-all mt-2"
+                      className="w-full bg-[#C8F53E] text-[#060A04] py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all mt-2"
                     >
-                      SCAN ANOTHER FIELD
+                      VIEW REPORT BELOW
                     </button>
                   </div>
                 </div>
@@ -422,6 +472,85 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Detailed Results Section */}
+        {uploadState === 'success' && result && (
+          <div className="mt-12 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { label: 'CROP NAME', val: result.cropName },
+                { label: 'DISEASE DETECTED', val: result.disease },
+                { label: 'CONFIDENCE', val: result.confidence + '%' },
+                { label: 'RISK LEVEL', val: result.riskLevel, color: 
+                  result.riskLevel === 'Critical' ? 'text-[#FF4F4F]' :
+                  result.riskLevel === 'High' ? 'text-orange-400' :
+                  result.riskLevel === 'Medium' ? 'text-yellow-400' : 'text-[#C8F53E]'
+                }
+              ].map((item, i) => (
+                <div key={i} className="bg-[#0F1409] p-6 rounded-2xl border border-[#C8F53E]/10">
+                  <p className="text-[10px] font-black text-[#C8F53E]/40 uppercase mb-2 tracking-widest">{item.label}</p>
+                  <p className={`text-xl font-bold font-mono uppercase ${item.color || 'text-white'}`}>{item.val}</p>
+                </div>
+              ))}
+            </div>
+            
+            <div className="bg-[#0F1409] p-8 rounded-3xl border border-[#C8F53E]/10">
+              <p className="text-[10px] font-black text-[#C8F53E]/40 uppercase mb-4 tracking-widest">HEALTH SCORE</p>
+              <div className="h-3 bg-white/5 rounded-full overflow-hidden mb-3">
+                <div 
+                  className="h-full bg-[#C8F53E] transition-all duration-1000 shadow-[0_0_15px_#C8F53E]" 
+                  style={{ width: `${result.healthScore}%` }} 
+                />
+              </div>
+              <p className="text-right font-mono text-xl font-bold text-[#C8F53E]">{result.healthScore}%</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-[#0F1409] p-8 rounded-3xl border border-[#C8F53E]/10 space-y-6">
+                <div>
+                  <p className="text-[10px] font-black text-[#C8F53E]/40 uppercase mb-4 tracking-widest">RECOMMENDED TREATMENT</p>
+                  <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                    <p className="text-[11px] text-[#C8F53E] font-bold uppercase mb-1">PESTICIDE</p>
+                    <p className="font-mono text-white/90">{result.pesticide}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[11px] text-[#C8F53E] font-bold uppercase mb-1">DOSAGE & TIMING</p>
+                  <p className="font-mono text-white/90">{result.dosage}</p>
+                </div>
+              </div>
+              
+              <div className="bg-[#0F1409] p-8 rounded-3xl border border-[#C8F53E]/10">
+                <p className="text-[10px] font-black text-[#C8F53E]/40 uppercase mb-6 tracking-widest">ACTION PLAN</p>
+                <div className="space-y-4">
+                  {result.actionPlan.map((step: string, i: number) => (
+                    <div key={i} className="flex gap-4 items-start">
+                      <span className="w-6 h-6 rounded-lg bg-[#C8F53E]/10 text-[#C8F53E] flex items-center justify-center font-mono text-xs border border-[#C8F53E]/20">{i + 1}</span>
+                      <p className="text-sm text-white/70 font-medium pt-0.5">{step}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-[#C8F53E]/5 p-8 rounded-3xl border border-[#C8F53E]/10 flex gap-6 items-center">
+              <div className="w-12 h-12 rounded-full bg-[#C8F53E] flex items-center justify-center shrink-0">
+                <ShieldCheck className="text-[#060A04] w-6 h-6" />
+              </div>
+              <p className="text-sm text-white/60 font-medium">
+                <span className="text-[#C8F53E] font-bold uppercase tracking-wider mr-2 font-mono">FUN FACT:</span>
+                {result.funFact}
+              </p>
+            </div>
+
+            <button 
+              onClick={resetUpload}
+              className="w-full bg-[#C8F53E] text-[#060A04] py-6 rounded-2xl font-black text-xs uppercase tracking-[0.4em] hover:scale-[1.01] active:scale-[0.99] transition-all shadow-2xl shadow-[#C8F53E]/10"
+            >
+              SCAN ANOTHER FIELD →
+            </button>
+          </div>
+        )}
+
         {/* STATS ROW PRESERVED */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6 mb-12">
           {[
@@ -448,17 +577,17 @@ export default function Dashboard() {
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col h-full relative overflow-hidden">
             <div className="flex justify-between items-center mb-10">
               <div className="flex items-center gap-3">
-                <span className={`w-2 h-2 rounded-full ${analyzing ? 'bg-[#FFB347]' : 'bg-[#C8F53E]'} animate-pulse`} />
-                <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-[0.4em]">{analyzing ? 'SCANNIG IN PROGRESS' : 'NEURAL SCAN RESULT'}</p>
+                <span className={`w-2 h-2 rounded-full ${uploadState === 'uploading' ? 'bg-[#FFB347]' : 'bg-[#C8F53E]'} animate-pulse`} />
+                <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-[0.4em]">{uploadState === 'uploading' ? 'SCANNING IN PROGRESS' : 'NEURAL SCAN RESULT'}</p>
               </div>
               <span className="text-[9px] text-white/30 uppercase tracking-widest">LIVE UPLINK</span>
             </div>
 
             <div className="relative flex-grow bg-black/60 rounded-[2.5rem] border border-white/10 overflow-hidden mb-10 min-h-[320px]">
               <img src={preview || "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80"} className={`w-full h-full object-cover ${preview ? 'opacity-100' : 'grayscale opacity-20'}`} alt="Field Scan" />
-              {analyzing && <div className="scan-line" />}
+              {uploadState === 'uploading' && <div className="scan-line" />}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <Target className={`text-[#C8F53E] w-32 h-32 ${analyzing ? 'opacity-100 scale-110' : 'opacity-20'} transition-all duration-500 animate-pulse`} />
+                <Target className={`text-[#C8F53E] w-32 h-32 ${uploadState === 'uploading' ? 'opacity-100 scale-110' : 'opacity-20'} transition-all duration-500 animate-pulse`} />
               </div>
             </div>
 
@@ -466,15 +595,15 @@ export default function Dashboard() {
               <div className="flex justify-between items-end">
                 <div>
                   <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2 font-mono">FIELD HEALTH SCORE</p>
-                  <p className="text-8xl font-bebas italic text-[#C8F53E] leading-none">{scanResult?.healthScore || 78}<span className="text-2xl text-white/10 ml-2 font-sans not-italic">/100</span></p>
+                  <p className="text-8xl font-bebas italic text-[#C8F53E] leading-none">{result?.healthScore || 78}<span className="text-2xl text-white/10 ml-2 font-sans not-italic">/100</span></p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 {[
-                  { l: 'DETECTED', v: scanResult?.diseaseName.toUpperCase() || 'MODERATE FUNGAL STRESS', c: 'text-white' },
-                  { l: 'CONFIDENCE', v: scanResult?.confidence || '91%', c: 'text-[#C8F53E]' },
-                  { l: 'ZONE', v: scanResult?.zone || 'SECTOR 4-B, NORTH GRID', c: 'text-white' }
+                  { l: 'DETECTED', v: result?.disease?.toUpperCase() || 'MODERATE FUNGAL STRESS', c: 'text-white' },
+                  { l: 'CONFIDENCE', v: (result?.confidence || 91) + '%', c: 'text-[#C8F53E]' },
+                  { l: 'CROP', v: result?.cropName?.toUpperCase() || 'RICE', c: 'text-white' }
                 ].map((row, i) => (
                   <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-white/5 border border-white/5">
                     <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] font-mono">{row.l}</span>
@@ -505,7 +634,7 @@ export default function Dashboard() {
               <table className="w-full text-left">
                 <thead className="border-b border-white/5">
                   <tr>
-                    {['FIELD', 'CROP', 'STATUS', 'CONF', 'TIME'].map((h, i) => (
+                    {['FIELD', 'CROP', 'DISEASE', 'CONF', 'TIME'].map((h, i) => (
                       <th key={i} className="pb-6 text-[9px] font-black text-white/30 uppercase tracking-widest">{h}</th>
                     ))}
                   </tr>
@@ -513,11 +642,11 @@ export default function Dashboard() {
                 <tbody className="divide-y divide-white/5 font-mono">
                   {recentScans.map((row, i) => (
                     <tr key={i} className="group hover:bg-[#C8F53E]/[0.03] transition-all">
-                      <td className="py-6 font-bold text-white text-xs">{row.f}</td>
-                      <td className="py-6 text-[10px] text-white/50">{row.c}</td>
-                      <td className="py-6"><span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-white/5 border border-white/5">{row.s}</span></td>
-                      <td className="py-6 text-[11px] font-black text-[#C8F53E]">{row.co}</td>
-                      <td className="py-6 text-[10px] text-white/30">{row.t}</td>
+                      <td className="py-6 font-bold text-white text-xs">{row.field}</td>
+                      <td className="py-6 text-[10px] text-white/50">{row.cropName}</td>
+                      <td className="py-6 text-[10px] text-white/50">{row.disease}</td>
+                      <td className="py-6 text-[11px] font-black text-[#C8F53E]">{row.confidence}</td>
+                      <td className="py-6 text-[10px] text-white/30">{row.time}</td>
                     </tr>
                   ))}
                 </tbody>
