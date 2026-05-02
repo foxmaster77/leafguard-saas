@@ -24,6 +24,10 @@ no markdown, no explanation, just the JSON object:
 
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    console.log('API Key exists:', !!apiKey);
+    console.log('API Key starts with:', apiKey?.substring(0, 8));
+
     const formData = await req.formData();
     const file = formData.get('image') as File;
 
@@ -34,7 +38,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { error: 'API key not configured' }, 
@@ -48,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash' 
+      model: 'gemini-2.0-flash-exp' 
     });
 
     const result = await model.generateContent([
@@ -67,7 +70,14 @@ export async function POST(req: NextRequest) {
       .replace(/```/g, '')
       .trim();
 
-    const parsed = JSON.parse(clean);
+    let parsed;
+    try {
+      parsed = JSON.parse(clean);
+    } catch {
+      const match = clean.match(/\{[\s\S]*\}/);
+      if (match) parsed = JSON.parse(match[0]);
+      else throw new Error('Invalid JSON response');
+    }
     return NextResponse.json(parsed);
 
   } catch (error: any) {
