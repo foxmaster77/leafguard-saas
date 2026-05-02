@@ -159,7 +159,7 @@ export default function HomePage() {
         <div style={{ position: 'relative', zIndex: 2, maxWidth: '650px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(200,245,62,0.08)', border: '1px solid rgba(200,245,62,0.2)', borderRadius: '99px', padding: '0.4rem 1rem', fontFamily: 'monospace', fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.15em', marginBottom: '1.2rem' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#C8F53E', display: 'inline-block' }} />
-            LEAF_OS V4.0 PLATFORM
+            CROP_OS V4.0 PLATFORM
           </div>
           <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(4rem,10vw,8rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: 0.88, margin: '0 0 1.2rem' }}>
             <span style={{ color: 'white' }}>CATCH DISEASE<br /></span>
