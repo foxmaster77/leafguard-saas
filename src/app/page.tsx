@@ -78,10 +78,17 @@ export default function HomePage() {
     requestAnimationFrame(animatePP);
 
     try {
+      // Convert base64 to Blob to send as FormData
+      const res_fetch = await fetch(base64);
+      const blob = await res_fetch.blob();
+      const file = new File([blob], 'capture.jpg', { type: mediaType });
+
+      const formData = new FormData();
+      formData.append('image', file);
+
       const res = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64, mediaType })
+        body: formData
       });
       const data = await res.json();
 
@@ -346,7 +353,7 @@ export default function HomePage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.8rem' }}>DISEASE NAME</p>
-                <p style={{ fontSize: '1rem', color: 'white', fontWeight: 900 }}>{analysisResult.diseaseName.toUpperCase()}</p>
+                <p style={{ fontSize: '1rem', color: 'white', fontWeight: 900 }}>{analysisResult.disease.toUpperCase()}</p>
               </div>
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.8rem' }}>HEALTH SCORE</p>
@@ -362,7 +369,7 @@ export default function HomePage() {
                 <p style={{
                   fontSize: '1rem',
                   fontWeight: 900,
-                  color: analysisResult.riskLevel === 'High' ? '#FF4F4F' : analysisResult.riskLevel === 'Moderate' ? '#FFB347' : '#C8F53E'
+                  color: analysisResult.riskLevel === 'High' || analysisResult.riskLevel === 'Critical' ? '#FF4F4F' : analysisResult.riskLevel === 'Moderate' || analysisResult.riskLevel === 'Medium' ? '#FFB347' : '#C8F53E'
                 }}>
                   {analysisResult.riskLevel.toUpperCase()}
                 </p>
@@ -370,27 +377,19 @@ export default function HomePage() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
-              {/* Pesticide Table */}
+              {/* Treatment Info */}
               <div>
                 <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>// RECOMMENDED TREATMENT</p>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
-                  <thead>
-                    <tr style={{ color: 'rgba(255,255,255,0.3)', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                      <th style={{ padding: '0.8rem 0' }}>PRODUCT</th>
-                      <th style={{ padding: '0.8rem 0' }}>DOSE</th>
-                      <th style={{ padding: '0.8rem 0' }}>TIMING</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {analysisResult.pesticides.map((p: any, i: number) => (
-                      <tr key={i} style={{ color: 'rgba(255,255,255,0.7)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                        <td style={{ padding: '0.8rem 0' }}>{p.name}</td>
-                        <td style={{ padding: '0.8rem 0' }}>{p.dose}</td>
-                        <td style={{ padding: '0.8rem 0' }}>{p.timing}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div style={{ spaceY: '1.5rem' }}>
+                  <div style={{ marginBottom: '1.5rem' }}>
+                    <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: '0.4rem' }}>PESTICIDE</p>
+                    <p style={{ fontSize: '0.85rem', color: 'white' }}>{analysisResult.pesticide}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: '0.4rem' }}>DOSAGE</p>
+                    <p style={{ fontSize: '0.85rem', color: 'white' }}>{analysisResult.dosage}</p>
+                  </div>
+                </div>
               </div>
 
               {/* Action Plan */}
@@ -409,12 +408,12 @@ export default function HomePage() {
 
             <div style={{ marginTop: '3rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem' }}>
               <div style={{ marginBottom: '2rem' }}>
-                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem' }}>// EXPERT OPINION</p>
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.expertOpinion}</p>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem' }}>// IMMEDIATE ACTION</p>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.treatment}</p>
               </div>
               <div style={{ marginBottom: '3rem' }}>
-                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem' }}>// PREVENTION TIPS</p>
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.prevention}</p>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem' }}>// FUN FACT</p>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.funFact}</p>
               </div>
               <button
                 onClick={resetScanner}
