@@ -1,26 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700;900&family=DM+Mono:wght@400;700&display=swap');
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-bebas: 'Bebas Neue', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+
+  --color-brand: #C8F53E;
+  --color-brand-muted: rgba(200, 245, 62, 0.15);
+  --color-gold: #F5C842;
+  --color-danger: #FF4F4F;
+  --color-warn: #FFB347;
+  --color-dark: #060A04;
+  --color-dark-muted: #0F1409;
+  --color-card-border: rgba(200, 245, 62, 0.08);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #060A04;
+  --foreground: #ffffff;
+  --brand: #C8F53E;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #060A04;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Scroll Reveal ──────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s cubic-bezier(0.25, 1, 0.5, 1),
+              transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Fonts ──────────────────────────────────────── */
+.font-bebas { font-family: 'Bebas Neue', sans-serif !important; }
+.font-mono  { font-family: 'DM Mono', monospace !important; }
+
+/* ── Animations ─────────────────────────────────── */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-marquee {
+  animation: marquee 25s linear infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.terminal-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background: #C8F53E;
+  vertical-align: middle;
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%       { transform: scale(1.6); opacity: 0.4; }
+}
+.pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes scan-beam {
+  0%   { top: 0; }
+  100% { top: 100%; }
+}
+.animate-scan-beam {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: #C8F53E;
+  box-shadow: 0 0 12px 4px rgba(200,245,62,0.45);
+  animation: scan-beam 2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes float-up {
+  0%   { transform: translateY(0); opacity: 0; }
+  10%  { opacity: 0.5; }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(-100vh); opacity: 0; }
+}
+.animate-float { animation: float-up 10s linear infinite; }
+
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-ticker {
+  animation: ticker-scroll 20s linear infinite;
+}
+
+/* ── Utilities ──────────────────────────────────── */
+.bg-grid-dark {
+  background-image: radial-gradient(circle, rgba(200,245,62,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.pricing-shimmer::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 3.5rem;
+  background: conic-gradient(from 0deg, #C8F53E, transparent 40%, #C8F53E 80%, transparent);
+  z-index: -1;
+  animation: spin 4s linear infinite;
 }
