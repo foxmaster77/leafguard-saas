@@ -115,7 +115,7 @@ export default function HomePage() {
             { icon:'🌦️', title:'Weather + Risk Alerts', desc:'Live weather integration forecasts disease pressure up to 5 days in advance.', stat:'REAL-TIME · 50KM RISK RADIUS' },
             { icon:'🗺️', title:'Global Farm Dashboard', desc:'Monitor every field, every scan, and every alert from a single command center.', stat:'142+ FARMS MONITORED GLOBALLY' },
           ].map((c,i)=>(
-            <div key={i} className="reveal feature-card" style={{ background:'#0F1409', border:'1px solid rgba(255,255,255,0.05)', padding:'2rem', transition:'all 0.25s', borderLeft:'1px solid rgba(255,255,255,0.05)', cursor:'default' }} style2={{ transitionDelay:`${i*0.1}s` }}>
+            <div key={i} className="reveal feature-card" style={{ background:'#0F1409', border:'1px solid rgba(255,255,255,0.05)', padding:'2rem', transition:'all 0.25s', borderLeft:'1px solid rgba(255,255,255,0.05)', cursor:'default' }} data-delay={{ transitionDelay:`${i*0.1}s` }}>
               <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>{c.icon}</div>
               <h3 style={{ fontWeight:700, fontSize:'1rem', marginBottom:'0.75rem' }}>{c.title}</h3>
               <p style={{ color:'rgba(255,255,255,0.45)', fontSize:'0.85rem', lineHeight:1.7, marginBottom:'1rem' }}>{c.desc}</p>
