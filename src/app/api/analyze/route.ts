@@ -1,7 +1,54 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
+
+const FALLBACK_ANALYSIS = {
+  health_score: 70,
+  disease_name: "Unknown / Needs Review",
+  severity: "Low",
+  condition: "Stability check required",
+  confidence: "N/A",
+  zone: "Zone A",
+  risk_level: "Moderate",
+  pests_detected: 0,
+  pesticides: [
+    { name: "Broad-spectrum Organic Spray", dose: "Standard", timing: "Dusk" }
+  ],
+  actions: {
+    immediate: "Inspect the field manually to verify health status.",
+    long_term: "Implement regular soil testing and crop rotation."
+  },
+  action_plan: ["Manual inspection", "Soil nutrient analysis", "Irrigation audit"],
+  prevention: "Maintain balanced nitrogen levels and avoid over-irrigation.",
+  expert_opinion: "The automated analysis encountered a technical issue. Please rely on field observations."
+};
+
+const PROMPT = `Analyze this crop field image and return ONLY valid JSON. 
+Be precise and technical.
+JSON shape:
+{
+  "health_score": number (0-100),
+  "disease_name": string,
+  "severity": "Low" | "Moderate" | "High",
+  "condition": string,
+  "confidence": string (e.g. "92%"),
+  "zone": string,
+  "risk_level": "Low" | "Moderate" | "High",
+  "pests_detected": number,
+  "pesticides": [
+    { "name": string, "dose": string, "timing": string }
+  ],
+  "actions": {
+    "immediate": string,
+    "long_term": string
+  },
+  "action_plan": string[],
+  "prevention": string,
+  "expert_opinion": string
+}`;
 
 export async function POST(req: Request) {
   try {
@@ -11,101 +58,114 @@ export async function POST(req: Request) {
     if (!inputImage) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
     }
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json({
-        success: true,
-        report: {
-          healthScore: 72,
-          riskLevel: 'Moderate',
-          diagnosis: 'AI key not configured - fallback report',
-          pesticideRecommendation: 'Configure GEMINI_API_KEY for live analysis',
-          expertOpinion: 'Fallback result generated locally to keep dashboard operational.',
-          pestsDetected: 1,
-          confidence: 'N/A',
-          zone: 'Zone A'
-        },
-        analysis: null,
-        source: 'fallback'
-      });
-    }
-
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
-
-    const prompt = `Analyze this crop field image and return ONLY valid JSON with this shape:
-{
-  "health_score": number (0-100),
-  "condition": string,
-  "confidence": string,
-  "zone": string,
-  "risk_level": "Low" | "Moderate" | "High",
-  "pests_detected": number,
-  "actions": {
-    "immediate": string,
-    "long_term": string
-  },
-  "expert_opinion": string
-}`;
 
     const base64Data = inputImage.split(',')[1] || inputImage;
+    const mimeType = mediaType || 'image/jpeg';
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: base64Data,
-          mimeType: mediaType || 'image/jpeg'
+    let analysis = null;
+    let source = 'none';
+
+    // 1. Try Gemini Primary
+    if (process.env.GEMINI_API_KEY) {
+      try {
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+        const result = await model.generateContent([
+          PROMPT,
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType
+            }
+          }
+        ]);
+        const text = await result.response.text();
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          analysis = JSON.parse(jsonMatch[0]);
+          source = 'gemini';
+          console.log('Analysis successful via Gemini');
         }
+      } catch (e) {
+        console.error('Gemini analysis failed, falling back to Groq:', e);
       }
-    ]);
+    }
 
-    const responseText = result.response.text();
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    const analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : {
-        health_score: 85,
-        condition: "Healthy (Fallback)",
-        confidence: "90%",
-        zone: "Zone A",
-        risk_level: "Low",
-        pests_detected: 0,
-        actions: { immediate: "No action needed", long_term: "Maintain irrigation" },
-        expert_opinion: "Field appears stable. Continue monitoring."
-    };
+    // 2. Try Groq Fallback
+    if (!analysis && process.env.GROQ_API_KEY) {
+      try {
+        const completion = await groq.chat.completions.create({
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: PROMPT },
+                {
+                  type: "image_url",
+                  image_url: {
+                    url: `data:${mimeType};base64,${base64Data}`,
+                  },
+                },
+              ],
+            },
+          ],
+          model: "llama-3.2-11b-vision-preview",
+          response_format: { type: "json_object" }
+        });
 
-    const riskLevel = analysis.risk_level || (Number(analysis.health_score) >= 80 ? 'Low' : Number(analysis.health_score) >= 60 ? 'Moderate' : 'High');
+        const content = completion.choices[0].message.content;
+        if (content) {
+          analysis = JSON.parse(content);
+          source = 'groq';
+          console.log('Analysis successful via Groq');
+        }
+      } catch (e) {
+        console.error('Groq analysis failed, using final fallback:', e);
+      }
+    }
 
+    // 3. Final Fallback
+    if (!analysis) {
+      analysis = FALLBACK_ANALYSIS;
+      source = 'fallback';
+      console.log('Using final fallback analysis');
+    }
+
+    // Standardize report for frontend compatibility
     const report = {
-      healthScore: Number(analysis.health_score) || 0,
-      riskLevel,
-      diagnosis: analysis.condition || 'Unknown',
-      pesticideRecommendation: analysis.actions?.immediate || 'No immediate action available',
-      expertOpinion: analysis.expert_opinion || analysis.actions?.long_term || 'No expert opinion available',
-      pestsDetected: Number(analysis.pests_detected) || 0,
+      healthScore: analysis.health_score ?? 70,
+      riskLevel: analysis.risk_level ?? 'Moderate',
+      diagnosis: analysis.disease_name || analysis.condition || 'Unknown',
+      pesticideRecommendation: analysis.pesticides?.[0]?.name || 'No specific recommendation',
+      expertOpinion: analysis.expert_opinion || 'Standard monitoring recommended',
+      pestsDetected: analysis.pests_detected ?? 0,
       confidence: analysis.confidence || 'N/A',
-      zone: analysis.zone || 'N/A'
+      zone: analysis.zone || 'Field A'
     };
 
     return NextResponse.json({
       success: true,
+      source,
       report,
-      analysis
+      analysis // Provide full analysis for advanced UI features
     });
+
   } catch (error: any) {
-    console.error('Analysis error:', error);
+    console.error('Critical Analysis API Error:', error);
     return NextResponse.json({
-      success: true,
+      success: false,
+      error: error.message,
       report: {
-        healthScore: 68,
-        riskLevel: 'Moderate',
-        diagnosis: 'Analysis temporarily unavailable',
-        pesticideRecommendation: 'Retake a clearer image and retry in a moment',
-        expertOpinion: 'Provider fallback activated due to transient AI service failure.',
-        pestsDetected: 2,
-        confidence: 'N/A',
-        zone: 'Zone A'
+        healthScore: 0,
+        riskLevel: 'Unknown',
+        diagnosis: 'System error',
+        pesticideRecommendation: 'Check connection',
+        expertOpinion: 'API route encountered a critical failure.',
+        pestsDetected: 0,
+        confidence: '0%',
+        zone: 'N/A'
       },
-      analysis: null,
-      source: 'fallback',
-      warning: 'AI provider unavailable. Returned fallback analysis.'
-    });
+      source: 'error'
+    }, { status: 500 });
   }
 }
+
