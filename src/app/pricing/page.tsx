@@ -132,7 +132,7 @@ export default function PricingPage() {
               <div key={p} className="partner-tag" style={{ background:'#0F1409', border:'1px solid rgba(200,245,62,0.1)', padding:'0.8rem 2rem', fontFamily:'monospace', fontWeight:700, fontSize:'0.82rem', cursor:'pointer', transition:'all 0.2s' }}>{p}</div>
             ))}
           </div>
-          <p style={{ fontStyle:'italic', color:'rgba(255,255,255,0.5)', maxWidth:'600px', margin:'0 auto 0.8rem', fontSize:'1rem', lineHeight:1.75 }}>&ldquo;AGROGUARD paid for itself in the first harvest season. The ROI was immediate.&rdquo;</p>
+          <p style={{ fontStyle:'italic', color:'rgba(255,255,255,0.5)', maxWidth:'600px', margin:'0 auto 0.8rem', fontSize:'1rem', lineHeight:1.75 }}>&ldquo;LEAFGUARD paid for itself in the first harvest season. The ROI was immediate.&rdquo;</p>
           <p style={{ color:'rgba(255,255,255,0.3)', fontSize:'0.8rem', fontFamily:'monospace' }}>— Jason Merritt, Operations Director, FarmSense</p>
         </section>
 
@@ -156,7 +156,7 @@ export default function PricingPage() {
 
         {/* BOTTOM CTA */}
         <section style={{ background:'#C8F53E', padding:'6rem 3rem', textAlign:'center', position:'relative', overflow:'hidden' }}>
-          <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', fontSize:'18vw', fontWeight:900, color:'rgba(6,10,4,0.07)', whiteSpace:'nowrap', pointerEvents:'none', letterSpacing:'-0.02em' }}>AGROGUARD</div>
+          <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', fontSize:'18vw', fontWeight:900, color:'rgba(6,10,4,0.07)', whiteSpace:'nowrap', pointerEvents:'none', letterSpacing:'-0.02em' }}>LEAFGUARD</div>
           <div style={{ position:'relative', zIndex:1 }}>
             <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2.5rem,5vw,4rem)', color:'#060A04', fontStyle:'italic', fontWeight:900, marginBottom:'0.5rem' }}>NOT SURE WHICH PLAN?</h2>
             <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2.5rem,5vw,4rem)', color:'#060A04', fontStyle:'italic', fontWeight:900, marginBottom:'1rem' }}>TALK TO A REAL AGRONOMIST.</h2>

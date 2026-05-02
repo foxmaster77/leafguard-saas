@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'AGROGUARD AI — Precision Crop Intelligence Platform',
+  title: 'LEAFGUARD AI — Precision Crop Intelligence Platform',
   description:
     "The world's fastest AI-powered crop disease detection pipeline. Identify pathogens at the cellular level before they destroy your harvest.",
 };

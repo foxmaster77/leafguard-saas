@@ -120,9 +120,9 @@ export default function InfrastructureMonitor() {
           <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.4em] mb-6 font-mono">Active Endpoints</p>
           <div className="space-y-4">
              {[
-               { name: 'API Gateway', url: 'api.agroguard.ai', ping: '42ms' },
-               { name: 'AI Model Server', url: 'model.agroguard.ai', ping: '118ms' },
-               { name: 'Drone Uplink', url: 'drone.agroguard.ai', ping: '67ms' },
+               { name: 'API Gateway', url: 'api.LEAFGUARD.ai', ping: '42ms' },
+               { name: 'AI Model Server', url: 'model.LEAFGUARD.ai', ping: '118ms' },
+               { name: 'Drone Uplink', url: 'drone.LEAFGUARD.ai', ping: '67ms' },
              ].map((mon, i) => (
                <motion.div 
                  key={i}

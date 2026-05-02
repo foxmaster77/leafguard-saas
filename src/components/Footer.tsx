@@ -9,7 +9,7 @@ export default function Footer() {
         {/* Top Row */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'2rem', marginBottom:'2.5rem' }}>
           <div style={{ gridColumn:'span 2' }}>
-            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'1.5rem', color:'#C8F53E', fontStyle:'italic', letterSpacing:'0.08em', marginBottom:'0.6rem' }}>AGROGUARD AI</div>
+            <div style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'1.5rem', color:'#C8F53E', fontStyle:'italic', letterSpacing:'0.08em', marginBottom:'0.6rem' }}>LEAFGUARD AI</div>
             <p style={{ color:'rgba(255,255,255,0.35)', fontSize:'0.85rem', lineHeight:1.7, maxWidth:'280px' }}>Built for global agriculture. Enterprise Crop Intelligence Platform.</p>
           </div>
           <div>
@@ -28,7 +28,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div style={{ borderTop:'1px solid rgba(200,245,62,0.04)', paddingTop:'1.5rem', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <p style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'rgba(255,255,255,0.25)', letterSpacing:'0.1em' }}>© 2026 AGROGUARD AI · ALL RIGHTS RESERVED</p>
+          <p style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'rgba(255,255,255,0.25)', letterSpacing:'0.1em' }}>© 2026 LEAFGUARD AI · ALL RIGHTS RESERVED</p>
           <div style={{ display:'flex', gap:'1.2rem' }}>
             {['𝕏','in','⌥'].map((icon,i) => (
               <span key={i} style={{ color:'rgba(255,255,255,0.25)', cursor:'pointer', fontSize:'1rem', transition:'color 0.2s' }}

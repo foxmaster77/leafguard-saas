@@ -84,7 +84,7 @@ export default function LoginPage() {
           <div style={{ textAlign:'center', marginBottom:'2rem' }}>
             <div style={{ fontSize:'2rem', marginBottom:'0.5rem' }}>🛡️</div>
             <p style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'#C8F53E', letterSpacing:'0.25em', textTransform:'uppercase', marginBottom:'0.5rem' }}>SECURE ACCESS</p>
-            <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'2rem', fontStyle:'italic', fontWeight:900, margin:'0 0 0.5rem' }}>AGROGUARD COMMAND</h1>
+            <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'2rem', fontStyle:'italic', fontWeight:900, margin:'0 0 0.5rem' }}>LEAFGUARD COMMAND</h1>
             <p style={{ color:'rgba(255,255,255,0.45)', fontSize:'0.82rem', lineHeight:1.6 }}>Use your operator credentials to access the command center.</p>
           </div>
 

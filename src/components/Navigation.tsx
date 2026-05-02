@@ -46,7 +46,7 @@ export default function Navigation() {
           <path d="M12 2C8 2 4 5 4 9c0 5 8 13 8 13s8-8 8-13c0-4-3-7-8-7z" fill="#C8F53E" opacity="0.9"/>
           <path d="M12 2v20M8 6s2 2 4 6M16 6s-2 2-4 6" stroke="#060A04" strokeWidth="1" strokeLinecap="round"/>
         </svg>
-        <span style={S.logoText}>AGROGUARD AI</span>
+        <span style={S.logoText}>LEAFGUARD AI</span>
       </div>
 
       {/* Center: Links */}

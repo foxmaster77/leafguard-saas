@@ -17,20 +17,16 @@ const css = `
 .partner-card:hover{border-color:#C8F53E!important;box-shadow:0 0 16px rgba(200,245,62,0.15)}
 .feature-card:hover{border-left:3px solid #C8F53E!important;transform:translateY(-4px);box-shadow:0 8px 32px rgba(200,245,62,0.06)}
 .stat-pill{animation:fadeUp 0.6s ease both}
+html { scroll-behavior: smooth; }
 `;
 
 export default function HomePage() {
-  const [pp, setPp] = useState(3.8);
+  const [pp, setPp] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [consoleLogs, setConsoleLogs] = useState<string[]>(['> Waiting for input']);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const t = setInterval(() => setPp(+(Math.random()*4.2).toFixed(1)), 2000);
-    return () => clearInterval(t);
-  }, []);
 
   const addLog = (msg: string) => {
     setConsoleLogs(prev => [...prev.slice(-4), msg]);
@@ -41,53 +37,75 @@ export default function HomePage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+        const b64 = reader.result as string;
+        setImagePreview(b64);
         setAnalysisResult(null);
-        addLog(`> Image loaded: ${file.name}`);
+        setConsoleLogs(['> Image loaded. Initializing scan...']);
+        analyzeImage(b64, file.type);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleAnalyze = async (customImage?: string) => {
-    const img = customImage || imagePreview;
-    if (!img) return;
-
+  const analyzeImage = async (base64: string, mediaType: string) => {
     setAnalyzing(true);
     setAnalysisResult(null);
-    setConsoleLogs(['> Scanning image...']);
     
-    setTimeout(() => addLog('> Running neural detection...'), 800);
+    // Animate console
+    const logs = [
+      '> Uploading field image...',
+      '> Running neural pathogen detection...',
+      '> Analyzing spectral signatures...',
+      '> Generating threat report...'
+    ];
     
+    logs.forEach((log, i) => {
+      setTimeout(() => addLog(log), (i + 1) * 600);
+    });
+
+    // Animate Processing Power
+    const targetMs = Math.floor(Math.random() * (4200 - 2000 + 1) + 2000);
+    let start = 0;
+    const duration = targetMs;
+    const startTime = performance.now();
+
+    const animatePP = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      setPp(Math.floor(progress * targetMs));
+      if (progress < 1) requestAnimationFrame(animatePP);
+    };
+    requestAnimationFrame(animatePP);
+
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: img })
+        body: JSON.stringify({ imageBase64: base64, mediaType })
       });
       const data = await res.json();
       
-      if (data.success) {
-        setAnalysisResult(data.report);
-        addLog('> Analysis complete.');
-        addLog(`> Score: ${data.report.healthScore}/100`);
-        addLog(`> Status: ${data.report.diseaseName}`);
-      } else {
-        addLog('> Analysis failed.');
-      }
+      setTimeout(() => {
+        if (data.success) {
+          setAnalysisResult(data.report);
+          addLog('> Analysis complete.');
+        } else {
+          addLog('> Analysis failed.');
+        }
+        setAnalyzing(false);
+      }, Math.max(logs.length * 600 + 500, targetMs)); // Ensure animations finish
     } catch (err) {
       addLog('> Error connecting to AI node.');
-    } finally {
       setAnalyzing(false);
     }
   };
 
   const runSample = async (type: 'WHEAT' | 'SOY') => {
     const url = type === 'WHEAT' 
-      ? 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800' 
-      : 'https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800';
+      ? 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&q=80' 
+      : 'https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80';
     
-    addLog(`> Fetching sample ${type}...`);
+    setConsoleLogs([`> Fetching sample ${type}...`]);
     try {
       const response = await fetch(url);
       const blob = await response.blob();
@@ -95,12 +113,20 @@ export default function HomePage() {
       reader.onloadend = () => {
         const base64data = reader.result as string;
         setImagePreview(base64data);
-        handleAnalyze(base64data);
+        analyzeImage(base64data, blob.type);
       };
       reader.readAsDataURL(blob);
     } catch (e) {
       addLog('> Failed to load sample image.');
     }
+  };
+
+  const resetScanner = () => {
+    setImagePreview(null);
+    setAnalysisResult(null);
+    setConsoleLogs(['> Waiting for input']);
+    setPp(0);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   useEffect(() => {
@@ -116,20 +142,17 @@ export default function HomePage() {
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <Navigation />
 
-      {/* HERO SECTION OMITTED FOR BREVITY - PRESERVED IN FILE */}
       {/* HERO */}
       <section style={{ minHeight:'100vh', position:'relative', overflow:'hidden', display:'flex', alignItems:'center', padding:'0 3rem', paddingTop:'80px' }}>
         <video autoPlay muted loop playsInline style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.15, zIndex:0 }} src="/238827.mp4" />
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(135deg,rgba(6,10,4,0.92),rgba(6,10,4,0.6),rgba(6,10,4,0.88))', zIndex:1 }} />
-        {/* Crosshair SVG */}
         <svg style={{ position:'absolute', right:'20%', top:'50%', transform:'translateY(-50%)', opacity:0.07, zIndex:1 }} width="500" height="500" viewBox="0 0 100 100" fill="none" stroke="#C8F53E" strokeWidth="0.5">
           <circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="20"/><line x1="10" y1="50" x2="90" y2="50"/><line x1="50" y1="10" x2="50" y2="90"/>
         </svg>
-        {/* Left Content */}
         <div style={{ position:'relative', zIndex:2, maxWidth:'650px' }}>
           <div style={{ display:'inline-flex', alignItems:'center', gap:'6px', background:'rgba(200,245,62,0.08)', border:'1px solid rgba(200,245,62,0.2)', borderRadius:'99px', padding:'0.4rem 1rem', fontFamily:'monospace', fontSize:'0.7rem', color:'#C8F53E', letterSpacing:'0.15em', marginBottom:'1.2rem' }}>
             <span style={{ width:6, height:6, borderRadius:'50%', background:'#C8F53E', display:'inline-block' }}/>
-            AGRO_OS V4.0 PLATFORM
+            LEAF_OS V4.0 PLATFORM
           </div>
           <h1 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(4rem,10vw,8rem)', fontWeight:900, fontStyle:'italic', lineHeight:0.88, margin:'0 0 1.2rem' }}>
             <span style={{ color:'white' }}>CATCH DISEASE<br/></span>
@@ -138,7 +161,14 @@ export default function HomePage() {
           </h1>
           <p style={{ fontSize:'1rem', color:'rgba(255,255,255,0.5)', maxWidth:'480px', lineHeight:1.75, marginBottom:'2rem' }}>Precision AI that identifies pathogens at the cellular level before they destroy your harvest.</p>
           <div style={{ display:'flex', gap:'1rem', marginBottom:'1.5rem' }}>
-            <button style={{ background:'#C8F53E', color:'#060A04', fontWeight:900, fontFamily:'monospace', fontSize:'0.82rem', letterSpacing:'0.12em', padding:'0.9rem 2rem', border:'none', cursor:'pointer', transition:'transform 0.2s' }} onMouseEnter={e=>(e.currentTarget.style.transform='scale(1.04)')} onMouseLeave={e=>(e.currentTarget.style.transform='scale(1)')}>RUN LIVE DEMO →</button>
+            <button 
+              onClick={() => document.getElementById('ai-demo')?.scrollIntoView({ behavior:'smooth' })}
+              style={{ background:'#C8F53E', color:'#060A04', fontWeight:900, fontFamily:'monospace', fontSize:'0.82rem', letterSpacing:'0.12em', padding:'0.9rem 2rem', border:'none', cursor:'pointer', transition:'transform 0.2s' }} 
+              onMouseEnter={e=>(e.currentTarget.style.transform='scale(1.04)')} 
+              onMouseLeave={e=>(e.currentTarget.style.transform='scale(1)')}
+            >
+              RUN LIVE DEMO →
+            </button>
             <button style={{ background:'transparent', border:'1px solid rgba(255,255,255,0.25)', color:'white', fontWeight:700, fontFamily:'monospace', fontSize:'0.82rem', letterSpacing:'0.1em', padding:'0.9rem 1.8rem', cursor:'pointer', transition:'all 0.2s' }} onMouseEnter={e=>{e.currentTarget.style.borderColor='#C8F53E';e.currentTarget.style.color='#C8F53E'}} onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(255,255,255,0.25)';e.currentTarget.style.color='white'}}>ENTERPRISE PILOT</button>
           </div>
           <div style={{ display:'flex', gap:'0.8rem', flexWrap:'wrap' }}>
@@ -147,7 +177,6 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        {/* Right Card */}
         <div style={{ position:'absolute', right:'3rem', top:'50%', transform:'translateY(-50%)', zIndex:2, width:'360px', background:'#0F1409', border:'1px solid rgba(200,245,62,0.15)', padding:'1.5rem', borderRadius:'4px' }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1rem' }}>
             <span style={{ fontWeight:700, fontSize:'0.9rem' }}>⚡ Crop Health Report</span>
@@ -168,7 +197,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* PARTNERS MARQUEE SECTION PRESERVED IN FILE */}
       {/* PARTNERS MARQUEE */}
       <section style={{ background:'#0A0E07', borderTop:'1px solid rgba(200,245,62,0.06)', borderBottom:'1px solid rgba(200,245,62,0.06)', padding:'1.5rem 0', overflow:'hidden' }}>
         <p style={{ textAlign:'center', fontFamily:'monospace', fontSize:'0.6rem', color:'#C8F53E', letterSpacing:'0.25em', textTransform:'uppercase', marginBottom:'1rem' }}>GLOBAL INFRASTRUCTURE PARTNERS</p>
@@ -183,7 +211,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FEATURES SECTION PRESERVED IN FILE */}
       {/* FEATURES */}
       <section style={{ background:'#0A0E07', padding:'8rem 3rem' }}>
         <div className="reveal" style={{ textAlign:'center', marginBottom:'4rem' }}>
@@ -196,7 +223,7 @@ export default function HomePage() {
             { icon:'🌦️', title:'Weather + Risk Alerts', desc:'Live weather integration forecasts disease pressure up to 5 days in advance.', stat:'REAL-TIME · 50KM RISK RADIUS' },
             { icon:'🗺️', title:'Global Farm Dashboard', desc:'Monitor every field, every scan, and every alert from a single command center.', stat:'142+ FARMS MONITORED GLOBALLY' },
           ].map((c,i)=>(
-            <div key={i} className="reveal feature-card" style={{ background:'#0F1409', border:'1px solid rgba(255,255,255,0.05)', padding:'2rem', transition:'all 0.25s', borderLeft:'1px solid rgba(255,255,255,0.05)', cursor:'default' }} data-delay={{ transitionDelay:`${i*0.1}s` }}>
+            <div key={i} className="reveal feature-card" style={{ background:'#0F1409', border:'1px solid rgba(255,255,255,0.05)', padding:'2rem', transition:'all 0.25s', borderLeft:'1px solid rgba(255,255,255,0.05)', cursor:'default' }}>
               <div style={{ fontSize:'2rem', marginBottom:'1rem' }}>{c.icon}</div>
               <h3 style={{ fontWeight:700, fontSize:'1rem', marginBottom:'0.75rem' }}>{c.title}</h3>
               <p style={{ color:'rgba(255,255,255,0.45)', fontSize:'0.85rem', lineHeight:1.7, marginBottom:'1rem' }}>{c.desc}</p>
@@ -206,7 +233,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* GLOBAL MAP SECTION PRESERVED IN FILE */}
       {/* GLOBAL MAP SECTION */}
       <section style={{ background:'#060A04', padding:'8rem 3rem' }}>
         <div className="reveal" style={{ textAlign:'center', marginBottom:'3rem' }}>
@@ -214,7 +240,7 @@ export default function HomePage() {
             <span style={{ display:'inline-block', width:6, height:6, borderRadius:'50%', background:'#C8F53E', marginRight:'6px', animation:'blink 1s infinite', verticalAlign:'middle' }}/>
             LIVE NETWORK · 23 COUNTRIES ACTIVE
           </p>
-          <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2.5rem,5vw,4rem)', fontStyle:'italic', fontWeight:900 }}>AGROGUARD IS WATCHING EVERY FIELD.</h2>
+          <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2.5rem,5vw,4rem)', fontStyle:'italic', fontWeight:900 }}>LEAFGUARD IS WATCHING EVERY FIELD.</h2>
         </div>
         <div style={{ position:'relative', height:'500px', border:'1px solid rgba(200,245,62,0.1)', borderRadius:'4px', overflow:'hidden', maxWidth:'1100px', margin:'0 auto 2.5rem' }}>
           <GlobalMap />
@@ -238,40 +264,35 @@ export default function HomePage() {
       </section>
 
       {/* AI WIDGET */}
-      <section style={{ background:'#060A04', padding:'8rem 3rem' }}>
+      <section id="ai-demo" style={{ background:'#060A04', padding:'8rem 3rem' }}>
         <div className="reveal" style={{ textAlign:'center', marginBottom:'3rem' }}>
           <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2.5rem,5vw,4rem)', fontStyle:'italic', fontWeight:900 }}>EXPERIENCE THE AI NOW.</h2>
           <p style={{ color:'rgba(255,255,255,0.45)', fontSize:'1rem', marginTop:'0.8rem' }}>No account required. Upload a field photo to see our neural network in action.</p>
         </div>
+        
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', background:'#0F1409', border:'1px solid rgba(200,245,62,0.1)', maxWidth:'900px', margin:'0 auto', borderRadius:'8px', overflow:'hidden' }}>
           <div style={{ padding:'2rem' }}>
-            <input type="file" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handleFileSelect} />
+            <input type="file" id="cropFileInput" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handleFileSelect} />
             <div 
               style={{ border:'2px dashed rgba(200,245,62,0.2)', height:'220px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'0.8rem', cursor:'pointer', borderRadius:'4px', transition:'all 0.2s', position:'relative', overflow:'hidden' }}
               onClick={() => fileInputRef.current?.click()}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor='#C8F53E';e.currentTarget.style.background='rgba(200,245,62,0.03)'}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(200,245,62,0.2)';e.currentTarget.style.background='transparent'}}
+              onMouseEnter={e=>{if(!imagePreview){e.currentTarget.style.borderColor='#C8F53E';e.currentTarget.style.background='rgba(200,245,62,0.03)'}}}
+              onMouseLeave={e=>{if(!imagePreview){e.currentTarget.style.borderColor='rgba(200,245,62,0.2)';e.currentTarget.style.background='transparent'}}}
             >
               {imagePreview ? (
-                <img src={imagePreview} alt="Preview" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.6 }} />
+                <img src={imagePreview} alt="Preview" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
               ) : (
-                <span style={{ fontSize:'2.5rem', opacity:0.5 }}>⚡</span>
+                <>
+                  <span style={{ fontSize:'2.5rem', opacity:0.5 }}>⚡</span>
+                  <div style={{ textAlign:'center' }}>
+                    <p style={{ fontWeight:700, color:'white', margin:0 }}>DROP YOUR FIELD IMAGE.</p>
+                    <p style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#C8F53E', margin:0 }}>GET INSTANT DIAGNOSIS</p>
+                    <p style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'rgba(255,255,255,0.3)', margin:0 }}>JPG · PNG · WEBP</p>
+                  </div>
+                </>
               )}
-              <div style={{ position:'relative', zIndex:1, textAlign:'center' }}>
-                <p style={{ fontWeight:700, color:'white', margin:0 }}>DROP YOUR FIELD IMAGE.</p>
-                <p style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#C8F53E', margin:0 }}>GET INSTANT DIAGNOSIS</p>
-                <p style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'rgba(255,255,255,0.3)', margin:0 }}>JPG · PNG · WEBP</p>
-              </div>
             </div>
-            <div style={{ marginTop: '1.2rem' }}>
-              <button 
-                onClick={() => handleAnalyze()}
-                disabled={analyzing || !imagePreview}
-                style={{ width: '100%', background: analyzing ? '#333' : '#C8F53E', color: analyzing ? '#999' : '#060A04', border: 'none', padding: '0.8rem', fontWeight: 900, fontFamily: 'monospace', cursor: (analyzing || !imagePreview) ? 'not-allowed' : 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em' }}
-              >
-                {analyzing ? 'SCANNING...' : 'ANALYZE NOW'}
-              </button>
-            </div>
+            
             <p style={{ fontFamily:'monospace', fontSize:'0.6rem', color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', margin:'1.2rem 0 0.6rem', textTransform:'uppercase' }}>TEST WITH SAMPLE DATA:</p>
             <div style={{ display:'flex', gap:'0.6rem' }}>
               {['SAMPLE A (WHEAT)','SAMPLE B (SOY)'].map(s=>(
@@ -285,16 +306,17 @@ export default function HomePage() {
               ))}
             </div>
           </div>
+
           <div style={{ background:'#050805', padding:'2rem', display:'flex', flexDirection:'column' }}>
             <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'1.2rem' }}>
               <span style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'#C8F53E', letterSpacing:'0.12em' }}>● ANALYSIS CONSOLE</span>
-              <span style={{ fontFamily:'monospace', fontSize:'0.6rem', color:'rgba(255,255,255,0.3)' }}>NODE: ALPHA-V3</span>
+              <span style={{ fontFamily:'monospace', fontSize:'0.6rem', color:'rgba(255,255,255,0.3)' }}>NODE: ALPHA-V4</span>
             </div>
             
             <div style={{ flexGrow: 1, minHeight: '150px' }}>
               {consoleLogs.map((log, i) => (
-                <p key={i} style={{ fontFamily:'monospace', fontSize:'0.85rem', color: log.includes('complete') ? '#C8F53E' : 'rgba(200,245,62,0.7)', marginBottom:'0.4rem', borderLeft: log.startsWith('>') ? '2px solid transparent' : '2px solid #C8F53E', paddingLeft: log.startsWith('>') ? 0 : '10px' }}>
-                  {log}{i === consoleLogs.length - 1 && <span style={{ animation:'blink 1s infinite', display:'inline-block' }}>|</span>}
+                <p key={i} style={{ fontFamily:'monospace', fontSize:'0.85rem', color: log.includes('complete') ? '#C8F53E' : 'rgba(200,245,62,0.7)', marginBottom:'0.4rem' }}>
+                  {log}{i === consoleLogs.length - 1 && <span style={{ animation:'blink 1s infinite' }}>|</span>}
                 </p>
               ))}
             </div>
@@ -305,96 +327,103 @@ export default function HomePage() {
                 <span style={{ fontFamily:'monospace', fontSize:'0.75rem', color:'#C8F53E', fontWeight:700 }}>{pp}ms</span>
               </div>
               <div style={{ background:'rgba(200,245,62,0.1)', height:'3px', borderRadius:'2px' }}>
-                <div style={{ background:'#C8F53E', height:'100%', width:`${(pp/4.2)*100}%`, transition:'width 0.5s ease' }}/>
+                <div style={{ background:'#C8F53E', height:'100%', width:`${Math.min((pp/4200)*100, 100)}%`, transition:'width 0.1s linear' }}/>
               </div>
             </div>
+            
             <div style={{ display:'flex', alignItems:'center', gap:'0.8rem', background:'rgba(200,245,62,0.06)', border:'1px solid rgba(200,245,62,0.12)', padding:'0.8rem', borderRadius:'4px', marginTop:'auto' }}>
-              <span style={{ width:8, height:8, borderRadius:'50%', background:'#C8F53E', animation:'pulse 2s infinite', display:'inline-block', flexShrink:0 }}/>
+              <span style={{ width:8, height:8, borderRadius:'50%', background:'#C8F53E', animation:'pulse 2s infinite', display:'inline-block' }}/>
               <span style={{ fontFamily:'monospace', fontSize:'0.7rem', color:'rgba(255,255,255,0.6)', letterSpacing:'0.1em' }}>AI STATUS</span>
               <span style={{ fontFamily:'monospace', fontSize:'0.7rem', color:'white', fontWeight:700, marginLeft:'auto' }}>OPERATIONAL</span>
             </div>
           </div>
         </div>
 
-        {/* TASK 3: RESULTS SECTION */}
+        {/* RESULTS PANEL */}
         {analysisResult && (
-          <div className="reveal visible" style={{ maxWidth: '900px', margin: '3rem auto 0', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
-            {/* Health Score & Diagnosis */}
-            <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.8rem', fontStyle: 'italic', color: '#C8F53E' }}>DIAGNOSTIC REPORT</h3>
-                <span style={{ background: analysisResult.riskLevel === 'High' ? '#FF4F4F' : analysisResult.riskLevel === 'Moderate' ? '#FFB347' : '#C8F53E', color: '#060A04', fontSize: '0.65rem', fontWeight: 900, padding: '0.3rem 0.8rem', borderRadius: '99px' }}>
-                  {analysisResult.severity || analysisResult.riskLevel} SEVERITY
-                </span>
+          <div className="reveal visible" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', maxWidth: '900px', margin: '2rem auto 0', padding: '3rem', borderRadius: '8px', fontFamily: 'monospace' }}>
+            {/* Metric Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.8rem' }}>DISEASE NAME</p>
+                <p style={{ fontSize: '1rem', color: 'white', fontWeight: 900 }}>{analysisResult.diseaseName.toUpperCase()}</p>
               </div>
-              
-              <div style={{ marginBottom: '1.5rem' }}>
-                <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem' }}>HEALTH SCORE</p>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.8rem' }}>HEALTH SCORE</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ flexGrow: 1, height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden' }}>
+                  <div style={{ flexGrow: 1, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
                     <div style={{ width: `${analysisResult.healthScore}%`, height: '100%', background: '#C8F53E' }} />
                   </div>
-                  <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', fontWeight: 900, color: '#C8F53E' }}>{analysisResult.healthScore}%</span>
+                  <span style={{ color: '#C8F53E', fontWeight: 900 }}>{analysisResult.healthScore}%</span>
                 </div>
               </div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.8rem' }}>RISK LEVEL</p>
+                <p style={{ 
+                  fontSize: '1rem', 
+                  fontWeight: 900, 
+                  color: analysisResult.riskLevel === 'High' ? '#FF4F4F' : analysisResult.riskLevel === 'Moderate' ? '#FFB347' : '#C8F53E' 
+                }}>
+                  {analysisResult.riskLevel.toUpperCase()}
+                </p>
+              </div>
+            </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+              {/* Pesticide Table */}
               <div>
-                <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem' }}>DETECTED CONDITION</p>
-                <p style={{ fontSize: '1.2rem', fontWeight: 700, color: 'white' }}>{analysisResult.diseaseName}</p>
-                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.5rem' }}>{analysisResult.diagnosis}</p>
-              </div>
-            </div>
-
-            {/* Pesticide Table */}
-            <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '8px' }}>
-              <h3 style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 900, color: '#C8F53E', marginBottom: '1rem', letterSpacing: '0.1em' }}>RECOMMENDED TREATMENT</h3>
-              <table style={{ width: '100%', textAlign: 'left', fontFamily: 'monospace', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ color: 'rgba(255,255,255,0.3)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                    <th style={{ paddingBottom: '0.5rem' }}>PRODUCT</th>
-                    <th style={{ paddingBottom: '0.5rem' }}>DOSE</th>
-                    <th style={{ paddingBottom: '0.5rem' }}>TIMING</th>
-                  </tr>
-                </thead>
-                <tbody style={{ color: 'rgba(255,255,255,0.7)' }}>
-                  {analysisResult.pesticides?.length > 0 ? analysisResult.pesticides.map((p: any, i: number) => (
-                    <tr key={i}>
-                      <td style={{ padding: '0.6rem 0' }}>{p.name}</td>
-                      <td style={{ padding: '0.6rem 0' }}>{p.dose}</td>
-                      <td style={{ padding: '0.6rem 0' }}>{p.timing}</td>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>// RECOMMENDED TREATMENT</p>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.75rem' }}>
+                  <thead>
+                    <tr style={{ color: 'rgba(255,255,255,0.3)', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                      <th style={{ padding: '0.8rem 0' }}>PRODUCT</th>
+                      <th style={{ padding: '0.8rem 0' }}>DOSE</th>
+                      <th style={{ padding: '0.8rem 0' }}>TIMING</th>
                     </tr>
-                  )) : (
-                    <tr>
-                      <td colSpan={3} style={{ padding: '1rem 0', textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>No chemical treatment required</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Action Plan */}
-            <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '8px' }}>
-              <h3 style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 900, color: '#C8F53E', marginBottom: '1.2rem', letterSpacing: '0.1em' }}>4-STEP ACTION PLAN</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                {(analysisResult.actionPlan?.length > 0 ? analysisResult.actionPlan.slice(0,4) : ['Soil audit', 'Zone isolation', 'Manual inspection', 'Moisture check']).map((step: string, i: number) => (
-                  <div key={i} style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
-                    <span style={{ color: '#C8F53E', fontWeight: 900, fontSize: '0.8rem' }}>0{i+1}</span>
-                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>{step}</p>
-                  </div>
-                ))}
+                  </thead>
+                  <tbody>
+                    {analysisResult.pesticides.map((p: any, i: number) => (
+                      <tr key={i} style={{ color: 'rgba(255,255,255,0.7)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                        <td style={{ padding: '0.8rem 0' }}>{p.name}</td>
+                        <td style={{ padding: '0.8rem 0' }}>{p.dose}</td>
+                        <td style={{ padding: '0.8rem 0' }}>{p.timing}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
 
-            {/* Expert Opinion & Prevention */}
-            <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '8px' }}>
-              <div style={{ marginBottom: '1.2rem' }}>
-                <h3 style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 900, color: '#C8F53E', marginBottom: '0.5rem', letterSpacing: '0.1em' }}>EXPERT OPINION</h3>
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, fontStyle: 'italic' }}>&quot;{analysisResult.expertOpinion}&quot;</p>
-              </div>
+              {/* Action Plan */}
               <div>
-                <h3 style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 900, color: '#C8F53E', marginBottom: '0.5rem', letterSpacing: '0.1em' }}>PREVENTION</h3>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>// ACTION PLAN</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                  {analysisResult.actionPlan.map((step: string, i: number) => (
+                    <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                      <span style={{ background: '#C8F53E', color: '#060A04', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 900 }}>{i + 1}</span>
+                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>{step}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: '3rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem' }}>
+              <div style={{ marginBottom: '2rem' }}>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem' }}>// EXPERT OPINION</p>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.expertOpinion}</p>
+              </div>
+              <div style={{ marginBottom: '3rem' }}>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem' }}>// PREVENTION TIPS</p>
                 <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.prevention}</p>
               </div>
+              <button 
+                onClick={resetScanner}
+                style={{ width: '100%', background: 'transparent', border: '1px solid #C8F53E', color: '#C8F53E', padding: '1rem', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s' }}
+                onMouseEnter={e => {e.currentTarget.style.background='#C8F53E'; e.currentTarget.style.color='#060A04'}}
+                onMouseLeave={e => {e.currentTarget.style.background='transparent'; e.currentTarget.style.color='#C8F53E'}}
+              >
+                SCAN ANOTHER FIELD →
+              </button>
             </div>
           </div>
         )}

@@ -69,7 +69,7 @@ export default function ContactPage() {
 
           <div className="space-y-6 mb-20">
             {[
-              { icon: <Mail size={20}/>, title: "pilot@agroguard.ai", sub: "Official inquiry channel" },
+              { icon: <Mail size={20}/>, title: "pilot@LEAFGUARD.ai", sub: "Official inquiry channel" },
               { icon: <MapPin size={20}/>, title: "Serving US, India & Europe", sub: "Global deployment capability" },
               { icon: <Zap size={20}/>, title: "Response within 24 hours", sub: "Priority agronomic support" }
             ].map((card, i) => (

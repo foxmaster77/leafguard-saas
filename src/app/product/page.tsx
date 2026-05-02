@@ -146,7 +146,7 @@ export default function ProductPage() {
         <section style={{ background:'#060A04', padding:'8rem 3rem' }}>
           <div className="reveal" style={{ textAlign:'center', marginBottom:'3rem' }}>
             <p style={{ fontFamily:'monospace', fontSize:'0.62rem', color:'#C8F53E', letterSpacing:'0.25em', textTransform:'uppercase', marginBottom:'0.8rem' }}>CAPABILITIES</p>
-            <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2.5rem,5vw,4rem)', fontStyle:'italic', fontWeight:900 }}>WHAT AGROGUARD SEES</h2>
+            <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2.5rem,5vw,4rem)', fontStyle:'italic', fontWeight:900 }}>WHAT LEAFGUARD SEES</h2>
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'1rem', maxWidth:'1100px', margin:'0 auto' }}>
             {detections.map((d,i) => (
@@ -196,11 +196,11 @@ export default function ProductPage() {
         <section style={{ background:'#0A0E07', padding:'6rem 3rem' }}>
           <div className="reveal" style={{ textAlign:'center', marginBottom:'3rem' }}>
             <p style={{ fontFamily:'monospace', fontSize:'0.62rem', color:'#C8F53E', letterSpacing:'0.25em', textTransform:'uppercase', marginBottom:'0.8rem' }}>COMPARISON</p>
-            <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2rem,4vw,3.5rem)', fontStyle:'italic', fontWeight:900 }}>WHY AGROGUARD WINS</h2>
+            <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2rem,4vw,3.5rem)', fontStyle:'italic', fontWeight:900 }}>WHY LEAFGUARD WINS</h2>
           </div>
           <table style={{ width:'100%', maxWidth:'900px', margin:'0 auto', borderCollapse:'collapse' }}>
             <thead><tr>
-              {['FEATURE','TRADITIONAL SCOUTING','AGROGUARD AI'].map((h,i) => (
+              {['FEATURE','TRADITIONAL SCOUTING','LEAFGUARD AI'].map((h,i) => (
                 <th key={h} style={{ padding:'1rem', textAlign:i===0?'left':'center', fontFamily:'monospace', fontSize:'0.65rem', letterSpacing:'0.12em', color: i===2?'#C8F53E':'rgba(255,255,255,0.4)', background: i===2?'rgba(200,245,62,0.06)':'transparent', borderBottom:'1px solid rgba(200,245,62,0.08)' }}>{h}</th>
               ))}
             </tr></thead>
@@ -218,7 +218,7 @@ export default function ProductPage() {
 
         {/* BOTTOM CTA */}
         <section style={{ background:'#C8F53E', padding:'6rem 3rem', textAlign:'center', position:'relative', overflow:'hidden' }}>
-          <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', fontSize:'15vw', fontWeight:900, color:'rgba(6,10,4,0.07)', whiteSpace:'nowrap', pointerEvents:'none' }}>AGROGUARD</div>
+          <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', fontSize:'15vw', fontWeight:900, color:'rgba(6,10,4,0.07)', whiteSpace:'nowrap', pointerEvents:'none' }}>LEAFGUARD</div>
           <div style={{ position:'relative', zIndex:1 }}>
             <h2 style={{ fontFamily:"'Bebas Neue',sans-serif", fontSize:'clamp(2.5rem,5vw,4rem)', color:'#060A04', fontStyle:'italic', fontWeight:900, marginBottom:'0.8rem' }}>Seen enough? Your first 50 scans are free.</h2>
             <p style={{ color:'rgba(6,10,4,0.6)', fontSize:'1rem', marginBottom:'2rem' }}>No credit card required. Full access to the detection engine.</p>

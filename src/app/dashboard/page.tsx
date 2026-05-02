@@ -204,7 +204,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <ShieldCheck size={24} className="text-[#C8F53E]" />
             <div>
-              <h1 className="font-bebas text-3xl tracking-wide italic">AGROGUARD COMMAND</h1>
+              <h1 className="font-bebas text-3xl tracking-wide italic">LEAFGUARD COMMAND</h1>
               <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">STATION: GRID-ALPHA-4 · SECURE</p>
             </div>
           </div>
@@ -226,7 +226,7 @@ export default function Dashboard() {
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FF4F4F] rounded-full text-[8px] font-black flex items-center justify-center border-2 border-[#060A04]">3</span>
               </div>
               <div className="text-right">
-                <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@AGROGUARD.AI</p>
+                <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@LEAFGUARD.AI</p>
                 <p className="text-[9px] font-bold text-[#C8F53E] uppercase tracking-[0.3em]">LEVEL 4 OPERATOR</p>
               </div>
               <div className="w-10 h-10 bg-[#0F1409] rounded-xl flex items-center justify-center border border-white/10">
@@ -423,9 +423,9 @@ export default function Dashboard() {
             <div className="space-y-4">
               <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-6">ACTIVE ENDPOINTS</p>
               {[
-                { name: 'API Gateway', url: 'api.agroguard.ai', ping: '42ms' },
-                { name: 'AI Model Server', url: 'model.agroguard.ai', ping: '118ms' },
-                { name: 'Drone Uplink', url: 'drone.agroguard.ai', ping: '67ms' }
+                { name: 'API Gateway', url: 'api.LEAFGUARD.ai', ping: '42ms' },
+                { name: 'AI Model Server', url: 'model.LEAFGUARD.ai', ping: '118ms' },
+                { name: 'Drone Uplink', url: 'drone.LEAFGUARD.ai', ping: '67ms' }
               ].map((node, i) => (
                 <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-[2rem] flex items-center justify-between group hover:border-[#C8F53E]/30 transition-all">
                   <div className="flex items-center gap-4">
