@@ -31,6 +31,22 @@ const Ticker = () => (
 export default function Dashboard() {
   const [time, setTime] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [scanResult, setScanResult] = useState<any>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [recentUploads, setRecentUploads] = useState([
+    { name: 'North Block', time: '8m ago', dot: 'bg-[#C8F53E]' },
+    { name: 'Zone 7', time: '2m ago', dot: 'bg-[#FFB347]' },
+    { name: 'Sector 4-B', time: '31m ago', dot: 'bg-[#FF4F4F]' }
+  ]);
+  const [recentScans, setRecentScans] = useState([
+    { f: 'Sector 4-B', c: 'Soybean', s: '🔴 RUST DETECTED', co: '94%', t: '2m ago' },
+    { f: 'North Block', c: 'Wheat', s: '🟢 HEALTHY', co: '97%', t: '8m ago' },
+    { f: 'Zone 7', c: 'Cotton', s: '🟡 MOISTURE STRESS', co: '88%', t: '15m ago' },
+    { f: 'East Grid', c: 'Maize', s: '🔴 APHID RISK', co: '91%', t: '31m ago' },
+    { f: 'South Field', c: 'Rice', s: '🟢 HEALTHY', co: '95%', t: '1h ago' }
+  ]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
@@ -39,6 +55,50 @@ export default function Dashboard() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const analyzeImage = async (base64: string) => {
+    setAnalyzing(true);
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: base64 })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setScanResult(data.report);
+        // Update Recent Lists
+        const newUpload = { name: 'Direct Upload', time: 'Just now', dot: 'bg-[#C8F53E]' };
+        setRecentUploads(prev => [newUpload, ...prev.slice(0, 2)]);
+        
+        const newScan = { 
+          f: data.report.zone || 'Unknown', 
+          c: 'Detected', 
+          s: `${data.report.healthScore > 80 ? '🟢' : '🔴'} ${data.report.diseaseName.toUpperCase()}`, 
+          co: data.report.confidence, 
+          t: 'Just now' 
+        };
+        setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
+      }
+    } catch (e) {
+      console.error('Scan failed', e);
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const b64 = reader.result as string;
+        setPreview(b64);
+        analyzeImage(b64);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const markers = [
     { pos: [20.5, 78.9], name: "India Hub" },
@@ -96,7 +156,7 @@ export default function Dashboard() {
         }
       `}} />
 
-      {/* SIDEBAR */}
+      {/* SIDEBAR PRESERVED */}
       <aside className="w-[260px] fixed h-screen bg-[#0A0E07] border-r border-[#C8F53E]/10 z-50 flex flex-col p-8">
         <div className="flex items-center gap-3 mb-12">
           <div className="w-10 h-10 bg-[#C8F53E] flex items-center justify-center rounded-xl">
@@ -139,7 +199,7 @@ export default function Dashboard() {
 
       {/* MAIN CONTENT */}
       <main className="flex-grow ml-[260px] p-12">
-        {/* HEADER BAR */}
+        {/* HEADER BAR PRESERVED */}
         <header className="flex justify-between items-center mb-12 border-b border-white/5 pb-8">
           <div className="flex items-center gap-4">
             <ShieldCheck size={24} className="text-[#C8F53E]" />
@@ -179,7 +239,7 @@ export default function Dashboard() {
 
         {/* MAP + UPLOAD ROW */}
         <div className="grid lg:grid-cols-[1fr_320px] gap-8 mb-12">
-          {/* Map Column */}
+          {/* Map Column PRESERVED */}
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[380px]">
              {isMounted && (
                 <MapContainer center={[20, 0]} zoom={2} scrollWheelZoom={false} className="h-full w-full">
@@ -209,33 +269,33 @@ export default function Dashboard() {
                <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-3">Satellite Overlay</p>
                <div className="space-y-2">
                  <div className="flex items-center gap-3">
-                   <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full" />
-                   <span className="text-[10px] font-black uppercase text-white/60">Active Sensor Hub</span>
+                    <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full" />
+                    <span className="text-[10px] font-black uppercase text-white/60">Active Sensor Hub</span>
                  </div>
                  <div className="flex items-center gap-3">
-                   <span className="w-1.5 h-1.5 bg-[#FF4F4F] rounded-full" />
-                   <span className="text-[10px] font-black uppercase text-white/60">Maintenance Required</span>
+                    <span className="w-1.5 h-1.5 bg-[#FF4F4F] rounded-full" />
+                    <span className="text-[10px] font-black uppercase text-white/60">Maintenance Required</span>
                  </div>
                </div>
              </div>
           </div>
 
           {/* Upload Column */}
-          <div className="bg-[#0F1409] rounded-[3rem] border-2 border-dashed border-[#C8F53E]/20 p-8 flex flex-col items-center justify-center text-center group hover:border-[#C8F53E] transition-all">
-            <div className="w-16 h-16 rounded-full bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E] mb-6 group-hover:scale-110 transition-transform">
+          <div 
+            className="bg-[#0F1409] rounded-[3rem] border-2 border-dashed border-[#C8F53E]/20 p-8 flex flex-col items-center justify-center text-center group hover:border-[#C8F53E] transition-all cursor-pointer relative overflow-hidden"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileSelect} />
+            <div className="w-16 h-16 rounded-full bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E] mb-6 group-hover:scale-110 transition-transform relative z-10">
               <Upload size={28} />
             </div>
-            <h3 className="text-xl font-black mb-2 uppercase">DROP DRONE FEED OR PHOTO</h3>
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-10">JPG · PNG · MP4 · TIFF · RAW</p>
-            <button className="w-full bg-[#C8F53E] text-[#060A04] py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl mb-12">BROWSE FILES</button>
+            <h3 className="text-xl font-black mb-2 uppercase relative z-10">DROP DRONE FEED OR PHOTO</h3>
+            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-10 relative z-10">JPG · PNG · MP4 · TIFF · RAW</p>
+            <button className="w-full bg-[#C8F53E] text-[#060A04] py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl mb-12 relative z-10">BROWSE FILES</button>
             
-            <div className="w-full text-left space-y-4">
+            <div className="w-full text-left space-y-4 relative z-10">
               <p className="text-[9px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2"><RotateCcw size={12}/> RECENT UPLOADS</p>
-              {[
-                { name: 'North Block', time: '8m ago', dot: 'bg-[#C8F53E]' },
-                { name: 'Zone 7', time: '2m ago', dot: 'bg-[#FFB347]' },
-                { name: 'Sector 4-B', time: '31m ago', dot: 'bg-[#FF4F4F]' }
-              ].map((up, i) => (
+              {recentUploads.map((up, i) => (
                 <div key={i} className="flex justify-between items-center px-4 py-3 bg-white/5 rounded-xl border border-white/5">
                   <div className="flex items-center gap-3">
                     <span className={`w-1.5 h-1.5 rounded-full ${up.dot}`} />
@@ -248,7 +308,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* STATS ROW */}
+        {/* STATS ROW PRESERVED */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6 mb-12">
           {[
             { label: 'AMBIENT TEMP', val: '15°C', icon: <Thermometer size={14}/> },
@@ -271,20 +331,20 @@ export default function Dashboard() {
         {/* SCAN RESULT + RECENT SCANS ROW */}
         <div className="grid xl:grid-cols-[450px_1fr] gap-8 mb-12">
           {/* Scan Panel */}
-          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col h-full">
+          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col h-full relative overflow-hidden">
             <div className="flex justify-between items-center mb-10">
               <div className="flex items-center gap-3">
-                <span className="w-2 h-2 bg-[#C8F53E] rounded-full animate-pulse" />
-                <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-[0.4em]">NEURAL SCAN RESULT</p>
+                <span className={`w-2 h-2 rounded-full ${analyzing ? 'bg-[#FFB347]' : 'bg-[#C8F53E]'} animate-pulse`} />
+                <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-[0.4em]">{analyzing ? 'SCANNIG IN PROGRESS' : 'NEURAL SCAN RESULT'}</p>
               </div>
               <span className="text-[9px] text-white/30 uppercase tracking-widest">LIVE UPLINK</span>
             </div>
 
             <div className="relative flex-grow bg-black/60 rounded-[2.5rem] border border-white/10 overflow-hidden mb-10 min-h-[320px]">
-              <img src="https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80" className="w-full h-full object-cover grayscale opacity-20" alt="Field Scan" />
-              <div className="scan-line" />
-              <div className="absolute inset-0 flex items-center justify-center">
-                 <Target className="text-[#C8F53E] w-32 h-32 opacity-20 animate-pulse" />
+              <img src={preview || "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80"} className={`w-full h-full object-cover ${preview ? 'opacity-100' : 'grayscale opacity-20'}`} alt="Field Scan" />
+              {analyzing && <div className="scan-line" />}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                 <Target className={`text-[#C8F53E] w-32 h-32 ${analyzing ? 'opacity-100 scale-110' : 'opacity-20'} transition-all duration-500 animate-pulse`} />
               </div>
             </div>
 
@@ -292,15 +352,15 @@ export default function Dashboard() {
               <div className="flex justify-between items-end">
                 <div>
                   <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2 font-mono">FIELD HEALTH SCORE</p>
-                  <p className="text-8xl font-bebas italic text-[#C8F53E] leading-none">78<span className="text-2xl text-white/10 ml-2 font-sans not-italic">/100</span></p>
+                  <p className="text-8xl font-bebas italic text-[#C8F53E] leading-none">{scanResult?.healthScore || 78}<span className="text-2xl text-white/10 ml-2 font-sans not-italic">/100</span></p>
                 </div>
               </div>
 
               <div className="space-y-3">
                 {[
-                  { l: 'DETECTED', v: 'MODERATE FUNGAL STRESS', c: 'text-white' },
-                  { l: 'CONFIDENCE', v: '91%', c: 'text-[#C8F53E]' },
-                  { l: 'ZONE', v: 'SECTOR 4-B, NORTH GRID', c: 'text-white' }
+                  { l: 'DETECTED', v: scanResult?.diseaseName.toUpperCase() || 'MODERATE FUNGAL STRESS', c: 'text-white' },
+                  { l: 'CONFIDENCE', v: scanResult?.confidence || '91%', c: 'text-[#C8F53E]' },
+                  { l: 'ZONE', v: scanResult?.zone || 'SECTOR 4-B, NORTH GRID', c: 'text-white' }
                 ].map((row, i) => (
                   <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-white/5 border border-white/5">
                     <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] font-mono">{row.l}</span>
@@ -319,7 +379,10 @@ export default function Dashboard() {
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col">
             <div className="flex justify-between items-center mb-12">
               <h2 className="font-bebas text-4xl italic tracking-wide">RECENT SCANS</h2>
-              <button className="border-2 border-[#C8F53E]/30 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#C8F53E]/5 transition-all">
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-[#C8F53E]/30 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#C8F53E]/5 transition-all"
+              >
                 + NEW SCAN
               </button>
             </div>
@@ -334,13 +397,7 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5 font-mono">
-                  {[
-                    { f: 'Sector 4-B', c: 'Soybean', s: '🔴 RUST DETECTED', co: '94%', t: '2m ago' },
-                    { f: 'North Block', c: 'Wheat', s: '🟢 HEALTHY', co: '97%', t: '8m ago' },
-                    { f: 'Zone 7', c: 'Cotton', s: '🟡 MOISTURE STRESS', co: '88%', t: '15m ago' },
-                    { f: 'East Grid', c: 'Maize', s: '🔴 APHID RISK', co: '91%', t: '31m ago' },
-                    { f: 'South Field', c: 'Rice', s: '🟢 HEALTHY', co: '95%', t: '1h ago' }
-                  ].map((row, i) => (
+                  {recentScans.map((row, i) => (
                     <tr key={i} className="group hover:bg-[#C8F53E]/[0.03] transition-all">
                       <td className="py-6 font-bold text-white text-xs">{row.f}</td>
                       <td className="py-6 text-[10px] text-white/50">{row.c}</td>

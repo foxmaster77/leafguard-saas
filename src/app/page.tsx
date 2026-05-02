@@ -21,10 +21,88 @@ const css = `
 
 export default function HomePage() {
   const [pp, setPp] = useState(3.8);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [consoleLogs, setConsoleLogs] = useState<string[]>(['> Waiting for input']);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const t = setInterval(() => setPp(+(Math.random()*4.2).toFixed(1)), 2000);
     return () => clearInterval(t);
   }, []);
+
+  const addLog = (msg: string) => {
+    setConsoleLogs(prev => [...prev.slice(-4), msg]);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+        setAnalysisResult(null);
+        addLog(`> Image loaded: ${file.name}`);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAnalyze = async (customImage?: string) => {
+    const img = customImage || imagePreview;
+    if (!img) return;
+
+    setAnalyzing(true);
+    setAnalysisResult(null);
+    setConsoleLogs(['> Scanning image...']);
+    
+    setTimeout(() => addLog('> Running neural detection...'), 800);
+    
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: img })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setAnalysisResult(data.report);
+        addLog('> Analysis complete.');
+        addLog(`> Score: ${data.report.healthScore}/100`);
+        addLog(`> Status: ${data.report.diseaseName}`);
+      } else {
+        addLog('> Analysis failed.');
+      }
+    } catch (err) {
+      addLog('> Error connecting to AI node.');
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const runSample = async (type: 'WHEAT' | 'SOY') => {
+    const url = type === 'WHEAT' 
+      ? 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800' 
+      : 'https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800';
+    
+    addLog(`> Fetching sample ${type}...`);
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        setImagePreview(base64data);
+        handleAnalyze(base64data);
+      };
+      reader.readAsDataURL(blob);
+    } catch (e) {
+      addLog('> Failed to load sample image.');
+    }
+  };
+
   useEffect(() => {
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
@@ -38,6 +116,7 @@ export default function HomePage() {
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <Navigation />
 
+      {/* HERO SECTION OMITTED FOR BREVITY - PRESERVED IN FILE */}
       {/* HERO */}
       <section style={{ minHeight:'100vh', position:'relative', overflow:'hidden', display:'flex', alignItems:'center', padding:'0 3rem', paddingTop:'80px' }}>
         <video autoPlay muted loop playsInline style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.15, zIndex:0 }} src="/238827.mp4" />
@@ -89,6 +168,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* PARTNERS MARQUEE SECTION PRESERVED IN FILE */}
       {/* PARTNERS MARQUEE */}
       <section style={{ background:'#0A0E07', borderTop:'1px solid rgba(200,245,62,0.06)', borderBottom:'1px solid rgba(200,245,62,0.06)', padding:'1.5rem 0', overflow:'hidden' }}>
         <p style={{ textAlign:'center', fontFamily:'monospace', fontSize:'0.6rem', color:'#C8F53E', letterSpacing:'0.25em', textTransform:'uppercase', marginBottom:'1rem' }}>GLOBAL INFRASTRUCTURE PARTNERS</p>
@@ -103,6 +183,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* FEATURES SECTION PRESERVED IN FILE */}
       {/* FEATURES */}
       <section style={{ background:'#0A0E07', padding:'8rem 3rem' }}>
         <div className="reveal" style={{ textAlign:'center', marginBottom:'4rem' }}>
@@ -125,6 +206,7 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* GLOBAL MAP SECTION PRESERVED IN FILE */}
       {/* GLOBAL MAP SECTION */}
       <section style={{ background:'#060A04', padding:'8rem 3rem' }}>
         <div className="reveal" style={{ textAlign:'center', marginBottom:'3rem' }}>
@@ -163,18 +245,43 @@ export default function HomePage() {
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', background:'#0F1409', border:'1px solid rgba(200,245,62,0.1)', maxWidth:'900px', margin:'0 auto', borderRadius:'8px', overflow:'hidden' }}>
           <div style={{ padding:'2rem' }}>
-            <div style={{ border:'2px dashed rgba(200,245,62,0.2)', height:'220px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'0.8rem', cursor:'pointer', borderRadius:'4px', transition:'all 0.2s' }}
+            <input type="file" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handleFileSelect} />
+            <div 
+              style={{ border:'2px dashed rgba(200,245,62,0.2)', height:'220px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'0.8rem', cursor:'pointer', borderRadius:'4px', transition:'all 0.2s', position:'relative', overflow:'hidden' }}
+              onClick={() => fileInputRef.current?.click()}
               onMouseEnter={e=>{e.currentTarget.style.borderColor='#C8F53E';e.currentTarget.style.background='rgba(200,245,62,0.03)'}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(200,245,62,0.2)';e.currentTarget.style.background='transparent'}}>
-              <span style={{ fontSize:'2.5rem', opacity:0.5 }}>⚡</span>
-              <p style={{ fontWeight:700, color:'white', margin:0 }}>DROP YOUR FIELD IMAGE.</p>
-              <p style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#C8F53E', margin:0 }}>GET INSTANT DIAGNOSIS</p>
-              <p style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'rgba(255,255,255,0.3)', margin:0 }}>JPG · PNG · WEBP</p>
+              onMouseLeave={e=>{e.currentTarget.style.borderColor='rgba(200,245,62,0.2)';e.currentTarget.style.background='transparent'}}
+            >
+              {imagePreview ? (
+                <img src={imagePreview} alt="Preview" style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', opacity:0.6 }} />
+              ) : (
+                <span style={{ fontSize:'2.5rem', opacity:0.5 }}>⚡</span>
+              )}
+              <div style={{ position:'relative', zIndex:1, textAlign:'center' }}>
+                <p style={{ fontWeight:700, color:'white', margin:0 }}>DROP YOUR FIELD IMAGE.</p>
+                <p style={{ fontFamily:'monospace', fontSize:'0.72rem', color:'#C8F53E', margin:0 }}>GET INSTANT DIAGNOSIS</p>
+                <p style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'rgba(255,255,255,0.3)', margin:0 }}>JPG · PNG · WEBP</p>
+              </div>
+            </div>
+            <div style={{ marginTop: '1.2rem' }}>
+              <button 
+                onClick={() => handleAnalyze()}
+                disabled={analyzing || !imagePreview}
+                style={{ width: '100%', background: analyzing ? '#333' : '#C8F53E', color: analyzing ? '#999' : '#060A04', border: 'none', padding: '0.8rem', fontWeight: 900, fontFamily: 'monospace', cursor: (analyzing || !imagePreview) ? 'not-allowed' : 'pointer', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+              >
+                {analyzing ? 'SCANNING...' : 'ANALYZE NOW'}
+              </button>
             </div>
             <p style={{ fontFamily:'monospace', fontSize:'0.6rem', color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', margin:'1.2rem 0 0.6rem', textTransform:'uppercase' }}>TEST WITH SAMPLE DATA:</p>
             <div style={{ display:'flex', gap:'0.6rem' }}>
               {['SAMPLE A (WHEAT)','SAMPLE B (SOY)'].map(s=>(
-                <button key={s} style={{ flex:1, border:'1px solid rgba(200,245,62,0.3)', color:'#C8F53E', background:'transparent', padding:'0.5rem', fontFamily:'monospace', fontSize:'0.7rem', cursor:'pointer', letterSpacing:'0.08em', transition:'all 0.2s' }}>{s}</button>
+                <button 
+                  key={s} 
+                  onClick={() => runSample(s.includes('WHEAT') ? 'WHEAT' : 'SOY')}
+                  style={{ flex:1, border:'1px solid rgba(200,245,62,0.3)', color:'#C8F53E', background:'transparent', padding:'0.5rem', fontFamily:'monospace', fontSize:'0.7rem', cursor:'pointer', letterSpacing:'0.08em', transition:'all 0.2s' }}
+                >
+                  {s}
+                </button>
               ))}
             </div>
           </div>
@@ -183,7 +290,15 @@ export default function HomePage() {
               <span style={{ fontFamily:'monospace', fontSize:'0.65rem', color:'#C8F53E', letterSpacing:'0.12em' }}>● ANALYSIS CONSOLE</span>
               <span style={{ fontFamily:'monospace', fontSize:'0.6rem', color:'rgba(255,255,255,0.3)' }}>NODE: ALPHA-V3</span>
             </div>
-            <p style={{ fontFamily:'monospace', fontSize:'0.85rem', color:'#C8F53E', marginBottom:'1.5rem' }}>&gt; Waiting for input<span style={{ animation:'blink 1s infinite', display:'inline-block' }}>|</span></p>
+            
+            <div style={{ flexGrow: 1, minHeight: '150px' }}>
+              {consoleLogs.map((log, i) => (
+                <p key={i} style={{ fontFamily:'monospace', fontSize:'0.85rem', color: log.includes('complete') ? '#C8F53E' : 'rgba(200,245,62,0.7)', marginBottom:'0.4rem', borderLeft: log.startsWith('>') ? '2px solid transparent' : '2px solid #C8F53E', paddingLeft: log.startsWith('>') ? 0 : '10px' }}>
+                  {log}{i === consoleLogs.length - 1 && <span style={{ animation:'blink 1s infinite', display:'inline-block' }}>|</span>}
+                </p>
+              ))}
+            </div>
+
             <div style={{ marginBottom:'1rem' }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.4rem' }}>
                 <span style={{ fontFamily:'monospace', fontSize:'0.6rem', color:'rgba(255,255,255,0.4)', textTransform:'uppercase' }}>PROCESSING POWER</span>
@@ -200,7 +315,91 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* TASK 3: RESULTS SECTION */}
+        {analysisResult && (
+          <div className="reveal visible" style={{ maxWidth: '900px', margin: '3rem auto 0', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1.5rem' }}>
+            {/* Health Score & Diagnosis */}
+            <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.8rem', fontStyle: 'italic', color: '#C8F53E' }}>DIAGNOSTIC REPORT</h3>
+                <span style={{ background: analysisResult.riskLevel === 'High' ? '#FF4F4F' : analysisResult.riskLevel === 'Moderate' ? '#FFB347' : '#C8F53E', color: '#060A04', fontSize: '0.65rem', fontWeight: 900, padding: '0.3rem 0.8rem', borderRadius: '99px' }}>
+                  {analysisResult.severity || analysisResult.riskLevel} SEVERITY
+                </span>
+              </div>
+              
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem' }}>HEALTH SCORE</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ flexGrow: 1, height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', overflow: 'hidden' }}>
+                    <div style={{ width: `${analysisResult.healthScore}%`, height: '100%', background: '#C8F53E' }} />
+                  </div>
+                  <span style={{ fontFamily: 'monospace', fontSize: '1.2rem', fontWeight: 900, color: '#C8F53E' }}>{analysisResult.healthScore}%</span>
+                </div>
+              </div>
+
+              <div>
+                <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.5rem' }}>DETECTED CONDITION</p>
+                <p style={{ fontSize: '1.2rem', fontWeight: 700, color: 'white' }}>{analysisResult.diseaseName}</p>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.5)', marginTop: '0.5rem' }}>{analysisResult.diagnosis}</p>
+              </div>
+            </div>
+
+            {/* Pesticide Table */}
+            <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '8px' }}>
+              <h3 style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 900, color: '#C8F53E', marginBottom: '1rem', letterSpacing: '0.1em' }}>RECOMMENDED TREATMENT</h3>
+              <table style={{ width: '100%', textAlign: 'left', fontFamily: 'monospace', fontSize: '0.75rem', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ color: 'rgba(255,255,255,0.3)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                    <th style={{ paddingBottom: '0.5rem' }}>PRODUCT</th>
+                    <th style={{ paddingBottom: '0.5rem' }}>DOSE</th>
+                    <th style={{ paddingBottom: '0.5rem' }}>TIMING</th>
+                  </tr>
+                </thead>
+                <tbody style={{ color: 'rgba(255,255,255,0.7)' }}>
+                  {analysisResult.pesticides?.length > 0 ? analysisResult.pesticides.map((p: any, i: number) => (
+                    <tr key={i}>
+                      <td style={{ padding: '0.6rem 0' }}>{p.name}</td>
+                      <td style={{ padding: '0.6rem 0' }}>{p.dose}</td>
+                      <td style={{ padding: '0.6rem 0' }}>{p.timing}</td>
+                    </tr>
+                  )) : (
+                    <tr>
+                      <td colSpan={3} style={{ padding: '1rem 0', textAlign: 'center', color: 'rgba(255,255,255,0.3)' }}>No chemical treatment required</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Action Plan */}
+            <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '8px' }}>
+              <h3 style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 900, color: '#C8F53E', marginBottom: '1.2rem', letterSpacing: '0.1em' }}>4-STEP ACTION PLAN</h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {(analysisResult.actionPlan?.length > 0 ? analysisResult.actionPlan.slice(0,4) : ['Soil audit', 'Zone isolation', 'Manual inspection', 'Moisture check']).map((step: string, i: number) => (
+                  <div key={i} style={{ display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
+                    <span style={{ color: '#C8F53E', fontWeight: 900, fontSize: '0.8rem' }}>0{i+1}</span>
+                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.4 }}>{step}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Expert Opinion & Prevention */}
+            <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '8px' }}>
+              <div style={{ marginBottom: '1.2rem' }}>
+                <h3 style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 900, color: '#C8F53E', marginBottom: '0.5rem', letterSpacing: '0.1em' }}>EXPERT OPINION</h3>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, fontStyle: 'italic' }}>&quot;{analysisResult.expertOpinion}&quot;</p>
+              </div>
+              <div>
+                <h3 style={{ fontFamily: 'monospace', fontSize: '0.75rem', fontWeight: 900, color: '#C8F53E', marginBottom: '0.5rem', letterSpacing: '0.1em' }}>PREVENTION</h3>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.prevention}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </section>
+
 
       {/* DATA TO DECISION */}
       <section style={{ background:'#0A0E07', padding:'8rem 3rem' }}>
