@@ -1,89 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
 
-const PROMPT = `You are an expert agricultural pathologist. 
-Analyze this crop image and respond ONLY with valid JSON, 
-no markdown, no explanation, just the JSON object:
-{
-  "cropName": "crop name here",
-  "disease": "disease name or None Detected",
-  "healthy": true or false,
-  "healthScore": number 0-100,
-  "riskLevel": "Low" or "Medium" or "High" or "Critical",
-  "confidence": number 0-100,
-  "pesticide": "recommended pesticide name",
-  "dosage": "dosage and timing",
-  "actionPlan": ["step 1", "step 2", "step 3"],
-  "funFact": "interesting fact about this crop or disease",
-  "severity": "Low" or "Medium" or "High",
-  "treatment": "treatment description"
-}`;
-
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.GEMINI_API_KEY;
-    console.log('API Key exists:', !!apiKey);
-    console.log('API Key starts with:', apiKey?.substring(0, 8));
-
     const formData = await req.formData();
     const file = formData.get('image') as File;
-
-    if (!file) {
-      return NextResponse.json(
-        { error: 'No image provided' }, 
-        { status: 400 }
-      );
-    }
-
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'API key not configured' }, 
-        { status: 500 }
-      );
-    }
+    if (!file) return NextResponse.json({ error: 'No image' }, { status: 400 });
 
     const bytes = await file.arrayBuffer();
     const base64 = Buffer.from(bytes).toString('base64');
     const mimeType = file.type || 'image/jpeg';
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash-exp' 
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image_url',
+              image_url: {
+                url: `data:${mimeType};base64,${base64}`
+              }
+            },
+            {
+              type: 'text',
+              text: 'You are an expert agricultural pathologist. Analyze this crop image. Respond ONLY with valid JSON no markdown no extra text: {"cropName":"string","disease":"string","healthy":boolean,"healthScore":number,"riskLevel":"Low or Medium or High or Critical","confidence":number,"pesticide":"string","dosage":"string","actionPlan":["step1","step2","step3"],"funFact":"string","severity":"string","treatment":"string"}'
+            }
+          ]
+        }]
+      })
     });
 
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: mimeType as any,
-          data: base64,
-        },
-      },
-      { text: PROMPT }
-    ]);
-
-    const text = result.response.text();
-    const clean = text
-      .replace(/```json/g, '')
-      .replace(/```/g, '')
-      .trim();
-
-    let parsed;
-    try {
-      parsed = JSON.parse(clean);
-    } catch {
-      const match = clean.match(/\{[\s\S]*\}/);
-      if (match) parsed = JSON.parse(match[0]);
-      else throw new Error('Invalid JSON response');
-    }
+    const data = await response.json();
+    console.log('Groq response:', JSON.stringify(data));
+    
+    const text = data.choices?.[0]?.message?.content || '';
+    const clean = text.replace(/```json/g,'').replace(/```/g,'').trim();
+    const match = clean.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(match ? match[0] : clean);
     return NextResponse.json(parsed);
 
   } catch (error: any) {
-    console.error('Analyze error:', error?.message || error);
+    console.error('Error:', error?.message);
     return NextResponse.json(
-      { error: 'Analysis failed: ' + (error?.message || 'Unknown error') },
+      { error: 'Analysis failed: ' + error?.message }, 
       { status: 500 }
     );
   }
