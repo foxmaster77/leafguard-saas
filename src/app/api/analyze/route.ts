@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
             },
             {
               type: 'text',
-              text: 'You are an expert agricultural pathologist. Analyze this crop image. Respond ONLY with valid JSON no markdown no extra text: {"cropName":"string","disease":"string","healthy":boolean,"healthScore":number,"riskLevel":"Low or Medium or High or Critical","confidence":number,"pesticide":"string","dosage":"string","actionPlan":["step1","step2","step3"],"funFact":"string","severity":"string","treatment":"string"}'
+              text: 'You are an expert agricultural pathologist. Analyze this crop image. Respond ONLY with valid JSON, no markdown, no extra text. IMPORTANT: healthScore must be an integer between 0 and 100 (e.g. 72, not 0.72). confidence must be an integer between 0 and 100 (e.g. 85, not 0.85). Schema: {"cropName":"string","disease":"string","healthy":boolean,"healthScore":number between 0-100,"riskLevel":"Low|Medium|High|Critical","confidence":number between 0-100,"pesticide":"string","dosage":"string","actionPlan":["step1","step2","step3"],"funFact":"string","severity":"string","treatment":"string"}'
             }
           ]
         }]
@@ -47,6 +47,20 @@ export async function POST(req: NextRequest) {
     const clean = text.replace(/```json/g,'').replace(/```/g,'').trim();
     const match = clean.match(/\{[\s\S]*\}/);
     const parsed = JSON.parse(match ? match[0] : clean);
+
+    // Normalize healthScore and confidence to 0–100 integers
+    // Guard against AI returning decimals like 0.72 instead of 72
+    if (typeof parsed.healthScore === 'number' && parsed.healthScore <= 1) {
+      parsed.healthScore = Math.round(parsed.healthScore * 100);
+    } else {
+      parsed.healthScore = Math.round(parsed.healthScore ?? 75);
+    }
+    if (typeof parsed.confidence === 'number' && parsed.confidence <= 1) {
+      parsed.confidence = Math.round(parsed.confidence * 100);
+    } else {
+      parsed.confidence = Math.round(parsed.confidence ?? 85);
+    }
+
     return NextResponse.json(parsed);
 
   } catch (error: any) {

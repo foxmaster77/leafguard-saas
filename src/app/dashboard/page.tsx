@@ -142,7 +142,7 @@ export default function Dashboard() {
           field: file.name,
           cropName: data.cropName,
           disease: data.disease.toUpperCase(),
-          confidence: data.confidence + '%',
+          confidence: data.confidence ,
           time: 'Just now'
         };
         setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
@@ -479,7 +479,6 @@ export default function Dashboard() {
               {[
                 { label: 'CROP NAME', val: result.cropName },
                 { label: 'DISEASE DETECTED', val: result.disease },
-                { label: 'CONFIDENCE', val: result.confidence  },
                 { label: 'RISK LEVEL', val: result.riskLevel, color: 
                   result.riskLevel === 'Critical' ? 'text-[#FF4F4F]' :
                   result.riskLevel === 'High' ? 'text-orange-400' :
@@ -498,10 +497,10 @@ export default function Dashboard() {
               <div className="h-3 bg-white/5 rounded-full overflow-hidden mb-3">
                 <div 
                   className="h-full bg-[#C8F53E] transition-all duration-1000 shadow-[0_0_15px_#C8F53E]" 
-                  style={{ width: `${result.healthScore}%` }} 
+                  style={{ width: `${Math.min(100, Math.max(0, Number(result.healthScore)))}%` }} 
                 />
               </div>
-              <p className="text-right font-mono text-xl font-bold text-[#C8F53E]">{result.healthScore}%</p>
+              <p className="text-right font-mono text-xl font-bold text-[#C8F53E]">{Math.min(100, Math.max(0, Number(result.healthScore)))}%</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -602,7 +601,6 @@ export default function Dashboard() {
               <div className="space-y-3">
                 {[
                   { l: 'DETECTED', v: result?.disease?.toUpperCase() || 'MODERATE FUNGAL STRESS', c: 'text-white' },
-                  { l: 'CONFIDENCE', v: (result?.confidence || 91) , c: 'text-[#C8F53E]' },
                   { l: 'CROP', v: result?.cropName?.toUpperCase() || 'RICE', c: 'text-white' }
                 ].map((row, i) => (
                   <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-white/5 border border-white/5">
