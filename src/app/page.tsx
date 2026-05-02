@@ -88,14 +88,13 @@ export default function HomePage() {
 
       const res = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'x-source': 'homepage' },
         body: formData
       });
       const data = await res.json();
 
       setTimeout(() => {
-        if (data.success) {
-          setAnalysisResult(data.report);
+        if (!data.error) {
+          setAnalysisResult(data);
           addLog('> Analysis complete.');
         } else {
           addLog('> Analysis failed.');

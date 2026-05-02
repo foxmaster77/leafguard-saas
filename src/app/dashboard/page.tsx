@@ -133,16 +133,16 @@ export default function Dashboard() {
       });
       const data = await res.json();
       
-      if (data.success) {
-        setResult(data.report);
+      if (!data.error) {
+        setResult(data);
         setUploadState('success');
         // Update Recents
         setRecentUploads(prev => [{ name: file.name, time: 'Just now', dot: 'bg-[#C8F53E]' }, ...prev.slice(0, 2)]);
         const newScan = {
           field: file.name,
-          cropName: data.report.cropName,
-          disease: data.report.disease.toUpperCase(),
-          confidence: data.report.confidence + '%',
+          cropName: data.cropName,
+          disease: data.disease.toUpperCase(),
+          confidence: data.confidence + '%',
           time: 'Just now'
         };
         setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
