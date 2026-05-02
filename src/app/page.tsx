@@ -88,6 +88,7 @@ export default function HomePage() {
 
       const res = await fetch('/api/analyze', {
         method: 'POST',
+        headers: { 'x-source': 'homepage' },
         body: formData
       });
       const data = await res.json();
@@ -380,7 +381,7 @@ export default function HomePage() {
               {/* Treatment Info */}
               <div>
                 <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>// RECOMMENDED TREATMENT</p>
-                <div style={{ spaceY: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div style={{ marginBottom: '1.5rem' }}>
                     <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: '0.4rem' }}>PESTICIDE</p>
                     <p style={{ fontSize: '0.85rem', color: 'white' }}>{analysisResult.pesticide}</p>
