@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import {
   ShieldCheck, Terminal, Search, Map as MapIcon, Activity, Database, Settings,
   LogOut, Bell, Clock, User, Upload, AlertTriangle, Thermometer, CloudRain,
-  Wind, Globe, ArrowRight, RotateCcw, Target
+  Wind, Globe, ArrowRight, RotateCcw, Target, CheckCircle, XCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -34,6 +34,11 @@ export default function Dashboard() {
   const [analyzing, setAnalyzing] = useState(false);
   const [scanResult, setScanResult] = useState<any>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  
+  // New States for Task
+  const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const [recentUploads, setRecentUploads] = useState([
     { name: 'North Block', time: '8m ago', dot: 'bg-[#C8F53E]' },
     { name: 'Zone 7', time: '2m ago', dot: 'bg-[#FFB347]' },
@@ -56,47 +61,43 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const analyzeImage = async (base64: string) => {
-    setAnalyzing(true);
+  const resetUpload = () => {
+    setUploadState('idle');
+    setPreview(null);
+    setScanResult(null);
+    setErrorMsg(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadState('uploading');
+    setPreview(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append('file', file);
+
     try {
       const res = await fetch('/api/analyze', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: base64 })
+        body: formData,
       });
       const data = await res.json();
+      
       if (data.success) {
         setScanResult(data.report);
-        // Update Recent Lists
-        const newUpload = { name: 'Direct Upload', time: 'Just now', dot: 'bg-[#C8F53E]' };
-        setRecentUploads(prev => [newUpload, ...prev.slice(0, 2)]);
-
-        const newScan = {
-          f: data.report.zone || 'Unknown',
-          c: 'Detected',
-          s: `${data.report.healthScore > 80 ? '🟢' : '🔴'} ${data.report.diseaseName.toUpperCase()}`,
-          co: data.report.confidence,
-          t: 'Just now'
-        };
-        setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
+        setUploadState('success');
+        // Update Recents
+        setRecentUploads(prev => [{ name: file.name, time: 'Just now', dot: 'bg-[#C8F53E]' }, ...prev.slice(0, 2)]);
+      } else {
+        setErrorMsg(data.error || 'Analysis failed');
+        setUploadState('error');
       }
-    } catch (e) {
-      console.error('Scan failed', e);
-    } finally {
-      setAnalyzing(false);
-    }
-  };
-
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const b64 = reader.result as string;
-        setPreview(b64);
-        analyzeImage(b64);
-      };
-      reader.readAsDataURL(file);
+    } catch (err) {
+      setErrorMsg('Network error occurred');
+      setUploadState('error');
     }
   };
 
@@ -141,6 +142,23 @@ export default function Dashboard() {
           animation: scan-line 4s linear infinite;
         }
 
+        @keyframes sweep {
+          0% { top: 0%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { top: 100%; opacity: 0; }
+        }
+        .sweep-animation {
+          position: absolute;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background: #C8F53E;
+          box-shadow: 0 0 10px #C8F53E;
+          z-index: 20;
+          animation: sweep 3s infinite linear;
+        }
+
         @keyframes draw-path {
           from { stroke-dashoffset: 400; }
           to { stroke-dashoffset: 0; }
@@ -163,7 +181,7 @@ export default function Dashboard() {
           <div className="w-10 h-10 bg-[#C8F53E] flex items-center justify-center rounded-xl">
             <ShieldCheck className="text-[#060A04] w-6 h-6" />
           </div>
-          <span className="font-bebas text-2xl tracking-widest text-[#C8F53E]">AGRO_OS V4</span>
+          <span className="font-bebas text-2xl tracking-widest text-[#C8F53E]">LEAF_OS V4</span>
         </div>
 
         <nav className="flex-grow space-y-2">
@@ -205,7 +223,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <ShieldCheck size={24} className="text-[#C8F53E]" />
             <div>
-              <h1 className="font-bebas text-3xl tracking-wide italic">CROPGUARD COMMAND</h1>
+              <h1 className="font-bebas text-3xl tracking-wide italic">LEAFGUARD COMMAND</h1>
               <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">STATION: GRID-ALPHA-4 · SECURE</p>
             </div>
           </div>
@@ -227,7 +245,7 @@ export default function Dashboard() {
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FF4F4F] rounded-full text-[8px] font-black flex items-center justify-center border-2 border-[#060A04]">3</span>
               </div>
               <div className="text-right">
-                <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@CropGuard.AI</p>
+                <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@LEAFGUARD.AI</p>
                 <p className="text-[9px] font-bold text-[#C8F53E] uppercase tracking-[0.3em]">LEVEL 4 OPERATOR</p>
               </div>
               <div className="w-10 h-10 bg-[#0F1409] rounded-xl flex items-center justify-center border border-white/10">
@@ -281,30 +299,125 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Upload Column */}
-          <div
-            className="bg-[#0F1409] rounded-[3rem] border-2 border-dashed border-[#C8F53E]/20 p-8 flex flex-col items-center justify-center text-center group hover:border-[#C8F53E] transition-all cursor-pointer relative overflow-hidden"
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleFileSelect} />
-            <div className="w-16 h-16 rounded-full bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E] mb-6 group-hover:scale-110 transition-transform relative z-10">
-              <Upload size={28} />
+          {/* Enhanced Upload Column */}
+          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 flex flex-col relative overflow-hidden group">
+            <input 
+              type="file" 
+              accept="image/*,video/*" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileSelect} 
+            />
+            
+            {/* Background Layer */}
+            <div className="absolute inset-0 z-0">
+              {preview ? (
+                <img src={preview} className="w-full h-full object-cover opacity-30" />
+              ) : (
+                <video 
+                  autoPlay muted loop playsInline 
+                  className="w-full h-full object-cover opacity-20"
+                >
+                  <source src="/238827.mp4" type="video/mp4" />
+                </video>
+              )}
+              {/* Grid Overlay */}
+              <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+              <div 
+                className="absolute inset-0" 
+                style={{ backgroundImage: 'linear-gradient(rgba(200,245,62,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(200,245,62,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }} 
+              />
             </div>
-            <h3 className="text-xl font-black mb-2 uppercase relative z-10">DROP DRONE FEED OR PHOTO</h3>
-            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-10 relative z-10">JPG · PNG · MP4 · TIFF · RAW</p>
-            <button className="w-full bg-[#C8F53E] text-[#060A04] py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl mb-12 relative z-10">BROWSE FILES</button>
 
-            <div className="w-full text-left space-y-4 relative z-10">
-              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2"><RotateCcw size={12} /> RECENT UPLOADS</p>
-              {recentUploads.map((up, i) => (
-                <div key={i} className="flex justify-between items-center px-4 py-3 bg-white/5 rounded-xl border border-white/5">
-                  <div className="flex items-center gap-3">
-                    <span className={`w-1.5 h-1.5 rounded-full ${up.dot}`} />
-                    <span className="text-[11px] font-bold text-white/80">{up.name}</span>
+            {/* UI Content Layer */}
+            <div className="relative z-10 flex-grow flex flex-col p-8">
+              {uploadState === 'idle' && (
+                <div 
+                  className="flex-grow flex flex-col items-center justify-center text-center cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {/* Targeting Brackets */}
+                  <div className="absolute top-10 left-10 w-8 h-8 border-t-2 border-l-2 border-[#C8F53E]" />
+                  <div className="absolute top-10 right-10 w-8 h-8 border-t-2 border-r-2 border-[#C8F53E]" />
+                  <div className="absolute bottom-40 left-10 w-8 h-8 border-b-2 border-l-2 border-[#C8F53E]" />
+                  <div className="absolute bottom-40 right-10 w-8 h-8 border-b-2 border-r-2 border-[#C8F53E]" />
+
+                  <div className="w-16 h-16 rounded-full bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E] mb-6 animate-pulse">
+                    <Upload size={28} />
                   </div>
-                  <span className="text-[10px] font-mono text-white/30 uppercase">{up.time}</span>
+                  <h3 className="text-xl font-black mb-2 uppercase tracking-tight">INITIALIZE SCAN</h3>
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-8">DRONE FEED · PHOTO · VIDEO</p>
+                  <button className="bg-[#C8F53E] text-[#060A04] px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-2xl">UPLOAD SOURCE</button>
                 </div>
-              ))}
+              )}
+
+              {uploadState === 'uploading' && (
+                <div className="flex-grow flex flex-col items-center justify-center">
+                  <div className="sweep-animation" />
+                  <Activity size={40} className="text-[#C8F53E] animate-pulse mb-4" />
+                  <p className="font-mono text-[10px] text-[#C8F53E] animate-pulse tracking-[0.2em] uppercase font-black">NEURAL ANALYSIS IN PROGRESS...</p>
+                </div>
+              )}
+
+              {uploadState === 'success' && (
+                <div className="flex-grow flex flex-col justify-center">
+                  <div className="bg-black/80 backdrop-blur-md p-6 rounded-3xl border border-[#C8F53E]/30 space-y-4">
+                    <div className="flex items-center gap-3 text-[#C8F53E]">
+                      <CheckCircle size={18} />
+                      <span className="text-[10px] font-black uppercase tracking-widest">THREAT IDENTIFIED</span>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-white/30 uppercase mb-1">DISEASE</p>
+                      <p className="text-xl font-black italic text-white uppercase">{scanResult?.diseaseName}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-[9px] font-black text-white/30 uppercase mb-1">CONFIDENCE</p>
+                        <p className="text-lg font-black text-[#C8F53E]">{scanResult?.confidence}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-black text-white/30 uppercase mb-1">SEVERITY</p>
+                        <p className="text-lg font-black text-[#FF4F4F]">{scanResult?.riskLevel}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[9px] font-black text-white/30 uppercase mb-1">TREATMENT</p>
+                      <p className="text-[10px] font-bold text-white/70 leading-relaxed line-clamp-2">{scanResult?.pesticides?.[0]?.name}: {scanResult?.pesticides?.[0]?.dose}</p>
+                    </div>
+                    <button 
+                      onClick={resetUpload}
+                      className="w-full bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border border-white/10 transition-all mt-2"
+                    >
+                      SCAN ANOTHER FIELD
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {uploadState === 'error' && (
+                <div className="flex-grow flex flex-col items-center justify-center text-center">
+                  <XCircle size={40} className="text-[#FF4F4F] mb-4" />
+                  <p className="text-sm font-black uppercase mb-2">SYSTEM ERROR</p>
+                  <p className="text-[10px] text-white/40 mb-6 px-4">{errorMsg}</p>
+                  <button onClick={resetUpload} className="bg-[#FF4F4F] text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest">RETRY UPLINK</button>
+                </div>
+              )}
+
+              {/* Recent Uploads Footer */}
+              <div className="mt-auto pt-8 border-t border-white/5">
+                <p className="text-[9px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2 mb-4"><RotateCcw size={12} /> RECENT UPLOADS</p>
+                <div className="space-y-3">
+                  {recentUploads.map((up, i) => (
+                    <div key={i} className="flex justify-between items-center px-4 py-3 bg-black/40 rounded-xl border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <span className={`w-1.5 h-1.5 rounded-full ${up.dot}`} />
+                        <span className="text-[10px] font-bold text-white/60">{up.name}</span>
+                      </div>
+                      <span className="text-[8px] font-mono text-white/20 uppercase">{up.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
