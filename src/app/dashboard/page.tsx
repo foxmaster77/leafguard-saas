@@ -2,9 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { 
-  ShieldCheck, Terminal, Search, Map as MapIcon, Activity, Database, Settings, 
-  LogOut, Bell, Clock, User, Upload, AlertTriangle, Thermometer, CloudRain, 
+import {
+  ShieldCheck, Terminal, Search, Map as MapIcon, Activity, Database, Settings,
+  LogOut, Bell, Clock, User, Upload, AlertTriangle, Thermometer, CloudRain,
   Wind, Globe, ArrowRight, RotateCcw, Target
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +21,7 @@ const Ticker = () => (
   <div className="bg-black/40 rounded-xl p-4 overflow-hidden relative border border-white/5">
     <div className="ticker-container flex whitespace-nowrap">
       <div className="ticker-text text-[9px] font-black text-[#C8F53E] uppercase tracking-widest animate-ticker">
-        RICE PRICES UP 12% · SWARM WARNING: NORTH · SUBSIDY PROGRAM OPEN · PADDY SOWING: 48H · 
+        RICE PRICES UP 12% · SWARM WARNING: NORTH · SUBSIDY PROGRAM OPEN · PADDY SOWING: 48H ·
         RICE PRICES UP 12% · SWARM WARNING: NORTH · SUBSIDY PROGRAM OPEN · PADDY SOWING: 48H ·
       </div>
     </div>
@@ -70,13 +70,13 @@ export default function Dashboard() {
         // Update Recent Lists
         const newUpload = { name: 'Direct Upload', time: 'Just now', dot: 'bg-[#C8F53E]' };
         setRecentUploads(prev => [newUpload, ...prev.slice(0, 2)]);
-        
-        const newScan = { 
-          f: data.report.zone || 'Unknown', 
-          c: 'Detected', 
-          s: `${data.report.healthScore > 80 ? '🟢' : '🔴'} ${data.report.diseaseName.toUpperCase()}`, 
-          co: data.report.confidence, 
-          t: 'Just now' 
+
+        const newScan = {
+          f: data.report.zone || 'Unknown',
+          c: 'Detected',
+          s: `${data.report.healthScore > 80 ? '🟢' : '🔴'} ${data.report.diseaseName.toUpperCase()}`,
+          co: data.report.confidence,
+          t: 'Just now'
         };
         setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
       }
@@ -112,7 +112,8 @@ export default function Dashboard() {
 
   return (
     <div className="flex bg-[#060A04] text-white font-sans selection:bg-[#C8F53E] selection:text-[#060A04] min-h-screen">
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700;900&family=DM+Mono&display=swap');
         
         .font-bebas { font-family: 'Bebas Neue', sans-serif; }
@@ -167,15 +168,15 @@ export default function Dashboard() {
 
         <nav className="flex-grow space-y-2">
           {[
-            { label: 'COMMAND CENTER', icon: <Terminal size={18}/>, active: true },
-            { label: 'NEURAL SCANNER', icon: <Search size={18}/> },
-            { label: 'GRID GEOGRAPHY', icon: <MapIcon size={18}/> },
-            { label: 'VITALITY FEED', icon: <Activity size={18}/> },
-            { label: 'BACKBONE INFRA', icon: <Database size={18}/> },
-            { label: 'SYSTEM CONFIG', icon: <Settings size={18}/> }
+            { label: 'COMMAND CENTER', icon: <Terminal size={18} />, active: true },
+            { label: 'NEURAL SCANNER', icon: <Search size={18} /> },
+            { label: 'GRID GEOGRAPHY', icon: <MapIcon size={18} /> },
+            { label: 'VITALITY FEED', icon: <Activity size={18} /> },
+            { label: 'BACKBONE INFRA', icon: <Database size={18} /> },
+            { label: 'SYSTEM CONFIG', icon: <Settings size={18} /> }
           ].map((item, i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className={`flex items-center gap-4 px-6 py-4 rounded-xl cursor-pointer transition-all ${item.active ? 'bg-[#C8F53E]/10 text-[#C8F53E] border-l-[3px] border-l-[#C8F53E]' : 'text-white/40 hover:bg-white/5 hover:text-white'}`}
             >
               {item.icon}
@@ -204,7 +205,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <ShieldCheck size={24} className="text-[#C8F53E]" />
             <div>
-              <h1 className="font-bebas text-3xl tracking-wide italic">LEAFGUARD COMMAND</h1>
+              <h1 className="font-bebas text-3xl tracking-wide italic">CROPGUARD COMMAND</h1>
               <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">STATION: GRID-ALPHA-4 · SECURE</p>
             </div>
           </div>
@@ -214,7 +215,7 @@ export default function Dashboard() {
               <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full animate-pulse" />
               <span className="text-[9px] font-black text-[#C8F53E] uppercase tracking-widest">SYSTEM NOMINAL</span>
             </div>
-            
+
             <div className="flex items-center gap-3 text-white/60">
               <Clock size={16} className="text-[#C8F53E]" />
               <span className="font-mono text-xl font-black tracking-tighter">{time}</span>
@@ -226,7 +227,7 @@ export default function Dashboard() {
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FF4F4F] rounded-full text-[8px] font-black flex items-center justify-center border-2 border-[#060A04]">3</span>
               </div>
               <div className="text-right">
-                <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@LEAFGUARD.AI</p>
+                <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@CropGuard.AI</p>
                 <p className="text-[9px] font-bold text-[#C8F53E] uppercase tracking-[0.3em]">LEVEL 4 OPERATOR</p>
               </div>
               <div className="w-10 h-10 bg-[#0F1409] rounded-xl flex items-center justify-center border border-white/10">
@@ -241,47 +242,47 @@ export default function Dashboard() {
         <div className="grid lg:grid-cols-[1fr_320px] gap-8 mb-12">
           {/* Map Column PRESERVED */}
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[380px]">
-             {isMounted && (
-                <MapContainer center={[20, 0]} zoom={2} scrollWheelZoom={false} className="h-full w-full">
-                  <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-                  {markers.map((m, i) => (
-                    <CircleMarker 
-                      key={i} 
-                      center={m.pos as any} 
-                      radius={6} 
-                      pathOptions={{ color: '#C8F53E', fillColor: '#C8F53E', fillOpacity: 0.6 }}
-                    >
-                      <Popup className="bg-[#0F1409] text-white">
-                        <p className="font-bebas text-lg italic">{m.name}</p>
-                        <p className="text-[10px] font-black uppercase text-[#C8F53E]">Status: Active</p>
-                      </Popup>
-                    </CircleMarker>
-                  ))}
-                </MapContainer>
-             )}
-             
-             <div className="absolute top-6 right-6 z-[1000] flex items-center gap-3 px-4 py-2 bg-[#060A04]/80 backdrop-blur-md rounded-full border border-[#C8F53E]/30">
-               <span className="w-2 h-2 bg-[#C8F53E] rounded-full animate-pulse" />
-               <span className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest">DRONE ACTIVE</span>
-             </div>
+            {isMounted && (
+              <MapContainer center={[20, 0]} zoom={2} scrollWheelZoom={false} className="h-full w-full">
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+                {markers.map((m, i) => (
+                  <CircleMarker
+                    key={i}
+                    center={m.pos as any}
+                    radius={6}
+                    pathOptions={{ color: '#C8F53E', fillColor: '#C8F53E', fillOpacity: 0.6 }}
+                  >
+                    <Popup className="bg-[#0F1409] text-white">
+                      <p className="font-bebas text-lg italic">{m.name}</p>
+                      <p className="text-[10px] font-black uppercase text-[#C8F53E]">Status: Active</p>
+                    </Popup>
+                  </CircleMarker>
+                ))}
+              </MapContainer>
+            )}
 
-             <div className="absolute bottom-6 left-6 z-[1000] bg-[#060A04]/80 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-               <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-3">Satellite Overlay</p>
-               <div className="space-y-2">
-                 <div className="flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full" />
-                    <span className="text-[10px] font-black uppercase text-white/60">Active Sensor Hub</span>
-                 </div>
-                 <div className="flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 bg-[#FF4F4F] rounded-full" />
-                    <span className="text-[10px] font-black uppercase text-white/60">Maintenance Required</span>
-                 </div>
-               </div>
-             </div>
+            <div className="absolute top-6 right-6 z-[1000] flex items-center gap-3 px-4 py-2 bg-[#060A04]/80 backdrop-blur-md rounded-full border border-[#C8F53E]/30">
+              <span className="w-2 h-2 bg-[#C8F53E] rounded-full animate-pulse" />
+              <span className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest">DRONE ACTIVE</span>
+            </div>
+
+            <div className="absolute bottom-6 left-6 z-[1000] bg-[#060A04]/80 backdrop-blur-md p-4 rounded-2xl border border-white/10">
+              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-3">Satellite Overlay</p>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full" />
+                  <span className="text-[10px] font-black uppercase text-white/60">Active Sensor Hub</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-1.5 h-1.5 bg-[#FF4F4F] rounded-full" />
+                  <span className="text-[10px] font-black uppercase text-white/60">Maintenance Required</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Upload Column */}
-          <div 
+          <div
             className="bg-[#0F1409] rounded-[3rem] border-2 border-dashed border-[#C8F53E]/20 p-8 flex flex-col items-center justify-center text-center group hover:border-[#C8F53E] transition-all cursor-pointer relative overflow-hidden"
             onClick={() => fileInputRef.current?.click()}
           >
@@ -292,9 +293,9 @@ export default function Dashboard() {
             <h3 className="text-xl font-black mb-2 uppercase relative z-10">DROP DRONE FEED OR PHOTO</h3>
             <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-10 relative z-10">JPG · PNG · MP4 · TIFF · RAW</p>
             <button className="w-full bg-[#C8F53E] text-[#060A04] py-4 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl mb-12 relative z-10">BROWSE FILES</button>
-            
+
             <div className="w-full text-left space-y-4 relative z-10">
-              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2"><RotateCcw size={12}/> RECENT UPLOADS</p>
+              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest flex items-center gap-2"><RotateCcw size={12} /> RECENT UPLOADS</p>
               {recentUploads.map((up, i) => (
                 <div key={i} className="flex justify-between items-center px-4 py-3 bg-white/5 rounded-xl border border-white/5">
                   <div className="flex items-center gap-3">
@@ -311,12 +312,12 @@ export default function Dashboard() {
         {/* STATS ROW PRESERVED */}
         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6 mb-12">
           {[
-            { label: 'AMBIENT TEMP', val: '15°C', icon: <Thermometer size={14}/> },
-            { label: 'SOIL HUMIDITY', val: '54%', icon: <CloudRain size={14}/> },
-            { label: 'CROP STAGE', val: 'Flowering', icon: <Wind size={14}/>, color: 'text-[#C8F53E]' },
-            { label: 'ACTIVE ALERTS', val: '3 Critical', icon: <AlertTriangle size={14}/>, color: 'text-[#FF4F4F]' },
-            { label: 'DRONES ACTIVE', val: '2/5', icon: <Activity size={14}/>, color: 'text-[#C8F53E]' },
-            { label: 'SECTOR COVERAGE', val: '142.5 Ha', icon: <Globe size={14}/> }
+            { label: 'AMBIENT TEMP', val: '15°C', icon: <Thermometer size={14} /> },
+            { label: 'SOIL HUMIDITY', val: '54%', icon: <CloudRain size={14} /> },
+            { label: 'CROP STAGE', val: 'Flowering', icon: <Wind size={14} />, color: 'text-[#C8F53E]' },
+            { label: 'ACTIVE ALERTS', val: '3 Critical', icon: <AlertTriangle size={14} />, color: 'text-[#FF4F4F]' },
+            { label: 'DRONES ACTIVE', val: '2/5', icon: <Activity size={14} />, color: 'text-[#C8F53E]' },
+            { label: 'SECTOR COVERAGE', val: '142.5 Ha', icon: <Globe size={14} /> }
           ].map((stat, i) => (
             <div key={i} className="bg-[#0F1409] p-8 rounded-[2rem] border border-white/5 hover:border-[#C8F53E]/30 transition-all group">
               <div className="flex justify-between items-center mb-4">
@@ -344,7 +345,7 @@ export default function Dashboard() {
               <img src={preview || "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80"} className={`w-full h-full object-cover ${preview ? 'opacity-100' : 'grayscale opacity-20'}`} alt="Field Scan" />
               {analyzing && <div className="scan-line" />}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                 <Target className={`text-[#C8F53E] w-32 h-32 ${analyzing ? 'opacity-100 scale-110' : 'opacity-20'} transition-all duration-500 animate-pulse`} />
+                <Target className={`text-[#C8F53E] w-32 h-32 ${analyzing ? 'opacity-100 scale-110' : 'opacity-20'} transition-all duration-500 animate-pulse`} />
               </div>
             </div>
 
@@ -379,7 +380,7 @@ export default function Dashboard() {
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col">
             <div className="flex justify-between items-center mb-12">
               <h2 className="font-bebas text-4xl italic tracking-wide">RECENT SCANS</h2>
-              <button 
+              <button
                 onClick={() => fileInputRef.current?.click()}
                 className="border-2 border-[#C8F53E]/30 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#C8F53E]/5 transition-all"
               >
@@ -423,9 +424,9 @@ export default function Dashboard() {
             <div className="space-y-4">
               <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-6">ACTIVE ENDPOINTS</p>
               {[
-                { name: 'API Gateway', url: 'api.LEAFGUARD.ai', ping: '42ms' },
-                { name: 'AI Model Server', url: 'model.LEAFGUARD.ai', ping: '118ms' },
-                { name: 'Drone Uplink', url: 'drone.LEAFGUARD.ai', ping: '67ms' }
+                { name: 'API Gateway', url: 'api.CropGuard.ai', ping: '42ms' },
+                { name: 'AI Model Server', url: 'model.CropGuard.ai', ping: '118ms' },
+                { name: 'Drone Uplink', url: 'drone.CropGuard.ai', ping: '67ms' }
               ].map((node, i) => (
                 <div key={i} className="bg-black/40 border border-white/5 p-6 rounded-[2rem] flex items-center justify-between group hover:border-[#C8F53E]/30 transition-all">
                   <div className="flex items-center gap-4">
@@ -441,54 +442,54 @@ export default function Dashboard() {
             </div>
 
             <div className="bg-black/40 border border-white/5 rounded-[3rem] p-10 relative flex flex-col justify-end min-h-[300px]">
-               <div className="absolute top-10 left-10">
-                 <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2">RESPONSE TIME HISTORY</p>
-                 <div className="flex gap-4">
-                   <div className="flex items-center gap-2">
-                     <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full" />
-                     <span className="text-[8px] font-black text-white/40 uppercase">Latency (ms)</span>
-                   </div>
-                 </div>
-               </div>
+              <div className="absolute top-10 left-10">
+                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2">RESPONSE TIME HISTORY</p>
+                <div className="flex gap-4">
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full" />
+                    <span className="text-[8px] font-black text-white/40 uppercase">Latency (ms)</span>
+                  </div>
+                </div>
+              </div>
 
-               <div className="relative h-40 w-full">
-                 {/* Subtle Grid Lines */}
-                 <div className="absolute inset-0 flex flex-col justify-between opacity-5">
-                   {[0, 1, 2, 3].map(i => <div key={i} className="h-px w-full bg-white" />)}
-                 </div>
-                 
-                 <svg className="h-full w-full overflow-visible" viewBox="0 0 400 100" preserveAspectRatio="none">
-                    <motion.path
-                      d="M0,80 L40,60 L80,90 L120,40 L160,70 L200,30 L240,50 L280,20 L320,60 L360,40 L400,50"
-                      fill="none"
-                      stroke="#C8F53E"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="animate-path"
-                    />
-                    <path
-                      d="M0,80 L40,60 L80,90 L120,40 L160,70 L200,30 L240,50 L280,20 L320,60 L360,40 L400,50 V100 H0 Z"
-                      fill="url(#gradient-infra)"
-                      className="opacity-10"
-                    />
-                    <defs>
-                      <linearGradient id="gradient-infra" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#C8F53E" />
-                        <stop offset="100%" stopColor="transparent" />
-                      </linearGradient>
-                    </defs>
-                 </svg>
-               </div>
+              <div className="relative h-40 w-full">
+                {/* Subtle Grid Lines */}
+                <div className="absolute inset-0 flex flex-col justify-between opacity-5">
+                  {[0, 1, 2, 3].map(i => <div key={i} className="h-px w-full bg-white" />)}
+                </div>
 
-               <div className="flex justify-between pt-8 text-[9px] font-black text-white/20 uppercase tracking-widest font-mono">
-                 <span>5m ago</span>
-                 <span>4m ago</span>
-                 <span>3m ago</span>
-                 <span>2m ago</span>
-                 <span>1m ago</span>
-                 <span className="text-[#C8F53E]">Now</span>
-               </div>
+                <svg className="h-full w-full overflow-visible" viewBox="0 0 400 100" preserveAspectRatio="none">
+                  <motion.path
+                    d="M0,80 L40,60 L80,90 L120,40 L160,70 L200,30 L240,50 L280,20 L320,60 L360,40 L400,50"
+                    fill="none"
+                    stroke="#C8F53E"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="animate-path"
+                  />
+                  <path
+                    d="M0,80 L40,60 L80,90 L120,40 L160,70 L200,30 L240,50 L280,20 L320,60 L360,40 L400,50 V100 H0 Z"
+                    fill="url(#gradient-infra)"
+                    className="opacity-10"
+                  />
+                  <defs>
+                    <linearGradient id="gradient-infra" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" stopColor="#C8F53E" />
+                      <stop offset="100%" stopColor="transparent" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+
+              <div className="flex justify-between pt-8 text-[9px] font-black text-white/20 uppercase tracking-widest font-mono">
+                <span>5m ago</span>
+                <span>4m ago</span>
+                <span>3m ago</span>
+                <span>2m ago</span>
+                <span>1m ago</span>
+                <span className="text-[#C8F53E]">Now</span>
+              </div>
             </div>
           </div>
         </section>
