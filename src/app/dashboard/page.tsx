@@ -425,16 +425,9 @@ export default function Dashboard() {
 
         {/* HEATMAP MAP + UPLOAD ROW */}
         <div className="grid lg:grid-cols-[1fr_320px] gap-8 mb-12">
-          {/* Outbreak Heatmap Map Column */}
+          {/* Outbreak Heatmap Map Column — dynamic(ssr:false) handles client-only safely */}
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[450px]">
-            {isMounted ? (
-              <OutbreakHeatmap clusters={outbreakData.pincodeClusters} />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center bg-[#060A04] text-[#C8F53E] font-mono text-xs gap-3">
-                <span className="w-3 h-3 bg-[#C8F53E] rounded-full animate-ping" />
-                <span>INITIALIZING SATELLITE RADAR TELEMETRY...</span>
-              </div>
-            )}
+            <OutbreakHeatmap clusters={outbreakData.pincodeClusters} />
 
 
             <div className="absolute top-6 right-6 z-[1000] flex items-center gap-3 px-4 py-2 bg-[#060A04]/80 backdrop-blur-md rounded-full border border-[#C8F53E]/30">
