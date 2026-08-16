@@ -67,9 +67,13 @@ JSON Schema:
     let jsonResponseText = '';
 
     // Strategy 1: Try Gemini API if GEMINI_API_KEY is available
+    // Model: gemini-3.7-flash — confirmed active & tested with multimodal generateContent
+    // To verify current models: GET https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_KEY
+    const GEMINI_MODEL = 'gemini-3.7-flash';
     if (process.env.GEMINI_API_KEY) {
+      console.log(`[AgroGuard] Using Gemini model: ${GEMINI_MODEL}`);
       try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
         const parts: any[] = [{ text: promptText }];
         if (base64Image) {
           parts.unshift({
@@ -92,16 +96,22 @@ JSON Schema:
         if (geminiRes.ok) {
           const geminiData = await geminiRes.json();
           jsonResponseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (jsonResponseText) console.log(`[AgroGuard] Gemini (${GEMINI_MODEL}) responded successfully.`);
         } else {
-          console.warn('Gemini API non-200, trying Groq fallback:', await geminiRes.text());
+          const errBody = await geminiRes.text();
+          console.warn(`[AgroGuard] Gemini (${GEMINI_MODEL}) non-200 (${geminiRes.status}), falling back to Groq. Error: ${errBody}`);
         }
       } catch (geminiErr: any) {
-        console.warn('Gemini call error:', geminiErr?.message);
+        console.warn(`[AgroGuard] Gemini (${GEMINI_MODEL}) call error:`, geminiErr?.message);
       }
     }
 
     // Strategy 2: Fallback to Groq API if Gemini wasn't available or failed
+    // Model: meta-llama/llama-4-maverick-17b-128e-instruct — vision-capable, listed in console.groq.com/docs/vision
+    // To verify current models: GET https://api.groq.com/openai/v1/models (with Authorization: Bearer YOUR_KEY)
+    const GROQ_MODEL = 'meta-llama/llama-4-maverick-17b-128e-instruct';
     if (!jsonResponseText && process.env.GROQ_API_KEY) {
+      console.log(`[AgroGuard] Using Groq model: ${GROQ_MODEL}`);
       try {
         const contentParts: any[] = [];
         if (base64Image) {
@@ -119,7 +129,7 @@ JSON Schema:
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'meta-llama/llama-4-scout-17b-16e-instruct',
+            model: GROQ_MODEL,
             max_tokens: 1000,
             messages: [{ role: 'user', content: contentParts }]
           })
@@ -128,16 +138,20 @@ JSON Schema:
         if (groqRes.ok) {
           const groqData = await groqRes.json();
           jsonResponseText = groqData.choices?.[0]?.message?.content || '';
+          if (jsonResponseText) console.log(`[AgroGuard] Groq (${GROQ_MODEL}) responded successfully.`);
         } else {
-          console.error('Groq API error:', await groqRes.text());
+          const errBody = await groqRes.text();
+          console.error(`[AgroGuard] Groq (${GROQ_MODEL}) error (${groqRes.status}): ${errBody}`);
         }
       } catch (groqErr: any) {
-        console.error('Groq call error:', groqErr?.message);
+        console.error(`[AgroGuard] Groq (${GROQ_MODEL}) call error:`, groqErr?.message);
       }
     }
 
     if (!jsonResponseText) {
-      throw new Error('AI analysis providers failed to respond.');
+      const geminiStatus = process.env.GEMINI_API_KEY ? `Gemini/${GEMINI_MODEL}` : 'Gemini (no key)';
+      const groqStatus = process.env.GROQ_API_KEY ? `Groq/${GROQ_MODEL}` : 'Groq (no key)';
+      throw new Error(`AI analysis providers failed to respond. Tried: ${geminiStatus}, ${groqStatus}. Check server logs for per-provider error details.`);
     }
 
     const clean = jsonResponseText.replace(/```json/gi, '').replace(/```/g, '').trim();
