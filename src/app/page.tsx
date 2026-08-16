@@ -654,6 +654,223 @@ export default function HomePage() {
               </div>
             </div>
 
+            {/* 1. WEATHER SPREAD RISK FORECAST */}
+            {analysisResult.diseaseRisk && analysisResult.weather && (
+              <div style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.8rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.8rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', fontWeight: 900 }}>
+                      🌦️ 5-DAY WEATHER & PATHOGEN SPREAD RISK FORECAST
+                    </span>
+                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: '0.2rem 0 0' }}>
+                      Location: {analysisResult.weather.locationName || `Pincode ${pincode}`}
+                    </p>
+                  </div>
+
+                  <span style={{
+                    background: analysisResult.diseaseRisk.riskLevel === 'High' ? '#FF4F4F' : analysisResult.diseaseRisk.riskLevel === 'Moderate' ? '#FFB347' : '#C8F53E',
+                    color: '#060A04',
+                    fontWeight: 900,
+                    fontSize: '0.75rem',
+                    padding: '0.35rem 0.9rem',
+                    borderRadius: '99px',
+                    letterSpacing: '0.08em',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    animation: analysisResult.diseaseRisk.riskLevel === 'High' ? 'pulseRed 1.5s infinite' : 'none'
+                  }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#060A04', display: 'inline-block' }} />
+                    {analysisResult.diseaseRisk.riskLevel?.toUpperCase()} SPREAD RISK ({analysisResult.diseaseRisk.riskScore}/100)
+                  </span>
+                </div>
+
+                {/* 5-Day Weather Forecast Strip */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.8rem', marginBottom: '1.2rem' }}>
+                  {analysisResult.weather.forecast?.map((day: any, i: number) => (
+                    <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '0.8rem', textAlign: 'center' }}>
+                      <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', margin: '0 0 0.4rem', fontWeight: 700 }}>{day.day}</p>
+                      <div style={{ fontSize: '1.4rem', margin: '0.2rem 0' }}>{day.icon}</div>
+                      <p style={{ fontSize: '0.85rem', fontWeight: 900, color: 'white', margin: '0.2rem 0' }}>{day.temp}°C</p>
+                      <p style={{ fontSize: '0.65rem', color: '#C8F53E', margin: '0.2rem 0 0' }}>💧 {day.humidity}%</p>
+                      <p style={{ fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', margin: '0.1rem 0 0' }}>🌧️ {day.rain_probability}%</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Localized Risk Explanation & Spray Advice */}
+                <div style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${analysisResult.diseaseRisk.riskLevel === 'High' ? 'rgba(255,79,79,0.3)' : 'rgba(200,245,62,0.15)'}`, padding: '1rem', borderRadius: '6px' }}>
+                  <p style={{ color: 'white', fontSize: '0.85rem', lineHeight: 1.5, margin: '0 0 0.5rem', fontFamily: 'sans-serif' }}>
+                    {selectedLang === 'bn-IN'
+                      ? analysisResult.diseaseRisk.explanation_bn
+                      : selectedLang === 'hi-IN'
+                      ? analysisResult.diseaseRisk.explanation_hi
+                      : analysisResult.diseaseRisk.explanation}
+                  </p>
+                  <p style={{ color: '#C8F53E', fontSize: '0.8rem', fontWeight: 700, margin: 0 }}>
+                    ⚡ {selectedLang === 'bn-IN'
+                      ? analysisResult.diseaseRisk.actionableAdvice_bn
+                      : selectedLang === 'hi-IN'
+                      ? analysisResult.diseaseRisk.actionableAdvice_hi
+                      : analysisResult.diseaseRisk.actionableAdvice}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 2. NEAREST AGRI-SUPPLIERS & DEALERS */}
+            {analysisResult.dealers && analysisResult.dealers.length > 0 && (
+              <div style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.8rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', fontWeight: 900 }}>
+                      📍 NEAREST AGRI-SUPPLIERS & INPUT DEALERS
+                    </span>
+                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: '0.2rem 0 0' }}>
+                      Certified suppliers stocking recommended treatments in {analysisResult.dealers[0]?.district}
+                    </p>
+                  </div>
+                  <span style={{ fontSize: '0.7rem', color: '#C8F53E', fontFamily: 'monospace' }}>● STOCKED & VERIFIED</span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                  {analysisResult.dealers.map((dealer: any) => (
+                    <div
+                      key={dealer.id}
+                      style={{
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid rgba(200,245,62,0.15)',
+                        borderRadius: '6px',
+                        padding: '1.2rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                          <h4 style={{ color: 'white', fontSize: '0.9rem', fontWeight: 800, margin: 0, fontFamily: 'sans-serif' }}>
+                            {dealer.name}
+                          </h4>
+                          <span style={{ background: 'rgba(200,245,62,0.15)', color: '#C8F53E', fontSize: '0.65rem', fontWeight: 900, padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
+                            ★ {dealer.rating}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', margin: '0 0 0.6rem', fontFamily: 'sans-serif', lineHeight: 1.4 }}>
+                          📍 {dealer.address}
+                        </p>
+                        <p style={{ fontSize: '0.7rem', color: '#C8F53E', margin: '0 0 0.8rem', fontFamily: 'monospace' }}>
+                          🏷️ {dealer.specialization}
+                        </p>
+                      </div>
+
+                      <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' }}>
+                          🕒 {dealer.openHours}
+                        </span>
+                        <a
+                          href={`tel:${dealer.phone.replace(/\s+/g, '')}`}
+                          style={{
+                            background: '#C8F53E',
+                            color: '#060A04',
+                            fontWeight: 900,
+                            fontSize: '0.7rem',
+                            padding: '0.35rem 0.7rem',
+                            borderRadius: '4px',
+                            textDecoration: 'none',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem'
+                          }}
+                        >
+                          📞 {dealer.phone}
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 3. GOVERNMENT SCHEMES & FINANCIAL SUPPORT */}
+            {analysisResult.schemes && analysisResult.schemes.length > 0 && (
+              <div style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.8rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                  <div>
+                    <span style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', fontWeight: 900 }}>
+                      🏛️ GOVERNMENT SCHEMES & FINANCIAL RELIEF
+                    </span>
+                    <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)', margin: '0.2rem 0 0' }}>
+                      Applicable subsidies & crop insurance relief for your diagnosis
+                    </p>
+                  </div>
+                  <span style={{ background: 'rgba(200,245,62,0.15)', color: '#C8F53E', fontSize: '0.65rem', fontWeight: 900, padding: '0.2rem 0.6rem', borderRadius: '99px' }}>
+                    DIRECT BENEFIT TRANSFER
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                  {analysisResult.schemes.map((scheme: any) => (
+                    <div
+                      key={scheme.id}
+                      style={{
+                        background: 'rgba(200,245,62,0.03)',
+                        border: '1px solid rgba(200,245,62,0.2)',
+                        borderRadius: '6px',
+                        padding: '1.3rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                          <h4 style={{ color: 'white', fontSize: '0.95rem', fontWeight: 900, margin: 0, fontFamily: 'sans-serif' }}>
+                            {selectedLang === 'bn-IN' ? scheme.name_bn : selectedLang === 'hi-IN' ? scheme.name_hi : scheme.name}
+                          </h4>
+                          <span style={{ background: '#C8F53E', color: '#060A04', fontSize: '0.65rem', fontWeight: 900, padding: '0.15rem 0.5rem', borderRadius: '99px' }}>
+                            {scheme.badge}
+                          </span>
+                        </div>
+
+                        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.75)', lineHeight: 1.5, margin: '0 0 0.8rem', fontFamily: 'sans-serif' }}>
+                          {selectedLang === 'bn-IN' ? scheme.description_bn : selectedLang === 'hi-IN' ? scheme.description_hi : scheme.description}
+                        </p>
+
+                        <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.45)', margin: '0 0 1rem', fontFamily: 'sans-serif' }}>
+                          <strong>Eligibility:</strong> {selectedLang === 'bn-IN' ? scheme.eligibility_note_bn : selectedLang === 'hi-IN' ? scheme.eligibility_note_hi : scheme.eligibility_note}
+                        </p>
+                      </div>
+
+                      <a
+                        href={scheme.official_link}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          width: '100%',
+                          textAlign: 'center',
+                          background: 'transparent',
+                          border: '1px solid #C8F53E',
+                          color: '#C8F53E',
+                          padding: '0.5rem',
+                          borderRadius: '4px',
+                          fontSize: '0.75rem',
+                          fontWeight: 800,
+                          textDecoration: 'none',
+                          display: 'block',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#C8F53E'; e.currentTarget.style.color = '#060A04'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#C8F53E'; }}
+                      >
+                        OFFICIAL PORTAL & APPLICATION →
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.8rem' }}>
               <div style={{ marginBottom: '1.5rem' }}>
                 <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '0.6rem' }}>// IMMEDIATE ACTION</p>

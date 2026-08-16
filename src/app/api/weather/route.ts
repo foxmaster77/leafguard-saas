@@ -1,24 +1,32 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { get5DayForecast } from '@/lib/weather';
 
-export async function GET() {
-  const baseTemp = 28;
-  const variance = Math.random() * 4 - 2;
-  const currentTemp = Math.round(baseTemp + variance);
-  
-  return NextResponse.json({
-    temperature: `${currentTemp}°C`,
-    temp: currentTemp,
-    condition: Math.random() > 0.8 ? 'Partly Cloudy' : 'Sunny',
-    humidity: `${Math.round(45 + Math.random() * 10)}%`,
-    wind: Math.round(10 + Math.random() * 15),
-    uv_index: Math.round(6 + Math.random() * 4),
-    pressure: '1012 hPa',
-    forecast: [
-      { day: 'Mon', temp: 29 + Math.round(Math.random() * 2) },
-      { day: 'Tue', temp: 30 + Math.round(Math.random() * 2) },
-      { day: 'Wed', temp: 27 + Math.round(Math.random() * 2) },
-      { day: 'Thu', temp: 28 + Math.round(Math.random() * 2) },
-      { day: 'Fri', temp: 31 + Math.round(Math.random() * 2) },
-    ]
-  });
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const pincode = searchParams.get('pincode') || '712101';
+  const lat = parseFloat(searchParams.get('lat') || '22.9031');
+  const lng = parseFloat(searchParams.get('lng') || '88.3908');
+
+  try {
+    const data = await get5DayForecast(lat, lng, pincode);
+    const today = data.forecast[0] || { temp: 30, humidity: 75, condition: 'Partly Cloudy' };
+
+    return NextResponse.json({
+      temperature: `${today.temp}°C`,
+      temp: today.temp,
+      condition: today.condition,
+      humidity: `${today.humidity}%`,
+      avgHumidity: data.avgHumidity,
+      maxRainChance: data.maxRainChance,
+      wind: 14,
+      uv_index: 7,
+      pressure: '1010 hPa',
+      source: data.source,
+      locationName: data.locationName,
+      forecast: data.forecast
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: 'Failed to fetch weather: ' + err.message }, { status: 500 });
+  }
 }
+

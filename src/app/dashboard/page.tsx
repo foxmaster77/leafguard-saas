@@ -625,6 +625,87 @@ export default function Dashboard() {
               </div>
             </div>
 
+            {/* WEATHER SPREAD RISK FORECAST */}
+            {result.diseaseRisk && result.weather && (
+              <div className="bg-[#0F1409] p-8 rounded-3xl border border-[#C8F53E]/20 space-y-4">
+                <div className="flex justify-between items-center flex-wrap gap-4">
+                  <div>
+                    <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest">🌦️ 5-DAY WEATHER & SPREAD RISK FORECAST</p>
+                    <p className="text-xs text-white/50">{result.weather.locationName}</p>
+                  </div>
+                  <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full ${
+                    result.diseaseRisk.riskLevel === 'High' ? 'bg-[#FF4F4F] text-white' :
+                    result.diseaseRisk.riskLevel === 'Moderate' ? 'bg-[#FFB347] text-[#060A04]' : 'bg-[#C8F53E] text-[#060A04]'
+                  }`}>
+                    {result.diseaseRisk.riskLevel} SPREAD RISK ({result.diseaseRisk.riskScore}/100)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-5 gap-3">
+                  {result.weather.forecast?.map((f: any, i: number) => (
+                    <div key={i} className="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
+                      <p className="text-[10px] font-bold text-white/60">{f.day}</p>
+                      <p className="text-xl my-1">{f.icon}</p>
+                      <p className="text-xs font-bold text-white">{f.temp}°C</p>
+                      <p className="text-[9px] text-[#C8F53E] mt-1">💧 {f.humidity}%</p>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-xs text-white/80 font-mono bg-black/40 p-4 rounded-xl border border-white/5">
+                  ⚠️ {result.diseaseRisk.explanation}
+                </p>
+              </div>
+            )}
+
+            {/* NEAREST AGRI-SUPPLIERS & DEALERS */}
+            {result.dealers && result.dealers.length > 0 && (
+              <div className="bg-[#0F1409] p-8 rounded-3xl border border-[#C8F53E]/10 space-y-4">
+                <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest">📍 NEAREST VERIFIED AGRI-INPUT SUPPLIERS</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {result.dealers.map((d: any) => (
+                    <div key={d.id} className="bg-white/5 p-4 rounded-2xl border border-white/5 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="text-sm font-bold text-white">{d.name}</p>
+                          <span className="text-[9px] bg-[#C8F53E]/20 text-[#C8F53E] font-bold px-2 py-0.5 rounded">★ {d.rating}</span>
+                        </div>
+                        <p className="text-[11px] text-white/50 mb-2">📍 {d.address}</p>
+                        <p className="text-[10px] text-[#C8F53E] font-mono mb-3">🏷️ {d.specialization}</p>
+                      </div>
+                      <a href={`tel:${d.phone.replace(/\s+/g, '')}`} className="w-full text-center bg-[#C8F53E] text-[#060A04] py-2 rounded-xl text-[10px] font-black uppercase tracking-wider block">
+                        📞 {d.phone}
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* GOVERNMENT SCHEMES */}
+            {result.schemes && result.schemes.length > 0 && (
+              <div className="bg-[#0F1409] p-8 rounded-3xl border border-[#C8F53E]/10 space-y-4">
+                <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest">🏛️ APPLICABLE GOVERNMENT RELIEF & SCHEMES</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {result.schemes.map((s: any) => (
+                    <div key={s.id} className="bg-white/5 p-5 rounded-2xl border border-white/5 flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <p className="text-sm font-bold text-white">{s.name}</p>
+                          <span className="text-[8px] bg-[#C8F53E] text-[#060A04] font-black px-2 py-0.5 rounded-full">{s.badge}</span>
+                        </div>
+                        <p className="text-xs text-white/70 mb-3">{s.description}</p>
+                        <p className="text-[10px] text-white/40 mb-3"><strong>Eligibility:</strong> {s.eligibility_note}</p>
+                      </div>
+                      <a href={s.official_link} target="_blank" rel="noreferrer" className="w-full text-center border border-[#C8F53E] text-[#C8F53E] hover:bg-[#C8F53E] hover:text-[#060A04] transition-colors py-2 rounded-xl text-[10px] font-bold uppercase tracking-wider block">
+                        OFFICIAL PORTAL →
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="bg-[#C8F53E]/5 p-8 rounded-3xl border border-[#C8F53E]/10 flex gap-6 items-center">
               <div className="w-12 h-12 rounded-full bg-[#C8F53E] flex items-center justify-center shrink-0">
                 <ShieldCheck className="text-[#060A04] w-6 h-6" />

@@ -162,11 +162,43 @@ JSON Schema:
       parsed.voiceSummary = parsed.treatment || `Found ${parsed.disease || 'crop issue'} in ${parsed.cropName || 'crop'}. Recommended treatment: ${parsed.pesticide || 'consult local expert'}.`;
     }
 
+    // 1. Fetch nearest input dealers & relevant government schemes
+    const { getNearestDealers } = await import('@/data/dealers');
+    const { getRelevantSchemes } = await import('@/data/schemes');
+    const nearestDealers = getNearestDealers(pincode, 3);
+    const relevantSchemes = getRelevantSchemes(parsed.severity || 'Medium', 2);
+
+    // 2. Fetch 5-Day Weather Forecast and Calculate Disease Spread Risk
+    const { get5DayForecast } = await import('@/lib/weather');
+    const { calculateDiseaseSpreadRisk } = await import('@/lib/diseaseRisk');
+    const lat = latitudeStr ? parseFloat(latitudeStr) : 22.9031;
+    const lng = longitudeStr ? parseFloat(longitudeStr) : 88.3908;
+    const weatherData = await get5DayForecast(lat, lng, pincode);
+    const diseaseRisk = calculateDiseaseSpreadRisk(parsed.disease, parsed.cropName, weatherData.forecast);
+
+    // 3. Append dynamic Scheme spoken guidance to voiceSummary for TTS
+    if (relevantSchemes.length > 0) {
+      const topScheme = relevantSchemes[0];
+      const schemeTip = language === 'hi-IN'
+        ? topScheme.spokenTip_hi
+        : language === 'en-IN'
+        ? topScheme.spokenTip_en
+        : topScheme.spokenTip_bn;
+
+      if (schemeTip && !parsed.voiceSummary.includes(topScheme.name)) {
+        parsed.voiceSummary = `${parsed.voiceSummary} ${schemeTip}`;
+      }
+    }
+
+    // Attach enriched data to response
+    parsed.dealers = nearestDealers;
+    parsed.schemes = relevantSchemes;
+    parsed.weather = weatherData;
+    parsed.diseaseRisk = diseaseRisk;
+
     // Log anonymized detection asynchronously to Supabase
     try {
       const { supabase } = await import('@/lib/supabase');
-      const lat = latitudeStr ? parseFloat(latitudeStr) : 22.9868;
-      const lng = longitudeStr ? parseFloat(longitudeStr) : 87.8550;
 
       await supabase.from('detections').insert({
         disease_name: parsed.disease || 'Healthy',
@@ -192,4 +224,5 @@ JSON Schema:
     );
   }
 }
+
 
