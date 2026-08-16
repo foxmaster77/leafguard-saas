@@ -11,6 +11,7 @@ const css = `
 @keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(200,245,62,0.4)} 70%{box-shadow:0 0 0 8px transparent} }
+@keyframes pulseRed { 0%,100%{box-shadow:0 0 0 0 rgba(255,79,79,0.5)} 70%{box-shadow:0 0 0 10px transparent} }
 @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
 .reveal{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease}
 .reveal.visible{opacity:1;transform:translateY(0)}
@@ -28,8 +29,93 @@ export default function HomePage() {
   const [consoleLogs, setConsoleLogs] = useState<string[]>(['> Waiting for input']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Feature 2 State: Language, Voice Input & TTS
+  const [selectedLang, setSelectedLang] = useState<'bn-IN' | 'hi-IN' | 'en-IN'>('bn-IN');
+  const [transcript, setTranscript] = useState<string>('');
+  const [isListening, setIsListening] = useState<boolean>(false);
+  const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
+  const [pincode, setPincode] = useState<string>('712101'); // Default West Bengal Pincode (Hooghly)
+  const recognitionRef = useRef<any>(null);
+
   const addLog = (msg: string) => {
     setConsoleLogs(prev => [...prev.slice(-4), msg]);
+  };
+
+  // Web Speech API - Voice Recognition
+  const toggleListening = () => {
+    if (isListening) {
+      if (recognitionRef.current) recognitionRef.current.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition is not supported in this browser. Please type your description in the text box below.');
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = selectedLang;
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        addLog(`> Listening in ${selectedLang === 'bn-IN' ? 'Bangla' : selectedLang === 'hi-IN' ? 'Hindi' : 'English'}...`);
+      };
+
+      recognition.onresult = (event: any) => {
+        let currentTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          currentTranscript += event.results[i][0].transcript;
+        }
+        setTranscript(currentTranscript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.warn('Speech recognition error:', event.error);
+        setIsListening(false);
+        addLog(`> Voice input fallback active: type text below.`);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+        addLog(`> Voice capture complete.`);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (e: any) {
+      console.error('Speech recognition start error:', e);
+      setIsListening(false);
+    }
+  };
+
+  // Text-to-Speech Output
+  const speakResponse = (text: string, lang: string = selectedLang) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+    
+    window.speechSynthesis.cancel(); // Stop ongoing speech
+    if (!text) return;
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.95; // Slightly slower for clear regional pronunciation
+    
+    utterance.onstart = () => setIsPlayingAudio(true);
+    utterance.onend = () => setIsPlayingAudio(false);
+    utterance.onerror = () => setIsPlayingAudio(false);
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const stopAudio = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,51 +126,59 @@ export default function HomePage() {
         const b64 = reader.result as string;
         setImagePreview(b64);
         setAnalysisResult(null);
-        setConsoleLogs(['> Image loaded. Initializing scan...']);
-        analyzeImage(b64, file.type);
+        setConsoleLogs(['> Image loaded. Ready for scan...']);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const analyzeImage = async (base64: string, mediaType: string) => {
+  const analyzeImage = async (base64?: string | null, mediaType?: string) => {
+    const activeImage = base64 !== undefined ? base64 : imagePreview;
+    
+    if (!activeImage && !transcript.trim()) {
+      alert('Please upload a leaf photo or record/type a voice description!');
+      return;
+    }
+
     setAnalyzing(true);
     setAnalysisResult(null);
+    stopAudio();
 
     // Animate console
     const logs = [
-      '> Uploading field image...',
-      '> Running neural pathogen detection...',
-      '> Analyzing spectral signatures...',
-      '> Generating threat report...'
+      activeImage ? '> Processing visual image...' : '> Processing voice transcript...',
+      `> Language: ${selectedLang === 'bn-IN' ? 'Bangla (বাংলা)' : selectedLang === 'hi-IN' ? 'Hindi (हिंदी)' : 'English'}`,
+      '> Running multi-modal neural pathogen model...',
+      '> Generating threat report & voice summary...'
     ];
 
     logs.forEach((log, i) => {
-      setTimeout(() => addLog(log), (i + 1) * 600);
+      setTimeout(() => addLog(log), (i + 1) * 500);
     });
 
     // Animate Processing Power
-    const targetMs = Math.floor(Math.random() * (4200 - 2000 + 1) + 2000);
-    let start = 0;
-    const duration = targetMs;
+    const targetMs = Math.floor(Math.random() * (3500 - 1800 + 1) + 1800);
     const startTime = performance.now();
 
     const animatePP = (now: number) => {
       const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+      const progress = Math.min(elapsed / targetMs, 1);
       setPp(Math.floor(progress * targetMs));
       if (progress < 1) requestAnimationFrame(animatePP);
     };
     requestAnimationFrame(animatePP);
 
     try {
-      // Convert base64 to Blob to send as FormData
-      const res_fetch = await fetch(base64);
-      const blob = await res_fetch.blob();
-      const file = new File([blob], 'capture.jpg', { type: mediaType });
-
       const formData = new FormData();
-      formData.append('image', file);
+      if (activeImage) {
+        const res_fetch = await fetch(activeImage);
+        const blob = await res_fetch.blob();
+        const file = new File([blob], 'crop_capture.jpg', { type: mediaType || blob.type || 'image/jpeg' });
+        formData.append('image', file);
+      }
+      formData.append('transcript', transcript);
+      formData.append('language', selectedLang);
+      formData.append('pincode', pincode);
 
       const res = await fetch('/api/analyze', {
         method: 'POST',
@@ -95,14 +189,18 @@ export default function HomePage() {
       setTimeout(() => {
         if (!data.error) {
           setAnalysisResult(data);
-          addLog('> Analysis complete.');
+          addLog('> Multimodal analysis complete.');
+          // Auto-play TTS spoken summary in selected language
+          if (data.voiceSummary) {
+            speakResponse(data.voiceSummary, selectedLang);
+          }
         } else {
-          addLog('> Analysis failed.');
+          addLog('> Analysis failed: ' + data.error);
         }
         setAnalyzing(false);
-      }, Math.max(logs.length * 600 + 500, targetMs)); // Ensure animations finish
+      }, Math.max(logs.length * 500 + 300, targetMs));
     } catch (err) {
-      addLog('> Error connecting to AI node.');
+      addLog('> Error connecting to AgroGuard AI node.');
       setAnalyzing(false);
     }
   };
@@ -113,6 +211,12 @@ export default function HomePage() {
       : 'https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80';
 
     setConsoleLogs([`> Fetching sample ${type}...`]);
+    if (type === 'WHEAT') {
+      setTranscript(selectedLang === 'bn-IN' ? 'গম গাছের পাতায় হলুদ দাগ এবং শুকিয়ে যাওয়া ভাব দেখা যাচ্ছে।' : selectedLang === 'hi-IN' ? 'गेहूं के पत्तों पर पीले धब्बे दिख रहे हैं।' : 'Yellow spots appearing on wheat leaves.');
+    } else {
+      setTranscript(selectedLang === 'bn-IN' ? 'সোয়াবিন পাতার নিচে বাদামী গুঁড়ো জমে আছে।' : selectedLang === 'hi-IN' ? 'सोयाबीन के पत्तों के नीचे भूरा पाउडर जमा हो रहा है।' : 'Brown rust powder underneath soybean leaves.');
+    }
+
     try {
       const response = await fetch(url);
       const blob = await response.blob();
@@ -129,8 +233,10 @@ export default function HomePage() {
   };
 
   const resetScanner = () => {
+    stopAudio();
     setImagePreview(null);
     setAnalysisResult(null);
+    setTranscript('');
     setConsoleLogs(['> Waiting for input']);
     setPp(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -143,6 +249,7 @@ export default function HomePage() {
     document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     return () => obs.disconnect();
   }, []);
+
 
   return (
     <div style={{ background: '#060A04', color: 'white', fontFamily: 'Inter,system-ui,sans-serif' }}>
@@ -273,34 +380,145 @@ export default function HomePage() {
       {/* AI WIDGET */}
       <section id="ai-demo" style={{ background: '#060A04', padding: '8rem 3rem' }}>
         <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900 }}>EXPERIENCE THE AI NOW.</h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1rem', marginTop: '0.8rem' }}>No account required. Upload a field photo to see our neural network in action.</p>
+          <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900, margin: 0 }}>
+            EXPERIENCE REGIONAL VOICE & AI DIAGNOSIS.
+          </h2>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', marginTop: '0.8rem' }}>
+            Speak in your regional language or upload a leaf photo to diagnose crop disease in real-time.
+          </p>
+
+          {/* LANGUAGE SELECTOR PILLS */}
+          <div style={{ display: 'inline-flex', gap: '0.6rem', background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', padding: '0.4rem', borderRadius: '99px', marginTop: '1.5rem' }}>
+            {[
+              { code: 'bn-IN', label: '🇧🇩/🇮🇳 বাংলা (Bangla)' },
+              { code: 'hi-IN', label: '🇮🇳 हिंदी (Hindi)' },
+              { code: 'en-IN', label: '🌐 English' }
+            ].map(l => (
+              <button
+                key={l.code}
+                onClick={() => setSelectedLang(l.code as any)}
+                style={{
+                  background: selectedLang === l.code ? '#C8F53E' : 'transparent',
+                  color: selectedLang === l.code ? '#060A04' : 'rgba(255,255,255,0.7)',
+                  border: 'none',
+                  borderRadius: '99px',
+                  padding: '0.5rem 1.2rem',
+                  fontFamily: 'monospace',
+                  fontWeight: 800,
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {l.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#0F1409', border: '1px solid rgba(200,245,62,0.1)', maxWidth: '900px', margin: '0 auto', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', maxWidth: '950px', margin: '0 auto', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '2rem' }}>
             <input type="file" id="cropFileInput" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handleFileSelect} />
+            
+            {/* Image Dropzone */}
             <div
-              style={{ border: '2px dashed rgba(200,245,62,0.2)', height: '220px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', cursor: 'pointer', borderRadius: '4px', transition: 'all 0.2s', position: 'relative', overflow: 'hidden' }}
+              style={{ border: '2px dashed rgba(200,245,62,0.25)', height: '180px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', borderRadius: '4px', transition: 'all 0.2s', position: 'relative', overflow: 'hidden' }}
               onClick={() => fileInputRef.current?.click()}
               onMouseEnter={e => { if (!imagePreview) { e.currentTarget.style.borderColor = '#C8F53E'; e.currentTarget.style.background = 'rgba(200,245,62,0.03)' } }}
-              onMouseLeave={e => { if (!imagePreview) { e.currentTarget.style.borderColor = 'rgba(200,245,62,0.2)'; e.currentTarget.style.background = 'transparent' } }}
+              onMouseLeave={e => { if (!imagePreview) { e.currentTarget.style.borderColor = 'rgba(200,245,62,0.25)'; e.currentTarget.style.background = 'transparent' } }}
             >
               {imagePreview ? (
                 <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               ) : (
                 <>
-                  <span style={{ fontSize: '2.5rem', opacity: 0.5 }}>⚡</span>
+                  <span style={{ fontSize: '2rem', opacity: 0.7 }}>⚡</span>
                   <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontWeight: 700, color: 'white', margin: 0 }}>DROP YOUR FIELD IMAGE.</p>
-                    <p style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: '#C8F53E', margin: 0 }}>GET INSTANT DIAGNOSIS</p>
-                    <p style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', margin: 0 }}>JPG · PNG · WEBP</p>
+                    <p style={{ fontWeight: 700, color: 'white', margin: 0, fontSize: '0.9rem' }}>UPLOAD CROP PHOTO (OPTIONAL)</p>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: '#C8F53E', margin: '2px 0 0' }}>CLICK TO BROWSE IMAGE</p>
                   </div>
                 </>
               )}
             </div>
 
-            <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', margin: '1.2rem 0 0.6rem', textTransform: 'uppercase' }}>TEST WITH SAMPLE DATA:</p>
+            {/* Voice Input Section */}
+            <div style={{ marginTop: '1.2rem', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', padding: '1rem', borderRadius: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '0.68rem', color: '#C8F53E', fontWeight: 700, letterSpacing: '0.1em' }}>
+                  🎙️ VOICE INPUT ({selectedLang === 'bn-IN' ? 'BANGLA' : selectedLang === 'hi-IN' ? 'HINDI' : 'ENGLISH'})
+                </span>
+                <button
+                  onClick={toggleListening}
+                  style={{
+                    background: isListening ? '#FF4F4F' : 'rgba(200,245,62,0.15)',
+                    color: isListening ? 'white' : '#C8F53E',
+                    border: `1px solid ${isListening ? '#FF4F4F' : 'rgba(200,245,62,0.4)'}`,
+                    borderRadius: '4px',
+                    padding: '0.35rem 0.8rem',
+                    fontFamily: 'monospace',
+                    fontSize: '0.7rem',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    animation: isListening ? 'pulseRed 1s infinite' : 'none'
+                  }}
+                >
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: isListening ? 'white' : '#C8F53E', display: 'inline-block' }} />
+                  {isListening ? 'STOP LISTENING' : 'SPEAK NOW'}
+                </button>
+              </div>
+
+              <textarea
+                value={transcript}
+                onChange={e => setTranscript(e.target.value)}
+                placeholder={
+                  selectedLang === 'bn-IN' 
+                    ? 'আপনার ফসলের সমস্যা বাংলায় বলুন বা লিখুন (যেমন: ধান পাতায় বাদামী দাগ)...' 
+                    : selectedLang === 'hi-IN'
+                    ? 'अपनी फसल की समस्या हिंदी में बोलें या लिखें (जैसे: गेहूं में पीले धब्बे)...'
+                    : 'Describe your crop symptoms here in English...'
+                }
+                rows={3}
+                style={{
+                  width: '100%',
+                  background: '#060A04',
+                  border: '1px solid rgba(200,245,62,0.2)',
+                  color: 'white',
+                  padding: '0.6rem',
+                  fontSize: '0.85rem',
+                  borderRadius: '4px',
+                  fontFamily: 'inherit',
+                  resize: 'none',
+                  outline: 'none'
+                }}
+              />
+            </div>
+
+            {/* Submit Diagnosis Button */}
+            <button
+              onClick={() => analyzeImage()}
+              disabled={analyzing}
+              style={{
+                width: '100%',
+                marginTop: '1.2rem',
+                background: analyzing ? 'rgba(200,245,62,0.3)' : '#C8F53E',
+                color: '#060A04',
+                fontWeight: 900,
+                fontFamily: 'monospace',
+                fontSize: '0.85rem',
+                letterSpacing: '0.12em',
+                padding: '0.9rem',
+                border: 'none',
+                cursor: analyzing ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                borderRadius: '4px'
+              }}
+            >
+              {analyzing ? 'DIAGNOSING CROP PATHOGEN...' : 'RUN MULTIMODAL DIAGNOSIS →'}
+            </button>
+
+            <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', margin: '1.2rem 0 0.6rem', textTransform: 'uppercase' }}>OR TEST WITH SAMPLE DATA:</p>
             <div style={{ display: 'flex', gap: '0.6rem' }}>
               {['SAMPLE A (WHEAT)', 'SAMPLE B (SOY)'].map(s => (
                 <button
@@ -317,12 +535,12 @@ export default function HomePage() {
           <div style={{ background: '#050805', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
               <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#C8F53E', letterSpacing: '0.12em' }}>● ANALYSIS CONSOLE</span>
-              <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>NODE: ALPHA-V4</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>MODE: MULTIMODAL</span>
             </div>
 
-            <div style={{ flexGrow: 1, minHeight: '150px' }}>
+            <div style={{ flexGrow: 1, minHeight: '180px' }}>
               {consoleLogs.map((log, i) => (
-                <p key={i} style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: log.includes('complete') ? '#C8F53E' : 'rgba(200,245,62,0.7)', marginBottom: '0.4rem' }}>
+                <p key={i} style={{ fontFamily: 'monospace', fontSize: '0.82rem', color: log.includes('complete') ? '#C8F53E' : 'rgba(200,245,62,0.7)', marginBottom: '0.4rem' }}>
                   {log}{i === consoleLogs.length - 1 && <span style={{ animation: 'blink 1s infinite' }}>|</span>}
                 </p>
               ))}
@@ -348,15 +566,45 @@ export default function HomePage() {
 
         {/* RESULTS PANEL */}
         {analysisResult && (
-          <div className="reveal visible" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', maxWidth: '900px', margin: '2rem auto 0', padding: '3rem', borderRadius: '8px', fontFamily: 'monospace' }}>
-            {/* Metric Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '3rem' }}>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.8rem' }}>DISEASE NAME</p>
-                <p style={{ fontSize: '1rem', color: 'white', fontWeight: 900 }}>{analysisResult.disease.toUpperCase()}</p>
+          <div className="reveal visible" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', maxWidth: '950px', margin: '2rem auto 0', padding: '2.5rem', borderRadius: '8px', fontFamily: 'monospace' }}>
+            {/* LOCALIZED VOICE RESPONSE BANNER */}
+            {analysisResult.voiceSummary && (
+              <div style={{ background: 'rgba(200,245,62,0.08)', border: '1px solid rgba(200,245,62,0.3)', padding: '1.2rem', borderRadius: '6px', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                  <span style={{ color: '#C8F53E', fontSize: '0.75rem', fontWeight: 900, letterSpacing: '0.12em' }}>
+                    🔊 REGIONAL VOICE ADVISORY ({selectedLang === 'bn-IN' ? 'বাংলা BANGLA' : selectedLang === 'hi-IN' ? 'हिंदी HINDI' : 'ENGLISH'})
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                      onClick={() => speakResponse(analysisResult.voiceSummary, selectedLang)}
+                      style={{ background: '#C8F53E', color: '#060A04', border: 'none', borderRadius: '4px', padding: '0.3rem 0.8rem', fontSize: '0.7rem', fontWeight: 900, cursor: 'pointer' }}
+                    >
+                      {isPlayingAudio ? '▶️ REPLAY' : '🔊 PLAY AUDIO'}
+                    </button>
+                    {isPlayingAudio && (
+                      <button
+                        onClick={stopAudio}
+                        style={{ background: '#FF4F4F', color: 'white', border: 'none', borderRadius: '4px', padding: '0.3rem 0.8rem', fontSize: '0.7rem', fontWeight: 900, cursor: 'pointer' }}
+                      >
+                        ⏹ STOP
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p style={{ color: 'white', fontSize: '1rem', fontFamily: 'sans-serif', lineHeight: 1.6, margin: 0 }}>
+                  &ldquo;{analysisResult.voiceSummary}&rdquo;
+                </p>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.8rem' }}>HEALTH SCORE</p>
+            )}
+
+            {/* Metric Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.6rem' }}>DISEASE DETECTED</p>
+                <p style={{ fontSize: '1.1rem', color: 'white', fontWeight: 900 }}>{analysisResult.disease?.toUpperCase() || 'HEALTHY'}</p>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.6rem' }}>HEALTH SCORE</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ flexGrow: 1, height: '4px', background: 'rgba(255,255,255,0.1)' }}>
                     <div style={{ width: `${analysisResult.healthScore}%`, height: '100%', background: '#C8F53E' }} />
@@ -364,29 +612,29 @@ export default function HomePage() {
                   <span style={{ color: '#C8F53E', fontWeight: 900 }}>{analysisResult.healthScore}%</span>
                 </div>
               </div>
-              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
-                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.8rem' }}>RISK LEVEL</p>
+              <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.6rem' }}>RISK LEVEL</p>
                 <p style={{
-                  fontSize: '1rem',
+                  fontSize: '1.1rem',
                   fontWeight: 900,
                   color: analysisResult.riskLevel === 'High' || analysisResult.riskLevel === 'Critical' ? '#FF4F4F' : analysisResult.riskLevel === 'Moderate' || analysisResult.riskLevel === 'Medium' ? '#FFB347' : '#C8F53E'
                 }}>
-                  {analysisResult.riskLevel.toUpperCase()}
+                  {(analysisResult.riskLevel || 'LOW').toUpperCase()}
                 </p>
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '3rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
               {/* Treatment Info */}
               <div>
-                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>// RECOMMENDED TREATMENT</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <div style={{ marginBottom: '1.5rem' }}>
-                    <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: '0.4rem' }}>PESTICIDE</p>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.2rem' }}>// RECOMMENDED TREATMENT</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+                  <div>
+                    <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: '0.3rem' }}>PESTICIDE / REMEDY</p>
                     <p style={{ fontSize: '0.85rem', color: 'white' }}>{analysisResult.pesticide}</p>
                   </div>
                   <div>
-                    <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: '0.4rem' }}>DOSAGE</p>
+                    <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginBottom: '0.3rem' }}>DOSAGE</p>
                     <p style={{ fontSize: '0.85rem', color: 'white' }}>{analysisResult.dosage}</p>
                   </div>
                 </div>
@@ -394,30 +642,30 @@ export default function HomePage() {
 
               {/* Action Plan */}
               <div>
-                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.5rem' }}>// ACTION PLAN</p>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-                  {analysisResult.actionPlan.map((step: string, i: number) => (
-                    <div key={i} style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                      <span style={{ background: '#C8F53E', color: '#060A04', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 900 }}>{i + 1}</span>
-                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>{step}</p>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.2rem' }}>// ACTION PLAN</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {analysisResult.actionPlan?.map((step: string, i: number) => (
+                    <div key={i} style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
+                      <span style={{ background: '#C8F53E', color: '#060A04', width: '20px', height: '20px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 900, flexShrink: 0 }}>{i + 1}</span>
+                      <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', margin: 0 }}>{step}</p>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
 
-            <div style={{ marginTop: '3rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem' }}>
-              <div style={{ marginBottom: '2rem' }}>
-                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem' }}>// IMMEDIATE ACTION</p>
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.treatment}</p>
+            <div style={{ marginTop: '2.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1.8rem' }}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '0.6rem' }}>// IMMEDIATE ACTION</p>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>{analysisResult.treatment}</p>
               </div>
-              <div style={{ marginBottom: '3rem' }}>
-                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem' }}>// FUN FACT</p>
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6 }}>{analysisResult.funFact}</p>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '0.6rem' }}>// FUN FACT</p>
+                <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.6, margin: 0 }}>{analysisResult.funFact}</p>
               </div>
               <button
                 onClick={resetScanner}
-                style={{ width: '100%', background: 'transparent', border: '1px solid #C8F53E', color: '#C8F53E', padding: '1rem', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s' }}
+                style={{ width: '100%', background: 'transparent', border: '1px solid #C8F53E', color: '#C8F53E', padding: '0.9rem', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', borderRadius: '4px' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#C8F53E'; e.currentTarget.style.color = '#060A04' }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#C8F53E' }}
               >

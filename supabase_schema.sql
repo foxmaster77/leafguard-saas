@@ -40,3 +40,21 @@ CREATE POLICY "Users can delete their own monitors." ON public.monitors FOR DELE
 
 CREATE POLICY "Users can view logs of their own monitors." ON public.monitor_logs FOR SELECT 
 USING (EXISTS (SELECT 1 FROM public.monitors WHERE id = monitor_id AND user_id = auth.uid()));
+
+-- 6. Create Detections Table for Outbreak Heatmap & Public Health Tracking
+CREATE TABLE IF NOT EXISTS public.detections (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    disease_name TEXT NOT NULL,
+    crop_type TEXT NOT NULL,
+    confidence INTEGER NOT NULL DEFAULT 85,
+    severity TEXT NOT NULL DEFAULT 'Medium',
+    pincode TEXT DEFAULT '712101',
+    latitude DOUBLE PRECISION DEFAULT 22.9868,
+    longitude DOUBLE PRECISION DEFAULT 87.8550,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.detections ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public detections viewable by everyone" ON public.detections FOR SELECT USING (true);
+CREATE POLICY "Public detections insertable by everyone" ON public.detections FOR INSERT WITH CHECK (true);
+

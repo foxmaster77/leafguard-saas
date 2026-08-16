@@ -14,6 +14,7 @@ const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapCo
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
 const CircleMarker = dynamic(() => import('react-leaflet').then(mod => mod.CircleMarker), { ssr: false });
 const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
+const OutbreakHeatmap = dynamic(() => import('@/components/OutbreakHeatmap'), { ssr: false });
 
 import 'leaflet/dist/leaflet.css';
 
@@ -21,8 +22,8 @@ const Ticker = () => (
   <div className="bg-black/40 rounded-xl p-4 overflow-hidden relative border border-white/5">
     <div className="ticker-container flex whitespace-nowrap">
       <div className="ticker-text text-[9px] font-black text-[#C8F53E] uppercase tracking-widest animate-ticker">
-        RICE PRICES UP 12% · SWARM WARNING: NORTH · SUBSIDY PROGRAM OPEN · PADDY SOWING: 48H ·
-        RICE PRICES UP 12% · SWARM WARNING: NORTH · SUBSIDY PROGRAM OPEN · PADDY SOWING: 48H ·
+        RICE PRICES UP 12% · OUTBREAK ALERT: HOOGHLY & BURDWAN · SUBSIDY PROGRAM OPEN · PADDY SOWING: 48H ·
+        RICE PRICES UP 12% · OUTBREAK ALERT: HOOGHLY & BURDWAN · SUBSIDY PROGRAM OPEN · PADDY SOWING: 48H ·
       </div>
     </div>
   </div>
@@ -35,18 +36,31 @@ export default function Dashboard() {
   const [preview, setPreview] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [daysFilter, setDaysFilter] = useState<7 | 30>(7);
+
+  // Outbreak Heatmap Data State
+  const [outbreakData, setOutbreakData] = useState<{
+    topOutbreakZones: any[];
+    pincodeClusters: any[];
+    totalDetections: number;
+  }>({
+    topOutbreakZones: [],
+    pincodeClusters: [],
+    totalDetections: 0
+  });
 
   const [recentUploads, setRecentUploads] = useState([
-    { name: 'North Block', time: '8m ago', dot: 'bg-[#C8F53E]' },
-    { name: 'Zone 7', time: '2m ago', dot: 'bg-[#FFB347]' },
-    { name: 'Sector 4-B', time: '31m ago', dot: 'bg-[#FF4F4F]' }
+    { name: 'Hooghly Field 12', time: '8m ago', dot: 'bg-[#FF4F4F]' },
+    { name: 'Burdwan Zone 4', time: '2m ago', dot: 'bg-[#FF4F4F]' },
+    { name: 'Murshidabad Plot 8', time: '31m ago', dot: 'bg-[#FFB347]' }
   ]);
+
   const [recentScans, setRecentScans] = useState([
-    { field: 'Sector 4-B', cropName: 'Soybean', disease: '🔴 RUST DETECTED', confidence: '94%', time: '2m ago' },
-    { field: 'North Block', cropName: 'Wheat', disease: '🟢 HEALTHY', confidence: '97%', time: '8m ago' },
-    { field: 'Zone 7', cropName: 'Cotton', disease: '🟡 MOISTURE STRESS', confidence: '88%', time: '15m ago' },
-    { field: 'East Grid', cropName: 'Maize', disease: '🔴 APHID RISK', confidence: '91%', time: '31m ago' },
-    { field: 'South Field', cropName: 'Rice', disease: '🟢 HEALTHY', confidence: '95%', time: '1h ago' }
+    { field: 'Hooghly Pincode 712101', cropName: 'Potato', disease: '🔴 LATE BLIGHT DETECTED', confidence: '96%', time: '2m ago' },
+    { field: 'Burdwan Pincode 713101', cropName: 'Paddy Rice', disease: '🔴 RICE BLAST DETECTED', confidence: '94%', time: '8m ago' },
+    { field: 'Murshidabad Pincode 742101', cropName: 'Wheat', disease: '🟡 YELLOW RUST DETECTED', confidence: '88%', time: '15m ago' },
+    { field: 'Malda Pincode 732101', cropName: 'Mustard', disease: '🟢 HEALTHY', confidence: '95%', time: '31m ago' },
+    { field: 'Nadia Pincode 741101', cropName: 'Jute', disease: '🟢 HEALTHY', confidence: '97%', time: '1h ago' }
   ]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -58,6 +72,26 @@ export default function Dashboard() {
     "> Running pathogen detection...",
     "> Generating report..."
   ];
+
+  const fetchDetections = async (days: number) => {
+    try {
+      const res = await fetch(`/api/detections?days=${days}`);
+      const data = await res.json();
+      if (data.pincodeClusters) {
+        setOutbreakData({
+          topOutbreakZones: data.topOutbreakZones || [],
+          pincodeClusters: data.pincodeClusters || [],
+          totalDetections: data.totalDetections || 0
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to fetch outbreak detections:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchDetections(daysFilter);
+  }, [daysFilter]);
 
   useEffect(() => {
     if (uploadState === 'uploading') {
@@ -77,6 +111,7 @@ export default function Dashboard() {
     }, 1000);
     return () => clearInterval(interval);
   }, []);
+
 
   const resetUpload = () => {
     setUploadState('idle');
@@ -311,44 +346,103 @@ export default function Dashboard() {
           </div>
         </header>
 
-        {/* MAP + UPLOAD ROW */}
+        {/* TOP 3 OUTBREAK ZONES SUMMARY CARDS */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-xl font-black italic tracking-wide">🚨 TOP 3 OUTBREAK ZONES THIS WEEK</h2>
+              <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">REAL-TIME EPIDEMIOLOGICAL SURVEILLANCE · WEST BENGAL REGION</p>
+            </div>
+            <div className="flex items-center gap-2 bg-[#0F1409] p-1 rounded-xl border border-white/10">
+              <button
+                onClick={() => setDaysFilter(7)}
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${daysFilter === 7 ? 'bg-[#C8F53E] text-[#060A04]' : 'text-white/40 hover:text-white'}`}
+              >
+                LAST 7 DAYS
+              </button>
+              <button
+                onClick={() => setDaysFilter(30)}
+                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${daysFilter === 30 ? 'bg-[#C8F53E] text-[#060A04]' : 'text-white/40 hover:text-white'}`}
+              >
+                LAST 30 DAYS
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {outbreakData.topOutbreakZones.slice(0, 3).map((zone, idx) => {
+              const isRed = zone.outbreakLevel === 'RED';
+              const isYellow = zone.outbreakLevel === 'YELLOW';
+              const borderColor = isRed ? 'border-[#FF4F4F]/40' : isYellow ? 'border-[#FFB347]/40' : 'border-[#C8F53E]/40';
+              const badgeBg = isRed ? 'bg-[#FF4F4F]' : isYellow ? 'bg-[#FFB347]' : 'bg-[#C8F53E]';
+              const badgeText = isRed ? 'OUTBREAK ALERT' : isYellow ? 'MODERATE RISK' : 'LOW RISK';
+
+              return (
+                <div
+                  key={zone.pincode || idx}
+                  className={`bg-[#0F1409] p-6 rounded-3xl border ${borderColor} relative overflow-hidden group hover:scale-[1.02] transition-all`}
+                >
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <span className="text-[9px] font-black text-[#C8F53E] uppercase tracking-widest">
+                        RANK #{idx + 1} · PIN {zone.pincode}
+                      </span>
+                      <h3 className="text-lg font-black text-white mt-1">{zone.district}</h3>
+                    </div>
+                    <span className={`${badgeBg} text-[#060A04] text-[8px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider`}>
+                      {badgeText}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 font-mono text-[11px] border-t border-white/5 pt-3">
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Primary Disease:</span>
+                      <span className="font-bold text-white">{zone.topDisease}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/40">Affected Crop:</span>
+                      <span className="font-bold text-white">{zone.cropType}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-white/40">48h Detection Density:</span>
+                      <span className={`font-black ${isRed ? 'text-[#FF4F4F]' : 'text-[#C8F53E]'}`}>
+                        {zone.cases48h} cases
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* HEATMAP MAP + UPLOAD ROW */}
         <div className="grid lg:grid-cols-[1fr_320px] gap-8 mb-12">
-          {/* Map Column PRESERVED */}
-          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[380px]">
+          {/* Outbreak Heatmap Map Column */}
+          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[450px]">
             {isMounted && (
-              <MapContainer center={[20, 0]} zoom={2} scrollWheelZoom={false} className="h-full w-full">
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-                {markers.map((m, i) => (
-                  <CircleMarker
-                    key={i}
-                    center={m.pos as any}
-                    radius={6}
-                    pathOptions={{ color: '#C8F53E', fillColor: '#C8F53E', fillOpacity: 0.6 }}
-                  >
-                    <Popup className="bg-[#0F1409] text-white">
-                      <p className="font-bebas text-lg italic">{m.name}</p>
-                      <p className="text-[10px] font-black uppercase text-[#C8F53E]">Status: Active</p>
-                    </Popup>
-                  </CircleMarker>
-                ))}
-              </MapContainer>
+              <OutbreakHeatmap clusters={outbreakData.pincodeClusters} />
             )}
 
             <div className="absolute top-6 right-6 z-[1000] flex items-center gap-3 px-4 py-2 bg-[#060A04]/80 backdrop-blur-md rounded-full border border-[#C8F53E]/30">
-              <span className="w-2 h-2 bg-[#C8F53E] rounded-full animate-pulse" />
-              <span className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest">DRONE ACTIVE</span>
+              <span className="w-2 h-2 bg-[#FF4F4F] rounded-full animate-pulse" />
+              <span className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest">PUBLIC HEALTH SURVEILLANCE</span>
             </div>
 
-            <div className="absolute bottom-6 left-6 z-[1000] bg-[#060A04]/80 backdrop-blur-md p-4 rounded-2xl border border-white/10">
-              <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-3">Satellite Overlay</p>
-              <div className="space-y-2">
-                <div className="flex items-center gap-3">
-                  <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full" />
-                  <span className="text-[10px] font-black uppercase text-white/60">Active Sensor Hub</span>
+            <div className="absolute bottom-6 left-6 z-[1000] bg-[#060A04]/85 backdrop-blur-md p-4 rounded-2xl border border-white/10 font-mono text-[10px]">
+              <p className="font-black text-white/40 uppercase tracking-widest mb-2">Outbreak Intensity Legend</p>
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-[#FF4F4F] rounded-full" />
+                  <span className="font-bold text-white">Outbreak Level (5+ cases in 48h)</span>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="w-1.5 h-1.5 bg-[#FF4F4F] rounded-full" />
-                  <span className="text-[10px] font-black uppercase text-white/60">Maintenance Required</span>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-[#FFB347] rounded-full" />
+                  <span className="font-bold text-white/80">Moderate Clusters (3-4 cases)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 bg-[#C8F53E] rounded-full" />
+                  <span className="font-bold text-white/60">Low Density (1-2 cases)</span>
                 </div>
               </div>
             </div>
