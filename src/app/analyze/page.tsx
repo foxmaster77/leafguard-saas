@@ -1,27 +1,17 @@
 'use client';
+
 import React, { useEffect, useState, useRef } from 'react';
-import dynamic from 'next/dynamic';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
-const GlobalMap = dynamic(() => import('@/components/GlobalMap'), { ssr: false });
-
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono&display=swap');
-@keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(200,245,62,0.4)} 70%{box-shadow:0 0 0 8px transparent} }
 @keyframes pulseRed { 0%,100%{box-shadow:0 0 0 0 rgba(255,79,79,0.5)} 70%{box-shadow:0 0 0 10px transparent} }
-@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-.reveal{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease}
-.reveal.visible{opacity:1;transform:translateY(0)}
-.partner-card:hover{border-color:#C8F53E!important;box-shadow:0 0 16px rgba(200,245,62,0.15)}
-.feature-card:hover{border-left:3px solid #C8F53E!important;transform:translateY(-4px);box-shadow:0 8px 32px rgba(200,245,62,0.06)}
-.stat-pill{animation:fadeUp 0.6s ease both}
-html { scroll-behavior: smooth; }
 `;
 
-export default function HomePage() {
+export default function AnalyzePage() {
   const [pp, setPp] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
@@ -29,19 +19,19 @@ export default function HomePage() {
   const [consoleLogs, setConsoleLogs] = useState<string[]>(['> Waiting for input']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Feature 2 State: Language, Voice Input & TTS
+  // Regional Voice & Language State
   const [selectedLang, setSelectedLang] = useState<'bn-IN' | 'hi-IN' | 'en-IN'>('bn-IN');
   const [transcript, setTranscript] = useState<string>('');
   const [isListening, setIsListening] = useState<boolean>(false);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
-  const [pincode, setPincode] = useState<string>('712101'); // Default West Bengal Pincode (Hooghly)
+  const [pincode, setPincode] = useState<string>('712101');
   const recognitionRef = useRef<any>(null);
 
   const addLog = (msg: string) => {
     setConsoleLogs(prev => [...prev.slice(-4), msg]);
   };
 
-  // Web Speech API - Voice Recognition
+  // Web Speech API
   const toggleListening = () => {
     if (isListening) {
       if (recognitionRef.current) recognitionRef.current.stop();
@@ -51,7 +41,7 @@ export default function HomePage() {
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert('Speech recognition is not supported in this browser. Please type your description in the text box below.');
+      alert('Speech recognition is not supported in this browser. Please type your description in the text box.');
       return;
     }
 
@@ -63,7 +53,7 @@ export default function HomePage() {
 
       recognition.onstart = () => {
         setIsListening(true);
-        addLog(`> Listening in ${selectedLang === 'bn-IN' ? 'Bangla' : selectedLang === 'hi-IN' ? 'Hindi' : 'English'}...`);
+        addLog(`> Listening in ${selectedLang === 'bn-IN' ? 'Bangla (বাংলা)' : selectedLang === 'hi-IN' ? 'Hindi (हिंदी)' : 'English'}...`);
       };
 
       recognition.onresult = (event: any) => {
@@ -88,7 +78,7 @@ export default function HomePage() {
       recognitionRef.current = recognition;
       recognition.start();
     } catch (e: any) {
-      console.error('Speech recognition start error:', e);
+      console.error('Speech recognition error:', e);
       setIsListening(false);
     }
   };
@@ -97,12 +87,12 @@ export default function HomePage() {
   const speakResponse = (text: string, lang: string = selectedLang) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
     
-    window.speechSynthesis.cancel(); // Stop ongoing speech
+    window.speechSynthesis.cancel();
     if (!text) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
-    utterance.rate = 0.95; // Slightly slower for clear regional pronunciation
+    utterance.rate = 0.95;
     
     utterance.onstart = () => setIsPlayingAudio(true);
     utterance.onend = () => setIsPlayingAudio(false);
@@ -144,20 +134,19 @@ export default function HomePage() {
     setAnalysisResult(null);
     stopAudio();
 
-    // Animate console
     const logs = [
-      activeImage ? '> Processing visual image...' : '> Processing voice transcript...',
+      activeImage ? '> Processing visual imagery...' : '> Processing voice description...',
       `> Language: ${selectedLang === 'bn-IN' ? 'Bangla (বাংলা)' : selectedLang === 'hi-IN' ? 'Hindi (हिंदी)' : 'English'}`,
       '> Running multi-modal neural pathogen model...',
-      '> Generating threat report & voice summary...'
+      '> Matching local suppliers & government schemes...',
+      '> Generating threat report & weather risk forecast...'
     ];
 
     logs.forEach((log, i) => {
-      setTimeout(() => addLog(log), (i + 1) * 500);
+      setTimeout(() => addLog(log), (i + 1) * 450);
     });
 
-    // Animate Processing Power
-    const targetMs = Math.floor(Math.random() * (3500 - 1800 + 1) + 1800);
+    const targetMs = Math.floor(Math.random() * (3200 - 1800 + 1) + 1800);
     const startTime = performance.now();
 
     const animatePP = (now: number) => {
@@ -190,7 +179,6 @@ export default function HomePage() {
         if (!data.error) {
           setAnalysisResult(data);
           addLog('> Multimodal analysis complete.');
-          // Auto-play TTS spoken summary in selected language
           if (data.voiceSummary) {
             speakResponse(data.voiceSummary, selectedLang);
           }
@@ -198,7 +186,7 @@ export default function HomePage() {
           addLog('> Analysis failed: ' + data.error);
         }
         setAnalyzing(false);
-      }, Math.max(logs.length * 500 + 300, targetMs));
+      }, Math.max(logs.length * 450 + 300, targetMs));
     } catch (err) {
       addLog('> Error connecting to AgroGuard AI node.');
       setAnalyzing(false);
@@ -242,153 +230,25 @@ export default function HomePage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  useEffect(() => {
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-    return () => obs.disconnect();
-  }, []);
-
-
   return (
-    <div style={{ background: '#060A04', color: 'white', fontFamily: 'Inter,system-ui,sans-serif' }}>
+    <div style={{ background: '#060A04', color: 'white', fontFamily: 'Inter,system-ui,sans-serif', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <Navigation />
 
-      {/* HERO */}
-      <section style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 3rem', paddingTop: '80px' }}>
-        <video autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15, zIndex: 0 }} src="/238827.mp4" />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,rgba(6,10,4,0.92),rgba(6,10,4,0.6),rgba(6,10,4,0.88))', zIndex: 1 }} />
-        <svg style={{ position: 'absolute', right: '20%', top: '50%', transform: 'translateY(-50%)', opacity: 0.07, zIndex: 1 }} width="500" height="500" viewBox="0 0 100 100" fill="none" stroke="#C8F53E" strokeWidth="0.5">
-          <circle cx="50" cy="50" r="40" /><circle cx="50" cy="50" r="20" /><line x1="10" y1="50" x2="90" y2="50" /><line x1="50" y1="10" x2="50" y2="90" />
-        </svg>
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '650px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(200,245,62,0.08)', border: '1px solid rgba(200,245,62,0.2)', borderRadius: '99px', padding: '0.4rem 1rem', fontFamily: 'monospace', fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.15em', marginBottom: '1.2rem' }}>
+      <main style={{ flexGrow: 1, padding: '7rem 2rem 4rem', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(200,245,62,0.08)', border: '1px solid rgba(200,245,62,0.2)', borderRadius: '99px', padding: '0.4rem 1rem', fontFamily: 'monospace', fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.15em', marginBottom: '1rem' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#C8F53E', display: 'inline-block' }} />
-            CROP_OS V4.0 PLATFORM
+            MULTIMODAL REGIONAL AI SCANNER
           </div>
-          <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(4rem,10vw,8rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: 0.88, margin: '0 0 1.2rem' }}>
-            <span style={{ color: 'white' }}>CATCH DISEASE<br /></span>
-            <span style={{ color: '#C8F53E' }}>14 DAYS<br />BEFORE<br /></span>
-            <span style={{ color: 'white' }}>IT&apos;S VISIBLE.</span>
+          <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,6vw,4.5rem)', fontStyle: 'italic', fontWeight: 900, margin: 0 }}>
+            DIAGNOSE CROP PATHOGENS IN SECONDS.
           </h1>
-          <p style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.5)', maxWidth: '480px', lineHeight: 1.75, marginBottom: '2rem' }}>Precision AI that identifies pathogens at the cellular level before they destroy your harvest.</p>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-            <button
-              onClick={() => document.getElementById('ai-demo')?.scrollIntoView({ behavior: 'smooth' })}
-              style={{ background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.12em', padding: '0.9rem 2rem', border: 'none', cursor: 'pointer', transition: 'transform 0.2s' }}
-              onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')}
-              onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-            >
-              RUN LIVE DEMO →
-            </button>
-            <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontWeight: 700, fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.1em', padding: '0.9rem 1.8rem', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#C8F53E'; e.currentTarget.style.color = '#C8F53E' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'white' }}>ENTERPRISE PILOT</button>
-          </div>
-          <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-            {['● 4.2s avg detection time', '● 14,000+ fields scanned', '● 94% detection accuracy'].map((s, i) => (
-              <span key={i} className="stat-pill" style={{ background: 'rgba(200,245,62,0.06)', border: '1px solid rgba(200,245,62,0.18)', borderRadius: '99px', padding: '0.4rem 1rem', fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', animationDelay: `${i * 0.1 + 0.3}s` }}>{s}</span>
-            ))}
-          </div>
-        </div>
-        <div style={{ position: 'absolute', right: '3rem', top: '50%', transform: 'translateY(-50%)', zIndex: 2, width: '360px', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '4px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>⚡ Crop Health Report</span>
-            <span style={{ background: '#C8F53E', color: '#060A04', fontFamily: 'monospace', fontSize: '0.6rem', fontWeight: 900, padding: '0.2rem 0.6rem', letterSpacing: '0.1em' }}>LIVE INFERENCE</span>
-          </div>
-          <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=600&q=80" alt="field" style={{ width: '100%', height: '180px', objectFit: 'cover', borderRadius: '4px', marginBottom: '1rem' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>Disease Risk</span>
-            <span style={{ color: '#FFB347', fontWeight: 700 }}>Moderate ⚠️</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>Confidence</span>
-            <span style={{ color: '#C8F53E', fontWeight: 900, fontSize: '1.1rem' }}>94%</span>
-          </div>
-          <div style={{ background: 'rgba(200,245,62,0.08)', border: '1px solid rgba(200,245,62,0.15)', padding: '0.8rem', borderRadius: '4px', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
-            ● Apply fungicide in 3–5 days. Targeted sector 4-B coverage recommended.
-          </div>
-        </div>
-      </section>
-
-      {/* PARTNERS MARQUEE */}
-      <section style={{ background: '#0A0E07', borderTop: '1px solid rgba(200,245,62,0.06)', borderBottom: '1px solid rgba(200,245,62,0.06)', padding: '1.5rem 0', overflow: 'hidden' }}>
-        <p style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: '0.6rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '1rem' }}>GLOBAL INFRASTRUCTURE PARTNERS</p>
-        <div style={{ overflow: 'hidden', WebkitMaskImage: 'linear-gradient(to right,transparent,black 10%,black 90%,transparent)', maskImage: 'linear-gradient(to right,transparent,black 10%,black 90%,transparent)' }}>
-          <div style={{ display: 'flex', gap: '1.5rem', animation: 'marquee 25s linear infinite', width: 'max-content' }}
-            onMouseEnter={e => (e.currentTarget.style.animationPlayState = 'paused')}
-            onMouseLeave={e => (e.currentTarget.style.animationPlayState = 'running')}>
-            {['AGRITECH', 'FARMSENSE', 'TERRAYIELD', 'CROPCHAIN', 'AGROPILOT', 'AGRITECH', 'FARMSENSE', 'TERRAYIELD', 'CROPCHAIN', 'AGROPILOT'].map((b, i) => (
-              <div key={i} className="partner-card" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.1)', padding: '0.8rem 2rem', fontFamily: 'monospace', fontWeight: 700, color: 'white', fontSize: '0.85rem', transition: 'all 0.2s', flexShrink: 0 }}>{b}</div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* FEATURES */}
-      <section style={{ background: '#0A0E07', padding: '8rem 3rem' }}>
-        <div className="reveal" style={{ textAlign: 'center', marginBottom: '4rem' }}>
-          <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900, margin: '0 0 1rem' }}>WE REPLACED GUESSWORK WITH CERTAINTY.</h2>
-          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1rem', maxWidth: '540px', margin: '0 auto' }}>We replaced slow visual scouting with instant multi-spectral analysis.</p>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
-          {[
-            { icon: '🔬', title: 'AI Disease Detection', desc: 'Multi-spectral neural networks detect 94 disease signatures from a single image.', stat: '90%+ CONFIDENCE ON ALL SCANS' },
-            { icon: '🌦️', title: 'Weather + Risk Alerts', desc: 'Live weather integration forecasts disease pressure up to 5 days in advance.', stat: 'REAL-TIME · 50KM RISK RADIUS' },
-            { icon: '🗺️', title: 'Global Farm Dashboard', desc: 'Monitor every field, every scan, and every alert from a single command center.', stat: '142+ FARMS MONITORED GLOBALLY' },
-          ].map((c, i) => (
-            <div key={i} className="reveal feature-card" style={{ background: '#0F1409', border: '1px solid rgba(255,255,255,0.05)', padding: '2rem', transition: 'all 0.25s', borderLeft: '1px solid rgba(255,255,255,0.05)', cursor: 'default' }}>
-              <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>{c.icon}</div>
-              <h3 style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.75rem' }}>{c.title}</h3>
-              <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', lineHeight: 1.7, marginBottom: '1rem' }}>{c.desc}</p>
-              <p style={{ color: '#C8F53E', fontFamily: 'monospace', fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.1em' }}>{c.stat}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* REGIONAL RADAR SECTION */}
-      <section style={{ background: '#060A04', padding: '8rem 3rem' }}>
-        <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '0.8rem' }}>
-            <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#C8F53E', marginRight: '6px', animation: 'blink 1s infinite', verticalAlign: 'middle' }} />
-            REGIONAL EPIDEMIOLOGICAL RADAR · 10 WB DISTRICTS ACTIVE
-          </p>
-          <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900 }}>CropGuard IS WATCHING EVERY FIELD.</h2>
-        </div>
-        <div style={{ position: 'relative', height: '500px', border: '1px solid rgba(200,245,62,0.1)', borderRadius: '4px', overflow: 'hidden', maxWidth: '1100px', margin: '0 auto 2.5rem' }}>
-          <GlobalMap />
-          <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 1000, background: 'rgba(6,10,4,0.92)', border: '1px solid rgba(200,245,62,0.15)', padding: '0.8rem 1.2rem', backdropFilter: 'blur(10px)' }}>
-            {[['10', 'DISTRICTS'], ['29+', 'OUTBREAKS'], ['96%', 'ACCURACY']].map(([n, l]) => (
-              <div key={l} style={{ marginBottom: '0.4rem' }}>
-                <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.3rem', color: '#C8F53E', marginRight: '0.5rem' }}>{n}</span>
-                <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>{l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', maxWidth: '1100px', margin: '0 auto' }}>
-          {[['10', 'Districts Active'], ['29+', 'Clusters Logged'], ['96%', 'Multimodal Accuracy'], ['₹10k/yr', 'Govt Aid Mapped']].map(([n, l], i) => (
-            <div key={i} className="reveal" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.08)', padding: '1.5rem', textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '2.5rem', color: '#C8F53E', fontStyle: 'italic' }}>{n}</div>
-              <div style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-
-      {/* AI WIDGET */}
-      <section id="ai-demo" style={{ background: '#060A04', padding: '8rem 3rem' }}>
-        <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
-          <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900, margin: 0 }}>
-            EXPERIENCE REGIONAL VOICE & AI DIAGNOSIS.
-          </h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', marginTop: '0.8rem' }}>
-            Speak in your regional language or upload a leaf photo to diagnose crop disease in real-time.
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', marginTop: '0.6rem', maxWidth: '600px', margin: '0.6rem auto 0' }}>
+            Speak in your regional language or drop a crop photo to receive immediate prescription, local supplier mapping, and weather spread risk.
           </p>
 
-          {/* LANGUAGE SELECTOR PILLS */}
+          {/* LANGUAGE SELECTOR */}
           <div style={{ display: 'inline-flex', gap: '0.6rem', background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', padding: '0.4rem', borderRadius: '99px', marginTop: '1.5rem' }}>
             {[
               { code: 'bn-IN', label: '🇧🇩/🇮🇳 বাংলা (Bangla)' },
@@ -417,7 +277,8 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', maxWidth: '950px', margin: '0 auto', borderRadius: '8px', overflow: 'hidden' }}>
+        {/* SCANNER WORKSPACE */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '2rem' }}>
             <input type="file" id="cropFileInput" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handleFileSelect} />
             
@@ -441,7 +302,7 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Voice Input Section */}
+            {/* Voice Input */}
             <div style={{ marginTop: '1.2rem', background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', padding: '1rem', borderRadius: '4px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
                 <span style={{ fontFamily: 'monospace', fontSize: '0.68rem', color: '#C8F53E', fontWeight: 700, letterSpacing: '0.1em' }}>
@@ -496,7 +357,7 @@ export default function HomePage() {
               />
             </div>
 
-            {/* Submit Diagnosis Button */}
+            {/* Run Button */}
             <button
               onClick={() => analyzeImage()}
               disabled={analyzing}
@@ -567,8 +428,8 @@ export default function HomePage() {
 
         {/* RESULTS PANEL */}
         {analysisResult && (
-          <div className="reveal visible" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', maxWidth: '950px', margin: '2rem auto 0', padding: '2.5rem', borderRadius: '8px', fontFamily: 'monospace' }}>
-            {/* LOCALIZED VOICE RESPONSE BANNER */}
+          <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', margin: '2.5rem auto 0', padding: '2.5rem', borderRadius: '8px', fontFamily: 'monospace' }}>
+            {/* LOCALIZED VOICE RESPONSE */}
             {analysisResult.voiceSummary && (
               <div style={{ background: 'rgba(200,245,62,0.08)', border: '1px solid rgba(200,245,62,0.3)', padding: '1.2rem', borderRadius: '6px', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
@@ -625,8 +486,8 @@ export default function HomePage() {
               </div>
             </div>
 
+            {/* Treatment & Action Plan */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
-              {/* Treatment Info */}
               <div>
                 <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.2rem' }}>// RECOMMENDED TREATMENT</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -641,7 +502,6 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Action Plan */}
               <div>
                 <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.2rem' }}>// ACTION PLAN</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -686,7 +546,6 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                {/* 5-Day Weather Forecast Strip */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.8rem', marginBottom: '1.2rem' }}>
                   {analysisResult.weather.forecast?.map((day: any, i: number) => (
                     <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '0.8rem', textAlign: 'center' }}>
@@ -699,7 +558,6 @@ export default function HomePage() {
                   ))}
                 </div>
 
-                {/* Localized Risk Explanation & Spray Advice */}
                 <div style={{ background: 'rgba(0,0,0,0.3)', border: `1px solid ${analysisResult.diseaseRisk.riskLevel === 'High' ? 'rgba(255,79,79,0.3)' : 'rgba(200,245,62,0.15)'}`, padding: '1rem', borderRadius: '6px' }}>
                   <p style={{ color: 'white', fontSize: '0.85rem', lineHeight: 1.5, margin: '0 0 0.5rem', fontFamily: 'sans-serif' }}>
                     {selectedLang === 'bn-IN'
@@ -892,57 +750,7 @@ export default function HomePage() {
             </div>
           </div>
         )}
-      </section>
-
-
-      {/* DATA TO DECISION */}
-      <section style={{ background: '#0A0E07', padding: '8rem 3rem' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
-          <div className="reveal">
-            <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900, lineHeight: 1.1, marginBottom: '3rem' }}>
-              <span style={{ color: 'white' }}>FROM DATA TO DECISION </span>
-              <span style={{ color: '#C8F53E' }}>IN 3 MINUTES.</span>
-            </h2>
-            <div style={{ position: 'relative', paddingLeft: '2rem' }}>
-              <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '2px', background: 'linear-gradient(to bottom,#C8F53E,rgba(200,245,62,0.1))' }} />
-              {[['01', 'CAPTURE & UPLOAD', 'Ingest field imagery from drones, sensors, or mobile devices instantly.'], ['02', 'CLOUD PROCESSING', 'Multi-modal AI models analyze pathogen signatures at pixel-level scale.'], ['03', 'RECEIVE INSIGHTS', 'Get prioritized threat reports and treatment prescriptions in seconds.']].map(([n, t, d], i) => (
-                <div key={i} style={{ marginBottom: i < 2 ? '2.5rem' : 0 }}>
-                  <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.8rem', color: '#C8F53E', fontStyle: 'italic', lineHeight: 1 }}>{n}</div>
-                  <div style={{ fontWeight: 700, fontSize: '1rem', textTransform: 'uppercase', marginBottom: '0.4rem' }}>{t}</div>
-                  <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.85rem', lineHeight: 1.7 }}>{d}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="reveal" style={{ position: 'relative' }}>
-            <img src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&q=80" alt="crop field" style={{ width: '100%', height: '400px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(200,245,62,0.1)', display: 'block' }} />
-            <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', background: 'rgba(6,10,4,0.92)', border: '1px solid rgba(255,79,79,0.25)', boxShadow: '0 0 20px rgba(255,79,79,0.15)', padding: '1rem', borderRadius: '4px', maxWidth: '220px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '0.4rem' }}>
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF4F4F', animation: 'pulse 1.5s infinite', display: 'inline-block' }} />
-                <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: '#FF4F4F', letterSpacing: '0.12em' }}>THREAT DETECTED</span>
-              </div>
-              <div style={{ fontWeight: 700, fontSize: '1rem', marginBottom: '0.2rem' }}>SOYBEAN RUST</div>
-              <div style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', marginBottom: '0.4rem' }}>SECTOR 4-B</div>
-              <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.7rem' }}>📍 GPS: 42.8N, 87.2W</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ position: 'relative', overflow: 'hidden', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '6rem 3rem' }}>
-        <video autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15, zIndex: 0 }} src="/footer-bg.mp4" />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,10,4,0.75)', zIndex: 1 }} />
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(3rem,7vw,6rem)', fontStyle: 'italic', fontWeight: 900, marginBottom: '1.2rem' }}>READY TO PROTECT YOUR HARVEST?</h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', maxWidth: '560px', margin: '0 auto 2rem', lineHeight: 1.75 }}>Protecting harvests across 23 countries. Trusted by commercial farms, agri-corporations, and government pilot programs.</p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
-            <button style={{ background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.12em', padding: '0.9rem 2rem', border: 'none', cursor: 'pointer' }}>START MY PILOT</button>
-            <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.1em', padding: '0.9rem 1.8rem', cursor: 'pointer' }}>VIEW PRICING</button>
-          </div>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.12em' }}>🔒 NO CREDIT CARD REQUIRED · CANCEL ANYTIME · GDPR COMPLIANT</p>
-        </div>
-      </section>
+      </main>
 
       <Footer />
     </div>

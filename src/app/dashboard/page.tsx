@@ -9,14 +9,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Dynamically import Leaflet with no SSR
-const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
-const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
-const CircleMarker = dynamic(() => import('react-leaflet').then(mod => mod.CircleMarker), { ssr: false });
-const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ssr: false });
+// Dynamically import the heatmap with no SSR (it manages its own Leaflet CSS)
 const OutbreakHeatmap = dynamic(() => import('@/components/OutbreakHeatmap'), { ssr: false });
-
-import 'leaflet/dist/leaflet.css';
 
 const Ticker = () => (
   <div className="bg-black/40 rounded-xl p-4 overflow-hidden relative border border-white/5">
@@ -38,16 +32,30 @@ export default function Dashboard() {
   const [errorMsg, setErrorMsg] = useState('');
   const [daysFilter, setDaysFilter] = useState<7 | 30>(7);
 
-  // Outbreak Heatmap Data State
+  // Outbreak Heatmap Data State with rich initial West Bengal seed data
   const [outbreakData, setOutbreakData] = useState<{
     topOutbreakZones: any[];
     pincodeClusters: any[];
     totalDetections: number;
   }>({
-    topOutbreakZones: [],
-    pincodeClusters: [],
-    totalDetections: 0
+    topOutbreakZones: [
+      { rank: 1, district: 'Hooghly (Chinsurah)', pincode: '712101', topDisease: 'Late Blight', cropType: 'Potato', cases48h: 6, totalCases: 8, outbreakLevel: 'RED' },
+      { rank: 2, district: 'Burdwan (Purba Bardhaman)', pincode: '713101', topDisease: 'Rice Blast', cropType: 'Paddy Rice', cases48h: 5, totalCases: 7, outbreakLevel: 'RED' },
+      { rank: 3, district: 'Murshidabad (Baharampur)', pincode: '742101', topDisease: 'Yellow Rust', cropType: 'Wheat', cases48h: 3, totalCases: 4, outbreakLevel: 'YELLOW' }
+    ],
+    pincodeClusters: [
+      { pincode: '712101', district: 'Hooghly', latitude: 22.9031, longitude: 88.3908, topDisease: 'Late Blight', cropType: 'Potato', totalCases: 8, cases48h: 6, outbreakLevel: 'RED', latestTimestamp: new Date().toISOString() },
+      { pincode: '713101', district: 'Burdwan', latitude: 23.2324, longitude: 87.8615, topDisease: 'Rice Blast', cropType: 'Paddy Rice', totalCases: 7, cases48h: 5, outbreakLevel: 'RED', latestTimestamp: new Date().toISOString() },
+      { pincode: '742101', district: 'Murshidabad', latitude: 24.1025, longitude: 88.2484, topDisease: 'Yellow Rust', cropType: 'Wheat', totalCases: 4, cases48h: 3, outbreakLevel: 'YELLOW', latestTimestamp: new Date().toISOString() },
+      { pincode: '732101', district: 'Malda', latitude: 25.0044, longitude: 88.1458, topDisease: 'Aphid Vector', cropType: 'Mustard', totalCases: 2, cases48h: 2, outbreakLevel: 'GREEN', latestTimestamp: new Date().toISOString() },
+      { pincode: '741101', district: 'Nadia', latitude: 23.4013, longitude: 88.4975, topDisease: 'Cercospora Leaf Spot', cropType: 'Jute', totalCases: 2, cases48h: 1, outbreakLevel: 'GREEN', latestTimestamp: new Date().toISOString() },
+      { pincode: '722101', district: 'Bankura', latitude: 23.2313, longitude: 87.0784, topDisease: 'Stem Rot', cropType: 'Groundnut', totalCases: 1, cases48h: 1, outbreakLevel: 'GREEN', latestTimestamp: new Date().toISOString() },
+      { pincode: '721101', district: 'Paschim Medinipur', latitude: 22.4257, longitude: 87.3199, topDisease: 'Bacterial Blight', cropType: 'Paddy Rice', totalCases: 3, cases48h: 2, outbreakLevel: 'YELLOW', latestTimestamp: new Date().toISOString() },
+      { pincode: '734001', district: 'Siliguri', latitude: 26.7271, longitude: 88.3953, topDisease: 'Blister Blight', cropType: 'Tea', totalCases: 2, cases48h: 2, outbreakLevel: 'GREEN', latestTimestamp: new Date().toISOString() }
+    ],
+    totalDetections: 29
   });
+
 
   const [recentUploads, setRecentUploads] = useState([
     { name: 'Hooghly Field 12', time: '8m ago', dot: 'bg-[#FF4F4F]' },
@@ -199,10 +207,9 @@ export default function Dashboard() {
     { pos: [-25.3, 133.8], name: "Australia South" }
   ];
 
-  if (!isMounted) return <div className="bg-[#060A04] min-h-screen" />;
-
   return (
     <div className="flex bg-[#060A04] text-white font-sans selection:bg-[#C8F53E] selection:text-[#060A04] min-h-screen">
+
       <style dangerouslySetInnerHTML={{
         __html: `
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;700;900&family=DM+Mono&display=swap');
@@ -420,9 +427,15 @@ export default function Dashboard() {
         <div className="grid lg:grid-cols-[1fr_320px] gap-8 mb-12">
           {/* Outbreak Heatmap Map Column */}
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[450px]">
-            {isMounted && (
+            {isMounted ? (
               <OutbreakHeatmap clusters={outbreakData.pincodeClusters} />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center bg-[#060A04] text-[#C8F53E] font-mono text-xs gap-3">
+                <span className="w-3 h-3 bg-[#C8F53E] rounded-full animate-ping" />
+                <span>INITIALIZING SATELLITE RADAR TELEMETRY...</span>
+              </div>
             )}
+
 
             <div className="absolute top-6 right-6 z-[1000] flex items-center gap-3 px-4 py-2 bg-[#060A04]/80 backdrop-blur-md rounded-full border border-[#C8F53E]/30">
               <span className="w-2 h-2 bg-[#FF4F4F] rounded-full animate-pulse" />

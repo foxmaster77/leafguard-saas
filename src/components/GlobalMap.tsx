@@ -3,28 +3,28 @@ import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 
 const markers = [
-  { pos:[20.5,78.9] as [number,number], label:'India', note:'847 farms active' },
-  { pos:[37.1,-95.7] as [number,number], label:'USA', note:'2,341 farms active' },
-  { pos:[-14,-51] as [number,number], label:'Brazil', note:'623 farms active' },
-  { pos:[-25,133] as [number,number], label:'Australia', note:'412 farms active' },
-  { pos:[51,10] as [number,number], label:'Germany', note:'318 farms active' },
-  { pos:[35,104] as [number,number], label:'China', note:'1,204 farms active' },
-  { pos:[9,8] as [number,number], label:'Nigeria', note:'287 farms active' },
-  { pos:[-1,37] as [number,number], label:'Kenya', note:'194 farms active' },
-  { pos:[23,90] as [number,number], label:'Bangladesh', note:'531 farms active' },
-  { pos:[-34,-64] as [number,number], label:'Argentina', note:'448 farms active' },
+  { pos:[22.9031, 88.3908] as [number,number], label:'Hooghly (712101)', note:'Late Blight Alert · 8 Detections' },
+  { pos:[23.2324, 87.8615] as [number,number], label:'Burdwan (713101)', note:'Rice Blast Alert · 7 Detections' },
+  { pos:[24.1025, 88.2484] as [number,number], label:'Murshidabad (742101)', note:'Yellow Rust · 4 Detections' },
+  { pos:[25.0044, 88.1458] as [number,number], label:'Malda (732101)', note:'Mustard Vector Surveillance' },
+  { pos:[23.4013, 88.4975] as [number,number], label:'Nadia (741101)', note:'Jute Stem Rot Monitoring' },
+  { pos:[22.4257, 87.3199] as [number,number], label:'Medinipur (721101)', note:'Bacterial Leaf Blight Watch' },
+  { pos:[26.7271, 88.3953] as [number,number], label:'Siliguri (734001)', note:'Tea Blister Blight Monitor' },
+  { pos:[23.8103, 90.4125] as [number,number], label:'Dhaka Region', note:'531 Regional Farm Uplinks' },
+  { pos:[30.9010, 75.8573] as [number,number], label:'Punjab Grain Corridor', note:'Wheat Rust Early Warning' },
 ];
 
 export default function GlobalMap() {
   return (
     <MapContainer
-      center={[20, 10]}
-      zoom={2}
+      center={[23.8, 88.2]}
+      zoom={6}
       scrollWheelZoom={false}
       style={{ height:'100%', width:'100%', background:'#060A04' }}
       attributionControl={false}
-      zoomControl={false}
+      zoomControl={true}
     >
+
       <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
       {markers.map((m, i) => (
         <CircleMarker key={i} center={m.pos} radius={7}
