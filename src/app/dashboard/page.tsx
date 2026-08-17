@@ -129,54 +129,138 @@ export default function Dashboard() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const processUploadFile = async (file: File): Promise<{ blob: Blob; previewUrl: string }> => {
+    if (file.type.startsWith('video/')) {
+      return new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        const url = URL.createObjectURL(file);
+        video.src = url;
+        video.muted = true;
+        video.playsInline = true;
+        const timeout = setTimeout(() => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Video frame extraction timed out.'));
+        }, 10000);
+
+        video.onloadeddata = () => {
+          video.currentTime = Math.min(1, (video.duration || 2) / 2);
+        };
+        video.onseeked = () => {
+          clearTimeout(timeout);
+          try {
+            const canvas = document.createElement('canvas');
+            const maxDim = 1200;
+            let w = video.videoWidth || 800;
+            let h = video.videoHeight || 600;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) {
+                h = Math.round((h * maxDim) / w);
+                w = maxDim;
+              } else {
+                w = Math.round((w * maxDim) / h);
+                h = maxDim;
+              }
+            }
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(video, 0, 0, w, h);
+            canvas.toBlob((blob) => {
+              URL.revokeObjectURL(url);
+              if (blob) {
+                const preview = canvas.toDataURL('image/jpeg', 0.85);
+                resolve({ blob, previewUrl: preview });
+              } else {
+                reject(new Error('Could not capture frame from video.'));
+              }
+            }, 'image/jpeg', 0.85);
+          } catch (e: any) {
+            URL.revokeObjectURL(url);
+            reject(new Error(`Failed to process video: ${e.message}`));
+          }
+        };
+        video.onerror = () => {
+          clearTimeout(timeout);
+          URL.revokeObjectURL(url);
+          reject(new Error('Video format is unreadable or unsupported. Please upload a photo instead.'));
+        };
+        video.load();
+      });
+    } else if (file.type.startsWith('image/')) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          const maxDim = 1600;
+          let w = img.naturalWidth || img.width;
+          let h = img.naturalHeight || img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, w, h);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const preview = canvas.toDataURL('image/jpeg', 0.85);
+              resolve({ blob, previewUrl: preview });
+            } else {
+              reject(new Error('Failed to process image.'));
+            }
+          }, 'image/jpeg', 0.85);
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          reject(new Error('Selected image could not be loaded. Please choose a valid JPG/PNG.'));
+        };
+        img.src = url;
+      });
+    } else {
+      throw new Error('Unsupported file type. Please upload a crop photo (JPG/PNG) or MP4 video.');
+    }
+  };
+
   const handleFileSelect = async (file: File) => {
     setUploadState('uploading');
     setErrorMsg('');
-    setPreview(URL.createObjectURL(file));
-
-    let fileToUpload = file;
-
-    // Handle Video Frame Extraction
-    if (file.type.startsWith('video/')) {
-      try {
-        const video = document.createElement('video');
-        video.src = URL.createObjectURL(file);
-        video.muted = true;
-        video.playsInline = true;
-        await new Promise((resolve, reject) => {
-          video.onloadeddata = resolve;
-          video.onerror = reject;
-          video.load();
-        });
-        video.currentTime = 1;
-        await new Promise((resolve) => {
-          video.onseeked = resolve;
-        });
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const blob = await new Promise<Blob>((resolve) => {
-          canvas.toBlob((b) => resolve(b!), 'image/jpeg');
-        });
-        fileToUpload = new File([blob], 'frame.jpg', { type: 'image/jpeg' });
-      } catch (err) {
-        console.error('Frame extraction failed', err);
-      }
-    }
-
-    const formData = new FormData();
-    formData.append('image', fileToUpload);
 
     try {
+      const { blob, previewUrl } = await processUploadFile(file);
+      setPreview(previewUrl);
+
+      const formData = new FormData();
+      const fileToUpload = new File([blob], 'field_capture.jpg', { type: 'image/jpeg' });
+      formData.append('image', fileToUpload);
+      formData.append('language', 'en-IN');
+      formData.append('transcript', 'Field scan diagnosis');
+      formData.append('pincode', '712101');
+
       const res = await fetch('/api/analyze', {
         method: 'POST',
         body: formData,
       });
-      const data = await res.json();
+
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch (jsonErr) {
+        if (!res.ok) {
+          throw new Error(`Server returned HTTP ${res.status} (${res.statusText || 'Service error'})`);
+        }
+        throw new Error('Invalid response received from server.');
+      }
       
-      if (!data.error) {
+      if (res.ok && !data.error) {
         setResult(data);
         setUploadState('success');
         // Update Recents
@@ -184,17 +268,18 @@ export default function Dashboard() {
         const newScan = {
           field: file.name,
           cropName: data.cropName,
-          disease: data.disease.toUpperCase(),
-          confidence: data.confidence ,
+          disease: (data.disease || 'HEALTHY').toUpperCase(),
+          confidence: typeof data.confidence === 'number' ? `${data.confidence}%` : (data.confidence || '90%'),
           time: 'Just now'
         };
         setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
       } else {
-        setErrorMsg(data.error || 'Analysis failed');
+        setErrorMsg(data?.error || `Analysis failed (HTTP ${res.status})`);
         setUploadState('error');
       }
-    } catch (err) {
-      setErrorMsg('Network error occurred');
+    } catch (err: any) {
+      console.error('Field scan upload error:', err);
+      setErrorMsg(err?.message || 'Network error occurred');
       setUploadState('error');
     }
   };

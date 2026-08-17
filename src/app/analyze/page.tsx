@@ -192,17 +192,26 @@ export default function AnalyzePage() {
         method: 'POST',
         body: formData
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(text);
+      } catch (jsonErr) {
+        if (!res.ok) {
+          throw new Error(`Server error HTTP ${res.status}`);
+        }
+        throw new Error('Invalid JSON response');
+      }
 
       setTimeout(() => {
-        if (!data.error) {
+        if (res.ok && !data.error) {
           setAnalysisResult(data);
           addLog('> Multimodal analysis complete.');
           if (data.voiceSummary) {
             speakResponse(data.voiceSummary, selectedLang);
           }
         } else {
-          addLog('> Analysis failed: ' + data.error);
+          addLog('> Analysis failed: ' + (data?.error || `HTTP ${res.status}`));
         }
         setAnalyzing(false);
       }, Math.max(logs.length * 450 + 300, targetMs));
