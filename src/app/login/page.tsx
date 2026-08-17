@@ -66,7 +66,7 @@ export default function LoginPage() {
     <>
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <Navigation />
-      <main style={{ minHeight: '100vh', background: '#060A04', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative', overflow: 'hidden' }}>
+      <main style={{ minHeight: '100vh', background: '#060A04', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(5rem, 10vw, 7rem) 1rem 2rem', position: 'relative', overflow: 'hidden' }}>
         <video autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.1, zIndex: 0 }} src="/238827.mp4" />
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,10,4,0.92)', zIndex: 1 }} />
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
         ))}
 
         {/* Card */}
-        <div style={{ position: 'relative', zIndex: 2, background: '#0F1409', border: `1px solid ${error ? 'rgba(255,79,79,0.4)' : 'rgba(200,245,62,0.2)'}`, padding: '3rem', width: '420px', maxWidth: '100%', boxShadow: error ? '0 0 40px rgba(255,79,79,0.1)' : '0 0 80px rgba(200,245,62,0.05)' }}>
+        <div style={{ position: 'relative', zIndex: 2, background: '#0F1409', border: `1px solid ${error ? 'rgba(255,79,79,0.4)' : 'rgba(200,245,62,0.2)'}`, padding: 'clamp(1.5rem, 6vw, 3rem)', width: '420px', maxWidth: '100%', boxShadow: error ? '0 0 40px rgba(255,79,79,0.1)' : '0 0 80px rgba(200,245,62,0.05)', boxSizing: 'border-box' }}>
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🛡️</div>

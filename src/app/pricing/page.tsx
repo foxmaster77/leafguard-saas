@@ -10,6 +10,18 @@ const css = `
 .pricing-card:hover{transform:translateY(-6px)}
 .faq-item{background:#0F1409;border:1px solid rgba(255,255,255,0.06);margin-bottom:0.5rem}
 .partner-tag:hover{border-color:#C8F53E!important;box-shadow:0 0 16px rgba(200,245,62,0.15)}
+.pricing-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; align-items: start; }
+.pricing-hero { padding: 140px 3rem 4rem; }
+.pricing-section { padding: 0 3rem 6rem; }
+.pricing-table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+@media (max-width: 900px) {
+  .pricing-grid { grid-template-columns: 1fr !important; max-width: 480px; margin: 0 auto; }
+  .pricing-card { transform: none !important; }
+}
+@media (max-width: 639px) {
+  .pricing-hero { padding: 120px 1.25rem 3rem !important; }
+  .pricing-section { padding: 0 1.25rem 4rem !important; }
+}
 `;
 
 const faqs = [
@@ -51,12 +63,12 @@ export default function PricingPage() {
       <Navigation />
       <div style={{ background: '#060A04', color: 'white', fontFamily: 'Inter,system-ui,sans-serif', minHeight: '100vh' }}>
         {/* HERO */}
-        <section style={{ position: 'relative', overflow: 'hidden', paddingTop: '140px', paddingBottom: '4rem', textAlign: 'center', padding: '140px 3rem 4rem' }}>
+        <section className="pricing-hero" style={{ position: 'relative', overflow: 'hidden', textAlign: 'center' }}>
           <video autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.12, zIndex: 0 }} src="/249448.mp4" />
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,10,4,0.85)', zIndex: 1 }} />
           <div style={{ position: 'relative', zIndex: 2 }}>
             <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '1rem' }}>PRICING · TRANSPARENT & SCALABLE</p>
-            <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(3rem,6vw,5.5rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: 0.92, margin: '0 auto 1rem', maxWidth: '800px' }}>CHOOSE YOUR INTELLIGENCE LEVEL</h1>
+            <h1 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,6vw,5.5rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: 0.92, margin: '0 auto 1rem', maxWidth: '800px' }}>CHOOSE YOUR INTELLIGENCE LEVEL</h1>
             <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1rem', marginBottom: '1.5rem' }}>Start free. Scale to satellite. Cancel anytime.</p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
               {['⚡ Setup in 2 minutes', '🔒 No credit card for free tier', '📈 ROI positive in first season'].map((p, i) => (
@@ -74,8 +86,8 @@ export default function PricingPage() {
         </section>
 
         {/* CARDS */}
-        <section style={{ padding: '0 3rem 6rem', maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem', alignItems: 'start' }}>
+        <section className="pricing-section" style={{ maxWidth: '1200px', margin: '0 auto' }}>
+          <div className="pricing-grid">
             {tiers.map((t, i) => (
               <div key={i} className="pricing-card" style={{ background: i === 1 ? '#111A08' : '#0A0E07', border: `1px solid ${t.color}`, boxShadow: t.glow, transform: `scale(${t.scale})`, padding: '2rem', position: 'relative', boxSizing: 'border-box' as const }}>
                 {i === 1 && <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: '#C8F53E', color: '#060A04', fontFamily: 'monospace', fontSize: '0.65rem', fontWeight: 900, padding: '0.3rem 1rem', letterSpacing: '0.1em', whiteSpace: 'nowrap' as const }}>MOST POPULAR</div>}
@@ -96,7 +108,7 @@ export default function PricingPage() {
         </section>
 
         {/* COMPARISON TABLE */}
-        <section className="reveal" style={{ padding: '0 3rem 6rem', maxWidth: '1100px', margin: '0 auto' }}>
+        <section className="reveal pricing-section" style={{ maxWidth: '1100px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>FULL FEATURE BREAKDOWN</p>
             <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2rem,4vw,3rem)', fontStyle: 'italic', fontWeight: 900, marginBottom: '1.5rem' }}>SEE EVERYTHING INCLUDED</h2>
@@ -105,27 +117,29 @@ export default function PricingPage() {
             </button>
           </div>
           <div style={{ maxHeight: showTable ? '2000px' : '0', overflow: 'hidden', transition: 'max-height 0.6s ease' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead><tr style={{ borderBottom: '1px solid rgba(200,245,62,0.1)' }}>
-                {['FEATURE', 'RESEARCH', 'COMMERCIAL', 'ENTERPRISE'].map((h, i) => (
-                  <th key={h} style={{ padding: '0.8rem 1rem', textAlign: i === 0 ? 'left' : 'center', fontFamily: 'monospace', fontSize: '0.65rem', color: i === 2 ? '#C8F53E' : 'rgba(255,255,255,0.4)', letterSpacing: '0.12em', background: i === 2 ? 'rgba(200,245,62,0.06)' : undefined }}>{h}</th>
-                ))}
-              </tr></thead>
-              <tbody>
-                {[['Monthly Scans', '50', 'Unlimited', 'Unlimited'], ['Multi-spectral', '❌', '✅', '✅'], ['API Access', '❌', '✅', '✅'], ['Agronomist Support', 'Community', 'Direct', 'Dedicated'], ['Data History', '30 Days', 'Forever', 'Forever'], ['Risk Forecast', '❌', '5 Days', '14 Days'], ['Drone Integration', 'Manual', 'Direct Sync', 'Fleet Command'], ['NDVI Mapping', '❌', '✅', '✅ Advanced'], ['White Label', '❌', '❌', '✅'], ['On-Premise', '❌', '❌', '✅'], ['SLA Guarantee', '❌', '❌', '✅'], ['Custom AI Training', '❌', '❌', '✅']].map((row, ri) => (
-                  <tr key={ri} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
-                    {row.map((cell, ci) => (
-                      <td key={ci} style={{ padding: '0.7rem 1rem', textAlign: ci === 0 ? 'left' : 'center', fontSize: '0.82rem', color: cell === '✅' ? '#C8F53E' : cell === '❌' ? 'rgba(255,79,79,0.6)' : 'rgba(255,255,255,0.6)', fontFamily: 'monospace', background: ci === 2 ? 'rgba(200,245,62,0.04)' : undefined }}>{cell}</td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="pricing-table-container">
+              <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse' }}>
+                <thead><tr style={{ borderBottom: '1px solid rgba(200,245,62,0.1)' }}>
+                  {['FEATURE', 'RESEARCH', 'COMMERCIAL', 'ENTERPRISE'].map((h, i) => (
+                    <th key={h} style={{ padding: '0.8rem 1rem', textAlign: i === 0 ? 'left' : 'center', fontFamily: 'monospace', fontSize: '0.65rem', color: i === 2 ? '#C8F53E' : 'rgba(255,255,255,0.4)', letterSpacing: '0.12em', background: i === 2 ? 'rgba(200,245,62,0.06)' : undefined }}>{h}</th>
+                  ))}
+                </tr></thead>
+                <tbody>
+                  {[['Monthly Scans', '50', 'Unlimited', 'Unlimited'], ['Multi-spectral', '❌', '✅', '✅'], ['API Access', '❌', '✅', '✅'], ['Agronomist Support', 'Community', 'Direct', 'Dedicated'], ['Data History', '30 Days', 'Forever', 'Forever'], ['Risk Forecast', '❌', '5 Days', '14 Days'], ['Drone Integration', 'Manual', 'Direct Sync', 'Fleet Command'], ['NDVI Mapping', '❌', '✅', '✅ Advanced'], ['White Label', '❌', '❌', '✅'], ['On-Premise', '❌', '❌', '✅'], ['SLA Guarantee', '❌', '❌', '✅'], ['Custom AI Training', '❌', '❌', '✅']].map((row, ri) => (
+                    <tr key={ri} style={{ background: ri % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      {row.map((cell, ci) => (
+                        <td key={ci} style={{ padding: '0.7rem 1rem', textAlign: ci === 0 ? 'left' : 'center', fontSize: '0.82rem', color: cell === '✅' ? '#C8F53E' : cell === '❌' ? 'rgba(255,79,79,0.6)' : 'rgba(255,255,255,0.6)', fontFamily: 'monospace', background: ci === 2 ? 'rgba(200,245,62,0.04)' : undefined }}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </section>
 
         {/* SOCIAL PROOF */}
-        <section className="reveal" style={{ padding: '0 3rem 6rem', textAlign: 'center' }}>
+        <section className="reveal pricing-section" style={{ textAlign: 'center' }}>
           <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#C8F53E', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '1.5rem' }}>TRUSTED BY EARLY PARTNERS IN US, INDIA & EUROPE</p>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
             {['AgriTech Labs', 'FarmSense', 'CropChain', 'TerraYield', 'AgroPilot'].map(p => (
@@ -137,7 +151,7 @@ export default function PricingPage() {
         </section>
 
         {/* FAQ */}
-        <section style={{ padding: '0 3rem 6rem', maxWidth: '800px', margin: '0 auto' }}>
+        <section className="pricing-section" style={{ maxWidth: '800px', margin: '0 auto' }}>
           <div className="reveal" style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
             <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2rem,4vw,3rem)', fontStyle: 'italic', fontWeight: 900 }}>EVERYTHING YOU NEED TO KNOW</h2>
           </div>
@@ -155,11 +169,11 @@ export default function PricingPage() {
         </section>
 
         {/* BOTTOM CTA */}
-        <section style={{ background: '#C8F53E', padding: '6rem 3rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <section style={{ background: '#C8F53E', padding: 'clamp(3rem, 6vw, 6rem) clamp(1.25rem, 4vw, 3rem)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', fontSize: '18vw', fontWeight: 900, color: 'rgba(6,10,4,0.07)', whiteSpace: 'nowrap', pointerEvents: 'none', letterSpacing: '-0.02em' }}>CropGuard</div>
           <div style={{ position: 'relative', zIndex: 1 }}>
-            <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', color: '#060A04', fontStyle: 'italic', fontWeight: 900, marginBottom: '0.5rem' }}>NOT SURE WHICH PLAN?</h2>
-            <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', color: '#060A04', fontStyle: 'italic', fontWeight: 900, marginBottom: '1rem' }}>TALK TO A REAL AGRONOMIST.</h2>
+            <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.2rem,5vw,4rem)', color: '#060A04', fontStyle: 'italic', fontWeight: 900, marginBottom: '0.5rem' }}>NOT SURE WHICH PLAN?</h2>
+            <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.2rem,5vw,4rem)', color: '#060A04', fontStyle: 'italic', fontWeight: 900, marginBottom: '1rem' }}>TALK TO A REAL AGRONOMIST.</h2>
             <p style={{ color: 'rgba(6,10,4,0.6)', fontSize: '1rem', marginBottom: '2rem' }}>We&apos;ll help you audit your scouting process and find the best plan for your season.</p>
             <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
               <button style={{ background: '#060A04', color: '#C8F53E', border: 'none', padding: '1rem 2rem', fontFamily: 'monospace', fontSize: '0.78rem', fontWeight: 900, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer' }}>BOOK A FREE 15-MIN CALL →</button>

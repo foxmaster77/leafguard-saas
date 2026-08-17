@@ -49,7 +49,7 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-[#060A04]/60 backdrop-blur-3xl" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-12 pt-40 pb-40 grid lg:grid-cols-2 gap-32 items-start">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 pt-28 sm:pt-36 lg:pt-40 pb-20 sm:pb-32 lg:pb-40 grid lg:grid-cols-2 gap-12 lg:gap-32 items-start">
         {/* LEFT COLUMN */}
         <div className="reveal">
           <motion.div
@@ -60,35 +60,35 @@ export default function ContactPage() {
             <span className="text-[10px] font-black text-[#C8F53E] uppercase tracking-[0.5em] font-mono">CONTACT · GET IN TOUCH</span>
           </motion.div>
 
-          <h1 className="font-bebas text-[clamp(4rem,7vw,7rem)] leading-[0.85] italic mb-12 uppercase tracking-tighter">
+          <h1 className="font-bebas text-[clamp(3.5rem,7vw,7rem)] leading-[0.85] italic mb-8 sm:mb-12 uppercase tracking-tighter">
             TALK TO A REAL<br />AGRONOMIST.
           </h1>
 
-          <p className="text-xl text-white/40 mb-16 leading-relaxed max-w-lg">
+          <p className="text-base sm:text-xl text-white/40 mb-10 sm:mb-16 leading-relaxed max-w-lg">
             Share your acreage, crop type, and what you want to improve. We&apos;ll reply within 24 hours with a custom pilot plan.
           </p>
 
-          <div className="space-y-6 mb-20">
+          <div className="space-y-4 sm:space-y-6 mb-12 sm:mb-20">
             {[
               { icon: <Mail size={20} />, title: "pilot@CropGuard.ai", sub: "Official inquiry channel" },
               { icon: <MapPin size={20} />, title: "Serving US, India & Europe", sub: "Global deployment capability" },
               { icon: <Zap size={20} />, title: "Response within 24 hours", sub: "Priority agronomic support" }
             ].map((card, i) => (
-              <div key={i} className="flex items-center gap-6 bg-[#0F1409] border border-[#C8F53E]/10 p-8 rounded-[2.5rem] hover:border-[#C8F53E]/40 transition-all group">
-                <div className="w-12 h-12 rounded-2xl bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E] group-hover:scale-110 transition-transform">
+              <div key={i} className="flex items-center gap-4 sm:gap-6 bg-[#0F1409] border border-[#C8F53E]/10 p-5 sm:p-8 rounded-2xl sm:rounded-[2.5rem] hover:border-[#C8F53E]/40 transition-all group">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E] group-hover:scale-110 transition-transform flex-shrink-0">
                   {card.icon}
                 </div>
                 <div>
-                  <p className="text-xl font-bold italic text-white uppercase tracking-tight">{card.title}</p>
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-widest mt-1">{card.sub}</p>
+                  <p className="text-base sm:text-xl font-bold italic text-white uppercase tracking-tight">{card.title}</p>
+                  <p className="text-[9px] sm:text-[10px] font-black text-white/30 uppercase tracking-widest mt-1">{card.sub}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="p-10 rounded-[3rem] bg-white/5 border border-white/10 relative overflow-hidden group">
+          <div className="p-6 sm:p-10 rounded-2xl sm:rounded-[3rem] bg-white/5 border border-white/10 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 text-white/5 font-bebas text-9xl leading-none italic pointer-events-none select-none">&ldquo;</div>
-            <p className="text-xl text-white/60 leading-relaxed italic relative z-10">
+            <p className="text-base sm:text-xl text-white/60 leading-relaxed italic relative z-10">
               &ldquo;We don&apos;t do generic demos. We build you a custom pilot plan based on your actual farm.&rdquo;
             </p>
           </div>
@@ -96,7 +96,7 @@ export default function ContactPage() {
 
         {/* RIGHT COLUMN: Form */}
         <div className="reveal" style={{ transitionDelay: '0.2s' }}>
-          <div className="bg-[#0F1409] border border-[#C8F53E]/20 rounded-[4rem] p-16 relative shadow-2xl">
+          <div className="bg-[#0F1409] border border-[#C8F53E]/20 rounded-3xl sm:rounded-[4rem] p-6 sm:p-10 lg:p-16 relative shadow-2xl">
             <AnimatePresence mode="wait">
               {formState !== 'success' ? (
                 <motion.div
