@@ -1116,37 +1116,53 @@ export default function Dashboard() {
         {/* STATS ROW + RECENT SCANS (VITALITY FEED) */}
         <div id="vitality-feed" className="scroll-mt-6 mb-12 space-y-12">
           {/* STATS ROW PRESERVED */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 xl:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4">
             {[
-              { label: 'AMBIENT TEMP', val: '15', unit: '°C', icon: <Thermometer size={14} /> },
-              { label: 'SOIL HUMIDITY', val: '54', unit: '%', icon: <CloudRain size={14} /> },
-              { label: 'CROP STAGE', val: 'FLOWERING', unit: '', icon: <Wind size={14} />, color: 'text-[#C8F53E]', isWord: true },
-              { label: 'ACTIVE ALERTS', val: '03', unit: 'CRITICAL', icon: <AlertTriangle size={14} />, color: 'text-[#FF4F4F]', isAlert: true },
-              { label: 'DRONES ACTIVE', val: '2/5', unit: 'ONLINE', icon: <Activity size={14} />, color: 'text-[#C8F53E]' },
-              { label: 'SECTOR COVERAGE', val: '142.5', unit: 'HA', icon: <Globe size={14} /> }
+              { label: 'AMBIENT TEMP', val: '15', unit: '°C', icon: <Thermometer size={14} />, type: 'metric' },
+              { label: 'SOIL HUMIDITY', val: '54', unit: '%', icon: <CloudRain size={14} />, type: 'metric' },
+              { label: 'CROP STAGE', val: 'FLOWERING', unit: '', icon: <Wind size={14} />, type: 'badge', color: 'text-[#C8F53E]', bg: 'bg-[#C8F53E]/10 border-[#C8F53E]/30 text-[#C8F53E]' },
+              { label: 'ACTIVE ALERTS', val: '03', unit: 'CRITICAL', icon: <AlertTriangle size={14} />, type: 'alert', color: 'text-[#FF4F4F]', badgeBg: 'bg-[#FF4F4F]/15 border-[#FF4F4F]/30 text-[#FF4F4F]' },
+              { label: 'DRONES ACTIVE', val: '2/5', unit: 'ONLINE', icon: <Activity size={14} />, type: 'status', color: 'text-[#C8F53E]', badgeBg: 'bg-[#C8F53E]/10 border-[#C8F53E]/20 text-[#C8F53E]' },
+              { label: 'SECTOR COVERAGE', val: '142.5', unit: 'HA', icon: <Globe size={14} />, type: 'metric' }
             ].map((stat, i) => (
               <div
                 key={i}
-                className="bg-[#0F1409] p-5 rounded-2xl md:rounded-3xl border border-white/5 hover:border-[#C8F53E]/30 transition-all group overflow-hidden min-w-0 flex flex-col justify-between"
+                className="bg-[#0F1409]/90 p-4 sm:p-5 rounded-2xl border border-white/5 hover:border-[#C8F53E]/30 transition-all group overflow-hidden min-w-0 flex flex-col justify-between shadow-lg shadow-black/20"
               >
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-[9px] font-black text-white/30 uppercase tracking-widest truncate">{stat.label}</span>
-                  <div className="text-[#C8F53E]/40 group-hover:text-[#C8F53E] transition-colors flex-shrink-0 ml-1">{stat.icon}</div>
+                  <span className="text-[10px] font-mono font-bold text-white/40 uppercase tracking-wider truncate">{stat.label}</span>
+                  <div className="p-1 rounded-md bg-white/5 text-[#C8F53E]/60 group-hover:text-[#C8F53E] group-hover:bg-[#C8F53E]/10 transition-colors flex-shrink-0 ml-1">
+                    {stat.icon}
+                  </div>
                 </div>
-                <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
-                  <span
-                    className={`font-bebas italic ${
-                      stat.isWord
-                        ? 'text-xl sm:text-2xl lg:text-[1.65rem] xl:text-[1.45rem] 2xl:text-[1.75rem]'
-                        : 'text-3xl sm:text-4xl xl:text-[2.1rem] 2xl:text-4xl'
-                    } leading-none tracking-tight truncate ${stat.color || 'text-white'}`}
-                  >
-                    {stat.val}
-                  </span>
-                  {stat.unit && (
-                    <span className={`text-[9px] sm:text-[10px] font-black font-mono uppercase tracking-wider ${stat.isAlert ? 'text-[#FF4F4F]' : 'text-white/40'}`}>
-                      {stat.unit}
+
+                <div className="flex items-center min-w-0">
+                  {stat.type === 'badge' ? (
+                    <span className="font-mono font-bold text-xs sm:text-[13px] px-2.5 py-1 rounded-md border tracking-wider truncate bg-[#C8F53E]/10 border-[#C8F53E]/30 text-[#C8F53E]">
+                      {stat.val}
                     </span>
+                  ) : stat.type === 'alert' || stat.type === 'status' ? (
+                    <div className="flex items-center gap-2 min-w-0 flex-wrap">
+                      <span className={`font-bebas text-3xl sm:text-4xl leading-none tracking-tight ${stat.color}`}>
+                        {stat.val}
+                      </span>
+                      {stat.unit && (
+                        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${stat.badgeBg}`}>
+                          {stat.unit}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-baseline gap-1 min-w-0">
+                      <span className="font-bebas text-3xl sm:text-4xl leading-none tracking-tight text-white">
+                        {stat.val}
+                      </span>
+                      {stat.unit && (
+                        <span className="text-xs font-mono font-bold text-white/40 uppercase">
+                          {stat.unit}
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
