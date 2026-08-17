@@ -84,14 +84,27 @@ JSON Schema:
           });
         }
 
-        const geminiRes = await fetch(geminiUrl, {
+        const requestBody = JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: { responseMimeType: "application/json" }
+        });
+
+        let geminiRes = await fetch(geminiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts }],
-            generationConfig: { responseMimeType: "application/json" }
-          })
+          body: requestBody
         });
+
+        // Transient overload retry: on 503 specifically, wait 1.5s and retry once
+        if (geminiRes.status === 503) {
+          console.warn(`[AgroGuard] Gemini returned 503 (transient overload). Retrying in 1.5s...`);
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+          geminiRes = await fetch(geminiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: requestBody
+          });
+        }
 
         if (geminiRes.ok) {
           const geminiData = await geminiRes.json();
@@ -107,9 +120,9 @@ JSON Schema:
     }
 
     // Strategy 2: Fallback to Groq API if Gemini wasn't available or failed
-    // Model: meta-llama/llama-4-maverick-17b-128e-instruct — vision-capable, listed in console.groq.com/docs/vision
+    // Model: qwen/qwen3.6-27b — vision-capable multimodal model listed in console.groq.com/docs/vision
     // To verify current models: GET https://api.groq.com/openai/v1/models (with Authorization: Bearer YOUR_KEY)
-    const GROQ_MODEL = 'meta-llama/llama-4-maverick-17b-128e-instruct';
+    const GROQ_MODEL = 'qwen/qwen3.6-27b';
     if (!jsonResponseText && process.env.GROQ_API_KEY) {
       console.log(`[AgroGuard] Using Groq model: ${GROQ_MODEL}`);
       try {
