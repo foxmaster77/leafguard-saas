@@ -783,6 +783,21 @@ export default function Dashboard() {
                 <div className="w-full h-full relative">
                   <img src={preview} className="w-full h-full object-cover opacity-30" />
                   {uploadState === 'uploading' && <div className="scan-line" />}
+                  {uploadState === 'success' && result?.boundingBox && (
+                    <div
+                      className="absolute border border-[#FF4F4F] bg-[#FF4F4F]/20 rounded pointer-events-none z-10"
+                      style={{
+                        left: `${result.boundingBox.x}%`,
+                        top: `${result.boundingBox.y}%`,
+                        width: `${result.boundingBox.width}%`,
+                        height: `${result.boundingBox.height}%`
+                      }}
+                    >
+                      <span className="absolute -top-3 left-0 bg-[#FF4F4F] text-white text-[7px] font-mono font-bold px-1 rounded whitespace-nowrap">
+                        ⚠ Affected Area
+                      </span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <video 
@@ -904,7 +919,18 @@ export default function Dashboard() {
                           return (
                             <div key={fr.frameIndex} className={`relative rounded-xl overflow-hidden border ${borderCol} aspect-video bg-black/60`}>
                               <img src={fr.thumbUrl} className="w-full h-full object-cover opacity-80" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+                              {fr.data?.boundingBox && (
+                                <div
+                                  className="absolute border border-[#FF4F4F] bg-[#FF4F4F]/25 rounded pointer-events-none z-10"
+                                  style={{
+                                    left: `${fr.data.boundingBox.x}%`,
+                                    top: `${fr.data.boundingBox.y}%`,
+                                    width: `${fr.data.boundingBox.width}%`,
+                                    height: `${fr.data.boundingBox.height}%`
+                                  }}
+                                />
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent pointer-events-none" />
                               <div className="absolute bottom-0 left-0 right-0 p-1.5">
                                 {fr.status === 'done' ? (
                                   <>
@@ -1184,6 +1210,21 @@ export default function Dashboard() {
               <div className="relative flex-grow bg-black/60 rounded-[2.5rem] border border-white/10 overflow-hidden mb-10 min-h-[320px]">
                 <img src={preview || "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80"} className={`w-full h-full object-cover ${preview ? 'opacity-100' : 'grayscale opacity-20'}`} alt="Field Scan" />
                 {uploadState === 'uploading' && <div className="scan-line" />}
+                {uploadState !== 'uploading' && result?.boundingBox && (
+                  <div
+                    className="absolute border-2 border-[#FF4F4F] bg-[#FF4F4F]/25 rounded-lg pointer-events-none z-10 shadow-[0_0_15px_rgba(255,79,79,0.6)]"
+                    style={{
+                      left: `${result.boundingBox.x}%`,
+                      top: `${result.boundingBox.y}%`,
+                      width: `${result.boundingBox.width}%`,
+                      height: `${result.boundingBox.height}%`
+                    }}
+                  >
+                    <span className="absolute -top-5 left-0 bg-[#FF4F4F] text-white text-[9px] font-mono font-black px-1.5 py-0.5 rounded shadow whitespace-nowrap">
+                      ⚠ AFFECTED AREA
+                    </span>
+                  </div>
+                )}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <Target className={`text-[#C8F53E] w-32 h-32 ${uploadState === 'uploading' ? 'opacity-100 scale-110' : 'opacity-20'} transition-all duration-500 animate-pulse`} />
                 </div>

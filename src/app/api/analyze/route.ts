@@ -46,6 +46,7 @@ IMPORTANT CONSTRAINTS:
 - healthScore MUST be an integer between 0 and 100 (e.g. 72, not 0.72).
 - confidence MUST be an integer between 0 and 100 (e.g. 85, not 0.85).
 - voiceSummary MUST be written directly in ${langName} using simple, empathetic, farmer-friendly terms without jargon. Keep it to 2-3 sentences ideal for Text-to-Speech playback.
+- boundingBox: if visible symptoms or affected/diseased areas exist on the leaf/crop, provide an approximate bounding box as integer percentages of image dimensions ({ "x": 0-100, "y": 0-100, "width": 0-100, "height": 0-100 } where x, y is the top-left corner). If the crop is healthy, no specific region stands out, or only text/voice description is provided without an image, return boundingBox: null (do not force a box on healthy results).
 
 JSON Schema:
 {
@@ -55,6 +56,7 @@ JSON Schema:
   "healthScore": number (0-100),
   "riskLevel": "Low" | "Medium" | "High" | "Critical",
   "confidence": number (0-100),
+  "boundingBox": { "x": number, "y": number, "width": number, "height": number } | null,
   "pesticide": "string (recommended treatment or organic remedy)",
   "dosage": "string (e.g. 2ml per liter of water)",
   "actionPlan": ["step 1", "step 2", "step 3"],
@@ -188,6 +190,33 @@ JSON Schema:
       parsed.confidence = Math.round(parsed.confidence * 100);
     } else {
       parsed.confidence = Math.round(parsed.confidence ?? 85);
+    }
+
+    // Safely parse and sanitize boundingBox if provided (optional)
+    try {
+      if (parsed.boundingBox && typeof parsed.boundingBox === 'object') {
+        const { x, y, width, height } = parsed.boundingBox;
+        const numX = Number(x);
+        const numY = Number(y);
+        const numW = Number(width);
+        const numH = Number(height);
+        if (!isNaN(numX) && !isNaN(numY) && !isNaN(numW) && !isNaN(numH) && numW > 0 && numH > 0) {
+          const clampedX = Math.max(0, Math.min(100, Math.round(numX)));
+          const clampedY = Math.max(0, Math.min(100, Math.round(numY)));
+          parsed.boundingBox = {
+            x: clampedX,
+            y: clampedY,
+            width: Math.max(1, Math.min(100 - clampedX, Math.round(numW))),
+            height: Math.max(1, Math.min(100 - clampedY, Math.round(numH)))
+          };
+        } else {
+          parsed.boundingBox = null;
+        }
+      } else {
+        parsed.boundingBox = null;
+      }
+    } catch {
+      parsed.boundingBox = null;
     }
 
     // Default localized voice summary if missing

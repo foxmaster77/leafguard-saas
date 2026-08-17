@@ -352,18 +352,58 @@ export default function AnalyzePage() {
               onMouseLeave={e => { if (!imagePreview && !imageError) { e.currentTarget.style.borderColor = 'rgba(200,245,62,0.25)'; e.currentTarget.style.background = 'transparent' } }}
             >
               {imagePreview && !imageError ? (
-                <img
-                  src={imagePreview}
-                  alt="Preview"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  onError={() => {
-                    setImageError('Image failed to render. Please upload a valid image.');
-                    addLog('> Error: Image preview failed to render.');
-                  }}
-                  onLoad={() => {
-                    setImageError(null);
-                  }}
-                />
+                <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    onError={() => {
+                      setImageError('Image failed to render. Please upload a valid image.');
+                      addLog('> Error: Image preview failed to render.');
+                    }}
+                    onLoad={() => {
+                      setImageError(null);
+                    }}
+                  />
+                  {analysisResult?.boundingBox && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: `${analysisResult.boundingBox.x}%`,
+                        top: `${analysisResult.boundingBox.y}%`,
+                        width: `${analysisResult.boundingBox.width}%`,
+                        height: `${analysisResult.boundingBox.height}%`,
+                        border: '2px solid #FF4F4F',
+                        background: 'rgba(255, 79, 79, 0.25)',
+                        borderRadius: '4px',
+                        boxShadow: '0 0 12px rgba(255, 79, 79, 0.6)',
+                        pointerEvents: 'none',
+                        zIndex: 10,
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '-19px',
+                          left: 0,
+                          background: '#FF4F4F',
+                          color: '#FFFFFF',
+                          fontSize: '0.62rem',
+                          fontWeight: 900,
+                          fontFamily: 'monospace',
+                          padding: '1px 5px',
+                          borderRadius: '2px',
+                          letterSpacing: '0.05em',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.5)'
+                        }}
+                      >
+                        ⚠ AFFECTED AREA
+                      </span>
+                    </div>
+                  )}
+                </div>
               ) : imageError ? (
                 <div style={{ textAlign: 'center', padding: '1rem' }}>
                   <span style={{ fontSize: '1.8rem', color: '#FF4F4F' }}>⚠️</span>
