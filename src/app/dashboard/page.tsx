@@ -1116,21 +1116,39 @@ export default function Dashboard() {
         {/* STATS ROW + RECENT SCANS (VITALITY FEED) */}
         <div id="vitality-feed" className="scroll-mt-6 mb-12 space-y-12">
           {/* STATS ROW PRESERVED */}
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-6 gap-4 xl:gap-5">
             {[
-              { label: 'AMBIENT TEMP', val: '15°C', icon: <Thermometer size={14} /> },
-              { label: 'SOIL HUMIDITY', val: '54%', icon: <CloudRain size={14} /> },
-              { label: 'CROP STAGE', val: 'Flowering', icon: <Wind size={14} />, color: 'text-[#C8F53E]' },
-              { label: 'ACTIVE ALERTS', val: '3 Critical', icon: <AlertTriangle size={14} />, color: 'text-[#FF4F4F]' },
-              { label: 'DRONES ACTIVE', val: '2/5', icon: <Activity size={14} />, color: 'text-[#C8F53E]' },
-              { label: 'SECTOR COVERAGE', val: '142.5 Ha', icon: <Globe size={14} /> }
+              { label: 'AMBIENT TEMP', val: '15', unit: '°C', icon: <Thermometer size={14} /> },
+              { label: 'SOIL HUMIDITY', val: '54', unit: '%', icon: <CloudRain size={14} /> },
+              { label: 'CROP STAGE', val: 'FLOWERING', unit: '', icon: <Wind size={14} />, color: 'text-[#C8F53E]', isWord: true },
+              { label: 'ACTIVE ALERTS', val: '03', unit: 'CRITICAL', icon: <AlertTriangle size={14} />, color: 'text-[#FF4F4F]', isAlert: true },
+              { label: 'DRONES ACTIVE', val: '2/5', unit: 'ONLINE', icon: <Activity size={14} />, color: 'text-[#C8F53E]' },
+              { label: 'SECTOR COVERAGE', val: '142.5', unit: 'HA', icon: <Globe size={14} /> }
             ].map((stat, i) => (
-              <div key={i} className="bg-[#0F1409] p-4 md:p-8 rounded-xl md:rounded-[2rem] border border-white/5 hover:border-[#C8F53E]/30 transition-all group">
-                <div className="flex justify-between items-center mb-4">
-                  <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{stat.label}</span>
-                  <div className="text-[#C8F53E]/30 group-hover:text-[#C8F53E] transition-colors">{stat.icon}</div>
+              <div
+                key={i}
+                className="bg-[#0F1409] p-5 rounded-2xl md:rounded-3xl border border-white/5 hover:border-[#C8F53E]/30 transition-all group overflow-hidden min-w-0 flex flex-col justify-between"
+              >
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-[9px] font-black text-white/30 uppercase tracking-widest truncate">{stat.label}</span>
+                  <div className="text-[#C8F53E]/40 group-hover:text-[#C8F53E] transition-colors flex-shrink-0 ml-1">{stat.icon}</div>
                 </div>
-                <p className={`font-bebas text-3xl md:text-5xl italic ${stat.color || 'text-white'}`}>{stat.val}</p>
+                <div className="flex items-baseline gap-1.5 flex-wrap min-w-0">
+                  <span
+                    className={`font-bebas italic ${
+                      stat.isWord
+                        ? 'text-xl sm:text-2xl lg:text-[1.65rem] xl:text-[1.45rem] 2xl:text-[1.75rem]'
+                        : 'text-3xl sm:text-4xl xl:text-[2.1rem] 2xl:text-4xl'
+                    } leading-none tracking-tight truncate ${stat.color || 'text-white'}`}
+                  >
+                    {stat.val}
+                  </span>
+                  {stat.unit && (
+                    <span className={`text-[9px] sm:text-[10px] font-black font-mono uppercase tracking-wider ${stat.isAlert ? 'text-[#FF4F4F]' : 'text-white/40'}`}>
+                      {stat.unit}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
