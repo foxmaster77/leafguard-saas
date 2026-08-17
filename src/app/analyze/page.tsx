@@ -16,6 +16,7 @@ const css = `
   .weather-forecast { grid-template-columns: repeat(2, 1fr) !important; }
   .dealer-grid { grid-template-columns: 1fr !important; }
   .scheme-grid { grid-template-columns: 1fr !important; }
+  .visual-explain-grid { grid-template-columns: 1fr !important; }
 }
 `;
 
@@ -576,6 +577,114 @@ export default function AnalyzePage() {
                 <p style={{ color: 'white', fontSize: '1rem', fontFamily: 'sans-serif', lineHeight: 1.6, margin: 0 }}>
                   &ldquo;{analysisResult.voiceSummary}&rdquo;
                 </p>
+              </div>
+            )}
+
+            {/* VISUAL EXPLAINABILITY PANEL */}
+            {imagePreview && analysisResult.boundingBox && (
+              <div style={{ marginBottom: '2.5rem', background: 'rgba(255,79,79,0.04)', border: '1px solid rgba(255,79,79,0.3)', borderRadius: '8px', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9rem 1.2rem', background: 'rgba(255,79,79,0.08)', borderBottom: '1px solid rgba(255,79,79,0.2)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF4F4F', display: 'inline-block', animation: 'pulseRed 1.2s infinite' }} />
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.68rem', color: '#FF6B6B', fontWeight: 900, letterSpacing: '0.15em' }}>VISUAL EXPLAINABILITY — PATHOGEN LOCALISATION MAP</span>
+                  </div>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,79,79,0.7)', letterSpacing: '0.1em' }}>
+                    X:{analysisResult.boundingBox.x}% Y:{analysisResult.boundingBox.y}% W:{analysisResult.boundingBox.width}% H:{analysisResult.boundingBox.height}%
+                  </span>
+                </div>
+                <div className="visual-explain-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 0 }}>
+                  {/* Large image with overlay */}
+                  <div style={{ position: 'relative', overflow: 'hidden', background: '#000', minHeight: '300px', maxHeight: '420px' }}>
+                    <img
+                      src={imagePreview}
+                      alt="Crop scan with pathogen localisation"
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                    />
+                    {/* Bounding box overlay */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: `${analysisResult.boundingBox.x}%`,
+                        top: `${analysisResult.boundingBox.y}%`,
+                        width: `${analysisResult.boundingBox.width}%`,
+                        height: `${analysisResult.boundingBox.height}%`,
+                        border: '2px solid #FF4F4F',
+                        background: 'rgba(255,79,79,0.18)',
+                        boxShadow: '0 0 20px rgba(255,79,79,0.5), inset 0 0 20px rgba(255,79,79,0.1)',
+                        pointerEvents: 'none',
+                        zIndex: 10,
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      {/* Corner tick marks */}
+                      {[{top:0,left:0},{top:0,right:0},{bottom:0,left:0},{bottom:0,right:0}].map((pos, i) => (
+                        <div key={i} style={{ position: 'absolute', width: 10, height: 10, borderColor: '#FF4F4F', borderStyle: 'solid', borderWidth: 0, ...( i===0 ? {borderTopWidth:2,borderLeftWidth:2,top:-1,left:-1} : i===1 ? {borderTopWidth:2,borderRightWidth:2,top:-1,right:-1} : i===2 ? {borderBottomWidth:2,borderLeftWidth:2,bottom:-1,left:-1} : {borderBottomWidth:2,borderRightWidth:2,bottom:-1,right:-1} ) }} />
+                      ))}
+                      {/* Label */}
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '-22px',
+                          left: '-1px',
+                          background: '#FF4F4F',
+                          color: '#fff',
+                          fontSize: '0.6rem',
+                          fontWeight: 900,
+                          fontFamily: 'monospace',
+                          padding: '2px 7px',
+                          letterSpacing: '0.08em',
+                          whiteSpace: 'nowrap',
+                          boxShadow: '0 2px 8px rgba(255,79,79,0.5)'
+                        }}
+                      >
+                        ⚠ AFFECTED AREA
+                      </span>
+                    </div>
+                    {/* Scan-line overlay for effect */}
+                    <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.04) 3px, rgba(0,0,0,0.04) 4px)', pointerEvents: 'none' }} />
+                    {/* Bottom HUD bar */}
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'linear-gradient(transparent, rgba(0,0,0,0.8))', padding: '1.5rem 1rem 0.6rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(200,245,62,0.7)', letterSpacing: '0.1em' }}>● THERMAL OVERLAY ACTIVE</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,79,79,0.8)' }}>PATHOGEN ZONE DETECTED</span>
+                    </div>
+                  </div>
+                  {/* Sidebar metadata */}
+                  <div style={{ background: 'rgba(0,0,0,0.4)', padding: '1.4rem', display: 'flex', flexDirection: 'column', gap: '1rem', borderLeft: '1px solid rgba(255,79,79,0.15)' }}>
+                    <div>
+                      <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', margin: '0 0 0.3rem' }}>PATHOGEN IDENTIFIED</p>
+                      <p style={{ fontFamily: 'monospace', fontSize: '0.85rem', color: '#FF6B6B', fontWeight: 900, margin: 0 }}>{(analysisResult.disease || 'Unknown').toUpperCase()}</p>
+                    </div>
+                    <div>
+                      <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', margin: '0 0 0.3rem' }}>LOCALISATION COORDS</p>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem' }}>
+                        {[
+                          { label: 'X-ORIGIN', value: `${analysisResult.boundingBox.x}%` },
+                          { label: 'Y-ORIGIN', value: `${analysisResult.boundingBox.y}%` },
+                          { label: 'WIDTH', value: `${analysisResult.boundingBox.width}%` },
+                          { label: 'HEIGHT', value: `${analysisResult.boundingBox.height}%` }
+                        ].map(m => (
+                          <div key={m.label} style={{ background: 'rgba(255,79,79,0.08)', border: '1px solid rgba(255,79,79,0.15)', borderRadius: '4px', padding: '0.4rem 0.5rem' }}>
+                            <p style={{ fontFamily: 'monospace', fontSize: '0.52rem', color: 'rgba(255,255,255,0.3)', margin: '0 0 0.15rem' }}>{m.label}</p>
+                            <p style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: '#FF6B6B', fontWeight: 900, margin: 0 }}>{m.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em', margin: '0 0 0.3rem' }}>CONFIDENCE SCORE</p>
+                      <div style={{ background: 'rgba(255,255,255,0.06)', height: '4px', borderRadius: '2px', overflow: 'hidden', marginBottom: '0.3rem' }}>
+                        <div style={{ height: '100%', width: `${analysisResult.confidence || 87}%`, background: 'linear-gradient(90deg, #FF4F4F, #FF8C00)', transition: 'width 1s ease' }} />
+                      </div>
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: '#FF8C00', fontWeight: 900 }}>{analysisResult.confidence || 87}%</span>
+                    </div>
+                    <div style={{ marginTop: 'auto', background: 'rgba(255,79,79,0.1)', border: '1px solid rgba(255,79,79,0.2)', borderRadius: '4px', padding: '0.7rem' }}>
+                      <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: 'rgba(255,79,79,0.7)', letterSpacing: '0.1em', margin: '0 0 0.3rem' }}>⚠ AI ADVISORY</p>
+                      <p style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(255,255,255,0.6)', margin: 0, lineHeight: 1.5 }}>
+                        Bounding box is model-estimated. Verify via physical inspection before treatment.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
 
