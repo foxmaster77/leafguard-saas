@@ -9,6 +9,14 @@ const css = `
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(200,245,62,0.4)} 70%{box-shadow:0 0 0 8px transparent} }
 @keyframes pulseRed { 0%,100%{box-shadow:0 0 0 0 rgba(255,79,79,0.5)} 70%{box-shadow:0 0 0 10px transparent} }
+@media (max-width: 639px) {
+  .scanner-workspace { grid-template-columns: 1fr !important; }
+  .result-metrics { grid-template-columns: 1fr !important; }
+  .result-treatment { grid-template-columns: 1fr !important; }
+  .weather-forecast { grid-template-columns: repeat(2, 1fr) !important; }
+  .dealer-grid { grid-template-columns: 1fr !important; }
+  .scheme-grid { grid-template-columns: 1fr !important; }
+}
 `;
 
 export default function AnalyzePage() {
@@ -275,7 +283,7 @@ export default function AnalyzePage() {
       <style dangerouslySetInnerHTML={{ __html: css }} />
       <Navigation />
 
-      <main style={{ flexGrow: 1, padding: '7rem 2rem 4rem', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
+      <main style={{ flexGrow: 1, padding: 'clamp(5rem, 8vw, 7rem) clamp(1rem, 3vw, 2rem) 2rem', maxWidth: '1100px', margin: '0 auto', width: '100%' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(200,245,62,0.08)', border: '1px solid rgba(200,245,62,0.2)', borderRadius: '99px', padding: '0.4rem 1rem', fontFamily: 'monospace', fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.15em', marginBottom: '1rem' }}>
             <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#C8F53E', display: 'inline-block' }} />
@@ -289,7 +297,7 @@ export default function AnalyzePage() {
           </p>
 
           {/* LANGUAGE SELECTOR */}
-          <div style={{ display: 'inline-flex', gap: '0.6rem', background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', padding: '0.4rem', borderRadius: '99px', marginTop: '1.5rem' }}>
+          <div style={{ display: 'inline-flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.6rem', background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', padding: '0.4rem', borderRadius: '99px', marginTop: '1.5rem' }}>
             {[
               { code: 'bn-IN', label: '🇧🇩/🇮🇳 বাংলা (Bangla)' },
               { code: 'hi-IN', label: '🇮🇳 हिंदी (Hindi)' },
@@ -318,7 +326,7 @@ export default function AnalyzePage() {
         </div>
 
         {/* SCANNER WORKSPACE */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', borderRadius: '8px', overflow: 'hidden' }}>
+        <div className="scanner-workspace" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '2rem' }}>
             <input type="file" id="cropFileInput" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handleFileSelect} />
             
@@ -532,7 +540,7 @@ export default function AnalyzePage() {
             )}
 
             {/* Metric Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div className="result-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.6rem' }}>DISEASE DETECTED</p>
                 <p style={{ fontSize: '1.1rem', color: 'white', fontWeight: 900 }}>{analysisResult.disease?.toUpperCase() || 'HEALTHY'}</p>
@@ -559,7 +567,7 @@ export default function AnalyzePage() {
             </div>
 
             {/* Treatment & Action Plan */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
+            <div className="result-treatment" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
               <div>
                 <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.2rem' }}>// RECOMMENDED TREATMENT</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
@@ -618,7 +626,7 @@ export default function AnalyzePage() {
                   </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.8rem', marginBottom: '1.2rem' }}>
+                <div className="weather-forecast" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.8rem', marginBottom: '1.2rem' }}>
                   {analysisResult.weather.forecast?.map((day: any, i: number) => (
                     <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '0.8rem', textAlign: 'center' }}>
                       <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', margin: '0 0 0.4rem', fontWeight: 700 }}>{day.day}</p>
@@ -664,7 +672,7 @@ export default function AnalyzePage() {
                   <span style={{ fontSize: '0.7rem', color: '#C8F53E', fontFamily: 'monospace' }}>● STOCKED & VERIFIED</span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                <div className="dealer-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
                   {analysisResult.dealers.map((dealer: any) => (
                     <div
                       key={dealer.id}
@@ -740,7 +748,7 @@ export default function AnalyzePage() {
                   </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                <div className="scheme-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                   {analysisResult.schemes.map((scheme: any) => (
                     <div
                       key={scheme.id}

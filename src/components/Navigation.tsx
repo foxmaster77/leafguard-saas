@@ -7,7 +7,6 @@ const S = {
   nav: (scrolled: boolean): React.CSSProperties => ({
     position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '1rem 3rem',
     background: scrolled ? 'rgba(6,10,4,0.97)' : 'rgba(6,10,4,0.85)',
     backdropFilter: 'blur(20px)',
     borderBottom: scrolled ? '1px solid rgba(200,245,62,0.1)' : '1px solid transparent',
@@ -31,6 +30,7 @@ export default function Navigation() {
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -38,8 +38,30 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  const closeMenu = () => setMenuOpen(false);
+
   return (
-    <nav style={S.nav(scrolled)}>
+    <>
+      <style>{`
+        .nav-container { padding: 1rem 3rem; }
+        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; z-index: 1001; }
+        .mobile-overlay {
+          position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+          background: rgba(6, 10, 4, 0.98);
+          backdrop-filter: blur(10px);
+          z-index: 999;
+          display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2rem;
+          transform: translateX(100%);
+          transition: transform 0.3s ease-in-out;
+        }
+        .mobile-overlay.open { transform: translateX(0); }
+        @media (max-width: 768px) {
+          .nav-container { padding: 1rem 1.25rem; }
+          .hide-on-mobile { display: none !important; }
+          .mobile-menu-btn { display: block; }
+        }
+      `}</style>
+      <nav className="nav-container" style={S.nav(scrolled)}>
       {/* Left: Brand */}
       <div style={S.logo} onClick={() => router.push('/')}>
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -50,7 +72,7 @@ export default function Navigation() {
       </div>
 
       {/* Center: Links */}
-      <div style={S.centerLinks}>
+      <div className="hide-on-mobile" style={S.centerLinks}>
         {links.map(l => (
           <Link key={l.href} href={l.href} style={{
             fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.18em',
@@ -64,10 +86,44 @@ export default function Navigation() {
       </div>
 
       {/* Right: Actions */}
-      <div style={S.rightActions}>
+      <div className="hide-on-mobile" style={S.rightActions}>
         <Link href="/login" style={{ fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.2s' }}>LOGIN</Link>
         <Link href="/dashboard" style={S.liveBtn} onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')} onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}>LIVE DEMO</Link>
       </div>
+
+      {/* Mobile Hamburger */}
+      <button 
+        className="mobile-menu-btn" 
+        onClick={() => setMenuOpen(!menuOpen)}
+        aria-label="Toggle menu"
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={menuOpen ? "#C8F53E" : "#fff"} strokeWidth="2" strokeLinecap="round">
+          {menuOpen ? (
+            <path d="M18 6L6 18M6 6l12 12" />
+          ) : (
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
     </nav>
+
+    {/* Mobile Menu Overlay */}
+    <div className={`mobile-overlay ${menuOpen ? 'open' : ''}`}>
+      {links.map(l => (
+        <Link key={`mobile-${l.href}`} href={l.href} onClick={closeMenu} style={{
+          fontFamily: 'monospace', fontSize: '1.2rem', letterSpacing: '0.18em',
+          textTransform: 'uppercase', textDecoration: 'none',
+          color: pathname === l.href ? '#C8F53E' : 'rgba(255,255,255,0.8)',
+          fontWeight: pathname === l.href ? 700 : 400,
+        }}>
+          {l.label}
+        </Link>
+      ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', marginTop: '1rem' }}>
+        <Link href="/login" onClick={closeMenu} style={{ fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>LOGIN</Link>
+        <Link href="/dashboard" onClick={closeMenu} style={S.liveBtn}>LIVE DEMO</Link>
+      </div>
+    </div>
+    </>
   );
 }

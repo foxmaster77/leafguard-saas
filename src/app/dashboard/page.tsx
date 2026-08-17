@@ -41,6 +41,7 @@ export default function Dashboard() {
   const [result, setResult] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [daysFilter, setDaysFilter] = useState<7 | 30>(7);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // Video multi-frame scan state
   const [isVideoScan, setIsVideoScan] = useState(false);
   const [frameScanMsg, setFrameScanMsg] = useState('');
@@ -477,12 +478,17 @@ export default function Dashboard() {
       `}} />
 
       {/* SIDEBAR PRESERVED */}
-      <aside className="w-[260px] fixed h-screen bg-[#0A0E07] border-r border-[#C8F53E]/10 z-50 flex flex-col p-8">
-        <div className="flex items-center gap-3 mb-12">
-          <div className="w-10 h-10 bg-[#C8F53E] flex items-center justify-center rounded-xl">
-            <ShieldCheck className="text-[#060A04] w-6 h-6" />
+      <aside className={`w-full lg:w-[260px] fixed h-screen bg-[#0A0E07] border-r border-[#C8F53E]/10 z-50 flex-col p-8 ${mobileMenuOpen ? 'flex' : 'hidden lg:flex'}`}>
+        <div className="flex items-center justify-between mb-12">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#C8F53E] flex items-center justify-center rounded-xl">
+              <ShieldCheck className="text-[#060A04] w-6 h-6" />
+            </div>
+            <span className="font-bebas text-2xl tracking-widest text-[#C8F53E]">LEAF_OS V4</span>
           </div>
-          <span className="font-bebas text-2xl tracking-widest text-[#C8F53E]">LEAF_OS V4</span>
+          <button className="lg:hidden text-white" onClick={() => setMobileMenuOpen(false)}>
+            <XCircle size={24} />
+          </button>
         </div>
 
         <nav className="flex-grow space-y-2">
@@ -518,9 +524,20 @@ export default function Dashboard() {
       </aside>
 
       {/* MAIN CONTENT */}
-      <main className="flex-grow ml-[260px] p-12">
+      <main className="flex-grow ml-0 lg:ml-[260px] p-4 md:p-8 lg:p-12">
+        {/* MOBILE HEADER BAR */}
+        <div className="lg:hidden flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+          <div className="flex items-center gap-2">
+            <ShieldCheck size={20} className="text-[#C8F53E]" />
+            <span className="font-bebas text-xl tracking-widest text-[#C8F53E]">LEAF_OS V4</span>
+          </div>
+          <button onClick={() => setMobileMenuOpen(true)}>
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+        </div>
+
         {/* HEADER BAR PRESERVED */}
-        <header className="flex justify-between items-center mb-12 border-b border-white/5 pb-8">
+        <header className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-12 border-b border-white/5 pb-8">
           <div className="flex items-center gap-4">
             <ShieldCheck size={24} className="text-[#C8F53E]" />
             <div>
@@ -529,18 +546,18 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="flex items-center gap-10">
+          <div className="flex flex-wrap items-center gap-4 md:gap-10">
             <div className="px-4 py-2 rounded-full bg-[#C8F53E]/10 border border-[#C8F53E]/30 flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-[#C8F53E] rounded-full animate-pulse" />
               <span className="text-[9px] font-black text-[#C8F53E] uppercase tracking-widest">SYSTEM NOMINAL</span>
             </div>
 
-            <div className="flex items-center gap-3 text-white/60">
+            <div className="hidden sm:flex items-center gap-3 text-white/60">
               <Clock size={16} className="text-[#C8F53E]" />
               <span className="font-mono text-xl font-black tracking-tighter">{time}</span>
             </div>
 
-            <div className="flex items-center gap-6 pl-10 border-l border-white/5">
+            <div className="hidden sm:flex items-center gap-6 md:pl-10 md:border-l border-white/5">
               <div className="relative cursor-pointer hover:scale-110 transition-transform">
                 <Bell size={20} className="text-white/60" />
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FF4F4F] rounded-full text-[8px] font-black flex items-center justify-center border-2 border-[#060A04]">3</span>
@@ -628,9 +645,9 @@ export default function Dashboard() {
         </div>
 
         {/* HEATMAP MAP + UPLOAD ROW */}
-        <div className="grid lg:grid-cols-[1fr_320px] gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 mb-12">
           {/* Outbreak Heatmap Map Column — dynamic(ssr:false) handles client-only safely */}
-          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[450px]">
+          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[280px] md:h-[450px]">
             <OutbreakHeatmap clusters={outbreakData.pincodeClusters} />
 
 
@@ -922,7 +939,7 @@ export default function Dashboard() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                   {result.weather.forecast?.map((f: any, i: number) => (
                     <div key={i} className="bg-white/5 p-3 rounded-xl border border-white/5 text-center">
                       <p className="text-[10px] font-bold text-white/60">{f.day}</p>
@@ -1016,20 +1033,20 @@ export default function Dashboard() {
             { label: 'DRONES ACTIVE', val: '2/5', icon: <Activity size={14} />, color: 'text-[#C8F53E]' },
             { label: 'SECTOR COVERAGE', val: '142.5 Ha', icon: <Globe size={14} /> }
           ].map((stat, i) => (
-            <div key={i} className="bg-[#0F1409] p-8 rounded-[2rem] border border-white/5 hover:border-[#C8F53E]/30 transition-all group">
+            <div key={i} className="bg-[#0F1409] p-4 md:p-8 rounded-xl md:rounded-[2rem] border border-white/5 hover:border-[#C8F53E]/30 transition-all group">
               <div className="flex justify-between items-center mb-4">
                 <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{stat.label}</span>
                 <div className="text-[#C8F53E]/30 group-hover:text-[#C8F53E] transition-colors">{stat.icon}</div>
               </div>
-              <p className={`font-bebas text-5xl italic ${stat.color || 'text-white'}`}>{stat.val}</p>
+              <p className={`font-bebas text-3xl md:text-5xl italic ${stat.color || 'text-white'}`}>{stat.val}</p>
             </div>
           ))}
         </div>
 
         {/* SCAN RESULT + RECENT SCANS ROW */}
-        <div className="grid xl:grid-cols-[450px_1fr] gap-8 mb-12">
+        <div className="grid grid-cols-1 xl:grid-cols-[450px_1fr] gap-8 mb-12">
           {/* Scan Panel */}
-          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col h-full relative overflow-hidden">
+          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-6 md:p-10 flex flex-col h-full relative overflow-hidden">
             <div className="flex justify-between items-center mb-10">
               <div className="flex items-center gap-3">
                 <span className={`w-2 h-2 rounded-full ${uploadState === 'uploading' ? 'bg-[#FFB347]' : 'bg-[#C8F53E]'} animate-pulse`} />
@@ -1110,13 +1127,13 @@ export default function Dashboard() {
         </div>
 
         {/* INFRASTRUCTURE MONITORING */}
-        <section className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-12 overflow-hidden">
+        <section className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-6 md:p-12 overflow-hidden">
           <div className="flex justify-between items-center mb-12">
             <h2 className="font-bebas text-4xl italic tracking-wide">INFRASTRUCTURE MONITORING</h2>
             <button className="bg-[#C8F53E]/10 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border border-[#C8F53E]/20 hover:bg-[#C8F53E]/20 transition-all">+ ADD MONITOR</button>
           </div>
 
-          <div className="grid lg:grid-cols-[400px_1fr] gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-[min(400px,100%)_1fr] gap-12">
             <div className="space-y-4">
               <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-6">ACTIVE ENDPOINTS</p>
               {[

@@ -19,6 +19,21 @@ const css = `
 .feature-card:hover{border-left:3px solid #C8F53E!important;transform:translateY(-4px);box-shadow:0 8px 32px rgba(200,245,62,0.06)}
 .stat-pill{animation:fadeUp 0.6s ease both}
 html { scroll-behavior: smooth; }
+
+@media (max-width: 639px) {
+  .home-features-grid { grid-template-columns: 1fr !important; }
+  .home-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .home-scanner-grid { grid-template-columns: 1fr !important; }
+  .home-result-metrics { grid-template-columns: 1fr !important; }
+  .home-treatment-grid { grid-template-columns: 1fr !important; }
+  .home-weather-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .home-dealers-grid { grid-template-columns: 1fr !important; }
+  .home-schemes-grid { grid-template-columns: 1fr !important; }
+  .home-cta-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+  .mobile-padding { padding: 4rem 1rem !important; }
+  .hero-padding { padding: 80px 1rem 4rem 1rem !important; }
+  .hero-widget { display: none !important; }
+}
 `;
 
 export default function HomePage() {
@@ -296,7 +311,7 @@ export default function HomePage() {
       <Navigation />
 
       {/* HERO */}
-      <section style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 3rem', paddingTop: '80px' }}>
+      <section className="hero-padding" style={{ minHeight: '100vh', position: 'relative', overflow: 'hidden', display: 'flex', alignItems: 'center', padding: '0 3rem', paddingTop: '80px' }}>
         <video autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15, zIndex: 0 }} src="/238827.mp4" />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg,rgba(6,10,4,0.92),rgba(6,10,4,0.6),rgba(6,10,4,0.88))', zIndex: 1 }} />
         <svg style={{ position: 'absolute', right: '20%', top: '50%', transform: 'translateY(-50%)', opacity: 0.07, zIndex: 1 }} width="500" height="500" viewBox="0 0 100 100" fill="none" stroke="#C8F53E" strokeWidth="0.5">
@@ -330,7 +345,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        <div style={{ position: 'absolute', right: '3rem', top: '50%', transform: 'translateY(-50%)', zIndex: 2, width: '360px', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '4px' }}>
+        <div className="hero-widget" style={{ position: 'absolute', right: '3rem', top: '50%', transform: 'translateY(-50%)', zIndex: 2, width: '360px', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', padding: '1.5rem', borderRadius: '4px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>⚡ Crop Health Report</span>
             <span style={{ background: '#C8F53E', color: '#060A04', fontFamily: 'monospace', fontSize: '0.6rem', fontWeight: 900, padding: '0.2rem 0.6rem', letterSpacing: '0.1em' }}>LIVE INFERENCE</span>
@@ -365,12 +380,12 @@ export default function HomePage() {
       </section>
 
       {/* FEATURES */}
-      <section style={{ background: '#0A0E07', padding: '8rem 3rem' }}>
+      <section className="mobile-padding" style={{ background: '#0A0E07', padding: '8rem 3rem' }}>
         <div className="reveal" style={{ textAlign: 'center', marginBottom: '4rem' }}>
           <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900, margin: '0 0 1rem' }}>WE REPLACED GUESSWORK WITH CERTAINTY.</h2>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '1rem', maxWidth: '540px', margin: '0 auto' }}>We replaced slow visual scouting with instant multi-spectral analysis.</p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
+        <div className="home-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
           {[
             { icon: '🔬', title: 'AI Disease Detection', desc: 'Multi-spectral neural networks detect 94 disease signatures from a single image.', stat: '90%+ CONFIDENCE ON ALL SCANS' },
             { icon: '🌦️', title: 'Weather + Risk Alerts', desc: 'Live weather integration forecasts disease pressure up to 5 days in advance.', stat: 'REAL-TIME · 50KM RISK RADIUS' },
@@ -387,7 +402,7 @@ export default function HomePage() {
       </section>
 
       {/* REGIONAL RADAR SECTION */}
-      <section style={{ background: '#060A04', padding: '8rem 3rem' }}>
+      <section className="mobile-padding" style={{ background: '#060A04', padding: '8rem 3rem' }}>
         <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '0.8rem' }}>
             <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#C8F53E', marginRight: '6px', animation: 'blink 1s infinite', verticalAlign: 'middle' }} />
@@ -406,7 +421,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', maxWidth: '1100px', margin: '0 auto' }}>
+        <div className="home-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', maxWidth: '1100px', margin: '0 auto' }}>
           {[['10', 'Districts Active'], ['29+', 'Clusters Logged'], ['96%', 'Multimodal Accuracy'], ['₹10k/yr', 'Govt Aid Mapped']].map(([n, l], i) => (
             <div key={i} className="reveal" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.08)', padding: '1.5rem', textAlign: 'center' }}>
               <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '2.5rem', color: '#C8F53E', fontStyle: 'italic' }}>{n}</div>
@@ -418,7 +433,7 @@ export default function HomePage() {
 
 
       {/* AI WIDGET */}
-      <section id="ai-demo" style={{ background: '#060A04', padding: '8rem 3rem' }}>
+      <section id="ai-demo" className="mobile-padding" style={{ background: '#060A04', padding: '8rem 3rem' }}>
         <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900, margin: 0 }}>
             EXPERIENCE REGIONAL VOICE & AI DIAGNOSIS.
@@ -456,7 +471,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', maxWidth: '950px', margin: '0 auto', borderRadius: '8px', overflow: 'hidden' }}>
+        <div className="home-scanner-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#0F1409', border: '1px solid rgba(200,245,62,0.15)', maxWidth: '950px', margin: '0 auto', borderRadius: '8px', overflow: 'hidden' }}>
           <div style={{ padding: '2rem' }}>
             <input type="file" id="cropFileInput" accept="image/*" style={{ display: 'none' }} ref={fileInputRef} onChange={handleFileSelect} />
             
@@ -670,7 +685,7 @@ export default function HomePage() {
             )}
 
             {/* Metric Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
+            <div className="home-result-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.5rem', marginBottom: '2.5rem' }}>
               <div style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                 <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', marginBottom: '0.6rem' }}>DISEASE DETECTED</p>
                 <p style={{ fontSize: '1.1rem', color: 'white', fontWeight: 900 }}>{analysisResult.disease?.toUpperCase() || 'HEALTHY'}</p>
@@ -696,7 +711,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
+            <div className="home-treatment-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
               {/* Treatment Info */}
               <div>
                 <p style={{ fontSize: '0.7rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1.2rem' }}>// RECOMMENDED TREATMENT</p>
@@ -758,7 +773,7 @@ export default function HomePage() {
                 </div>
 
                 {/* 5-Day Weather Forecast Strip */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.8rem', marginBottom: '1.2rem' }}>
+                <div className="home-weather-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.8rem', marginBottom: '1.2rem' }}>
                   {analysisResult.weather.forecast?.map((day: any, i: number) => (
                     <div key={i} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '0.8rem', textAlign: 'center' }}>
                       <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', margin: '0 0 0.4rem', fontWeight: 700 }}>{day.day}</p>
@@ -805,7 +820,7 @@ export default function HomePage() {
                   <span style={{ fontSize: '0.7rem', color: '#C8F53E', fontFamily: 'monospace' }}>● STOCKED & VERIFIED</span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
+                <div className="home-dealers-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
                   {analysisResult.dealers.map((dealer: any) => (
                     <div
                       key={dealer.id}
@@ -881,7 +896,7 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                <div className="home-schemes-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
                   {analysisResult.schemes.map((scheme: any) => (
                     <div
                       key={scheme.id}
@@ -967,8 +982,8 @@ export default function HomePage() {
 
 
       {/* DATA TO DECISION */}
-      <section style={{ background: '#0A0E07', padding: '8rem 3rem' }}>
-        <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
+      <section className="mobile-padding" style={{ background: '#0A0E07', padding: '8rem 3rem' }}>
+        <div className="home-cta-grid" style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
           <div className="reveal">
             <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.5rem,5vw,4rem)', fontStyle: 'italic', fontWeight: 900, lineHeight: 1.1, marginBottom: '3rem' }}>
               <span style={{ color: 'white' }}>FROM DATA TO DECISION </span>
@@ -1001,7 +1016,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section style={{ position: 'relative', overflow: 'hidden', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '6rem 3rem' }}>
+      <section className="mobile-padding" style={{ position: 'relative', overflow: 'hidden', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '6rem 3rem' }}>
         <video autoPlay muted loop playsInline style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.15, zIndex: 0 }} src="/footer-bg.mp4" />
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,10,4,0.75)', zIndex: 1 }} />
         <div style={{ position: 'relative', zIndex: 2 }}>
