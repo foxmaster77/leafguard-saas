@@ -17,12 +17,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const menuItems = [
-  { icon: <LayoutDashboard size={22} />, label: 'COMMAND CENTER', href: '#overview' },
-  { icon: <Satellite size={22} />, label: 'NEURAL SCANNER', href: '#ai-analyzer' },
-  { icon: <MapIcon size={22} />, label: 'GRID GEOGRAPHY', href: '#overview' },
-  { icon: <Activity size={22} />, label: 'VITALITY FEED', href: '#ai-analyzer' },
-  { icon: <ShieldCheck size={22} />, label: 'BACKBONE INFRA', href: '#infrastructure' },
-  { icon: <Settings size={22} />, label: 'SYSTEM CONFIG', href: '#infrastructure' },
+  { icon: <LayoutDashboard size={22} />, label: 'COMMAND CENTER', href: '#command-center' },
+  { icon: <Satellite size={22} />, label: 'NEURAL SCANNER', href: '#neural-scanner' },
+  { icon: <MapIcon size={22} />, label: 'GRID GEOGRAPHY', href: '#grid-geography' },
+  { icon: <Activity size={22} />, label: 'VITALITY FEED', href: '#vitality-feed' },
+  { icon: <ShieldCheck size={22} />, label: 'BACKBONE INFRA', href: '#backbone-infra' },
+  { icon: <Settings size={22} />, label: 'SYSTEM CONFIG', href: '#system-config' },
 ];
 
 const agriNews = [

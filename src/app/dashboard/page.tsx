@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 import {
   ShieldCheck, Terminal, Search, Map as MapIcon, Activity, Database, Settings,
   LogOut, Bell, Clock, User, Upload, AlertTriangle, Thermometer, CloudRain,
   Wind, Globe, ArrowRight, RotateCcw, Target, CheckCircle, XCircle,
-  Film, Video, ChevronRight
+  Film, Video, ChevronRight, X, Sliders, Check, Volume2, Wifi, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -34,6 +36,7 @@ type FrameResult = {
 };
 
 export default function Dashboard() {
+  const router = useRouter();
   const [time, setTime] = useState('');
   const [isMounted, setIsMounted] = useState(false);
   const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
@@ -42,6 +45,20 @@ export default function Dashboard() {
   const [errorMsg, setErrorMsg] = useState('');
   const [daysFilter, setDaysFilter] = useState<7 | 30>(7);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeNav, setActiveNav] = useState<string>('COMMAND CENTER');
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showAlertsModal, setShowAlertsModal] = useState(false);
+  const [configSaved, setConfigSaved] = useState(false);
+
+  // System Configuration States
+  const [config, setConfig] = useState({
+    model: 'gemini-1.5-flash',
+    sensitivity: 'balanced',
+    droneSync: true,
+    alertWebhooks: true,
+    defaultLang: 'bn-IN',
+    soundAlerts: true
+  });
   // Video multi-frame scan state
   const [isVideoScan, setIsVideoScan] = useState(false);
   const [frameScanMsg, setFrameScanMsg] = useState('');
@@ -135,6 +152,41 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, []);
 
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn('Sign out error:', e);
+    }
+    router.push('/login');
+  };
+
+  const handleNavClick = (label: string) => {
+    setActiveNav(label);
+    setMobileMenuOpen(false);
+
+    if (label === 'SYSTEM CONFIG') {
+      setShowConfigModal(true);
+      return;
+    }
+
+    const sectionMap: Record<string, string> = {
+      'COMMAND CENTER': 'command-center',
+      'NEURAL SCANNER': 'neural-scanner',
+      'GRID GEOGRAPHY': 'grid-geography',
+      'VITALITY FEED': 'vitality-feed',
+      'BACKBONE INFRA': 'backbone-infra'
+    };
+
+    const targetId = sectionMap[label];
+    if (targetId) {
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
 
   const resetUpload = () => {
     setUploadState('idle');
@@ -493,30 +545,52 @@ export default function Dashboard() {
 
         <nav className="flex-grow space-y-2">
           {[
-            { label: 'COMMAND CENTER', icon: <Terminal size={18} />, active: true },
+            { label: 'COMMAND CENTER', icon: <Terminal size={18} /> },
             { label: 'NEURAL SCANNER', icon: <Search size={18} /> },
             { label: 'GRID GEOGRAPHY', icon: <MapIcon size={18} /> },
             { label: 'VITALITY FEED', icon: <Activity size={18} /> },
             { label: 'BACKBONE INFRA', icon: <Database size={18} /> },
             { label: 'SYSTEM CONFIG', icon: <Settings size={18} /> }
-          ].map((item, i) => (
-            <div
-              key={i}
-              className={`flex items-center gap-4 px-6 py-4 rounded-xl cursor-pointer transition-all ${item.active ? 'bg-[#C8F53E]/10 text-[#C8F53E] border-l-[3px] border-l-[#C8F53E]' : 'text-white/40 hover:bg-white/5 hover:text-white'}`}
-            >
-              {item.icon}
-              <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
-            </div>
-          ))}
+          ].map((item) => {
+            const isActive = activeNav === item.label;
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => handleNavClick(item.label)}
+                className={`w-full flex items-center gap-4 px-6 py-4 rounded-xl cursor-pointer transition-all text-left ${
+                  isActive
+                    ? 'bg-[#C8F53E]/10 text-[#C8F53E] border-l-[3px] border-l-[#C8F53E] shadow-[inset_4px_0_0_#C8F53E]'
+                    : 'text-white/40 hover:bg-white/5 hover:text-white border-l-[3px] border-transparent'
+                }`}
+              >
+                <span className={isActive ? 'text-[#C8F53E]' : 'text-white/40 group-hover:text-white'}>
+                  {item.icon}
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+              </button>
+            );
+          })}
         </nav>
 
         <div className="mt-auto space-y-6">
           <Ticker />
-          <div className="flex items-center justify-between px-4 py-2 bg-white/5 rounded-xl">
-            <span className="text-[9px] font-black text-white/40 uppercase tracking-widest">SYSTEM ALERTS</span>
+          <button
+            type="button"
+            onClick={() => setShowAlertsModal(true)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5 hover:border-[#FF4F4F]/40 cursor-pointer"
+          >
+            <span className="text-[9px] font-black text-white/60 uppercase tracking-widest flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FF4F4F] animate-ping" />
+              SYSTEM ALERTS
+            </span>
             <span className="bg-[#FF4F4F] text-white text-[9px] font-black px-2 py-0.5 rounded-full">03</span>
-          </div>
-          <button className="w-full flex items-center justify-center gap-3 text-[#FF4F4F] hover:bg-[#FF4F4F]/10 py-4 rounded-xl transition-all border border-transparent hover:border-[#FF4F4F]/20">
+          </button>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-3 text-[#FF4F4F] hover:bg-[#FF4F4F]/10 py-4 rounded-xl transition-all border border-transparent hover:border-[#FF4F4F]/20 cursor-pointer"
+          >
             <LogOut size={16} />
             <span className="text-[10px] font-black uppercase tracking-widest">TERMINATE SESSION</span>
           </button>
@@ -531,13 +605,13 @@ export default function Dashboard() {
             <ShieldCheck size={20} className="text-[#C8F53E]" />
             <span className="font-bebas text-xl tracking-widest text-[#C8F53E]">LEAF_OS V4</span>
           </div>
-          <button onClick={() => setMobileMenuOpen(true)}>
+          <button type="button" onClick={() => setMobileMenuOpen(true)} className="p-2 rounded-lg bg-white/5 text-white hover:bg-white/10">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
         </div>
 
         {/* HEADER BAR PRESERVED */}
-        <header className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-12 border-b border-white/5 pb-8">
+        <header id="command-center" className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center mb-12 border-b border-white/5 pb-8 scroll-mt-6">
           <div className="flex items-center gap-4">
             <ShieldCheck size={24} className="text-[#C8F53E]" />
             <div>
@@ -558,24 +632,40 @@ export default function Dashboard() {
             </div>
 
             <div className="hidden sm:flex items-center gap-6 md:pl-10 md:border-l border-white/5">
-              <div className="relative cursor-pointer hover:scale-110 transition-transform">
-                <Bell size={20} className="text-white/60" />
+              <div
+                onClick={() => setShowAlertsModal(true)}
+                className="relative cursor-pointer hover:scale-110 transition-transform"
+                title="View System Alerts"
+              >
+                <Bell size={20} className="text-white/60 hover:text-white" />
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FF4F4F] rounded-full text-[8px] font-black flex items-center justify-center border-2 border-[#060A04]">3</span>
               </div>
               <div className="text-right">
                 <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@LEAFGUARD.AI</p>
                 <p className="text-[9px] font-bold text-[#C8F53E] uppercase tracking-[0.3em]">LEVEL 4 OPERATOR</p>
               </div>
-              <div className="w-10 h-10 bg-[#0F1409] rounded-xl flex items-center justify-center border border-white/10">
-                <User size={20} className="text-[#C8F53E]" />
-              </div>
-              <LogOut size={18} className="text-white/20 hover:text-[#FF4F4F] cursor-pointer transition-colors" />
+              <button
+                type="button"
+                onClick={() => setShowConfigModal(true)}
+                className="w-10 h-10 bg-[#0F1409] rounded-xl flex items-center justify-center border border-white/10 hover:border-[#C8F53E]/40 transition-colors"
+                title="System Configuration"
+              >
+                <Settings size={18} className="text-[#C8F53E]" />
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                title="Terminate Session"
+                className="p-1 text-white/20 hover:text-[#FF4F4F] transition-colors"
+              >
+                <LogOut size={18} />
+              </button>
             </div>
           </div>
         </header>
 
         {/* TOP 3 OUTBREAK ZONES SUMMARY CARDS */}
-        <div className="mb-8">
+        <div id="grid-geography" className="mb-8 scroll-mt-6">
           <div className="flex justify-between items-center mb-4">
             <div>
               <h2 className="text-xl font-black italic tracking-wide">🚨 TOP 3 OUTBREAK ZONES THIS WEEK</h2>
@@ -676,7 +766,7 @@ export default function Dashboard() {
           </div>
 
           {/* Enhanced Upload Column */}
-          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 flex flex-col relative overflow-hidden group">
+          <div id="neural-scanner" className="bg-[#0F1409] rounded-[3rem] border border-white/5 flex flex-col relative overflow-hidden group scroll-mt-6">
             <input 
               type="file" 
               accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/mov" 
@@ -1023,114 +1113,131 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* STATS ROW PRESERVED */}
-        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6 mb-12">
-          {[
-            { label: 'AMBIENT TEMP', val: '15°C', icon: <Thermometer size={14} /> },
-            { label: 'SOIL HUMIDITY', val: '54%', icon: <CloudRain size={14} /> },
-            { label: 'CROP STAGE', val: 'Flowering', icon: <Wind size={14} />, color: 'text-[#C8F53E]' },
-            { label: 'ACTIVE ALERTS', val: '3 Critical', icon: <AlertTriangle size={14} />, color: 'text-[#FF4F4F]' },
-            { label: 'DRONES ACTIVE', val: '2/5', icon: <Activity size={14} />, color: 'text-[#C8F53E]' },
-            { label: 'SECTOR COVERAGE', val: '142.5 Ha', icon: <Globe size={14} /> }
-          ].map((stat, i) => (
-            <div key={i} className="bg-[#0F1409] p-4 md:p-8 rounded-xl md:rounded-[2rem] border border-white/5 hover:border-[#C8F53E]/30 transition-all group">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{stat.label}</span>
-                <div className="text-[#C8F53E]/30 group-hover:text-[#C8F53E] transition-colors">{stat.icon}</div>
+        {/* STATS ROW + RECENT SCANS (VITALITY FEED) */}
+        <div id="vitality-feed" className="scroll-mt-6 mb-12 space-y-12">
+          {/* STATS ROW PRESERVED */}
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-6">
+            {[
+              { label: 'AMBIENT TEMP', val: '15°C', icon: <Thermometer size={14} /> },
+              { label: 'SOIL HUMIDITY', val: '54%', icon: <CloudRain size={14} /> },
+              { label: 'CROP STAGE', val: 'Flowering', icon: <Wind size={14} />, color: 'text-[#C8F53E]' },
+              { label: 'ACTIVE ALERTS', val: '3 Critical', icon: <AlertTriangle size={14} />, color: 'text-[#FF4F4F]' },
+              { label: 'DRONES ACTIVE', val: '2/5', icon: <Activity size={14} />, color: 'text-[#C8F53E]' },
+              { label: 'SECTOR COVERAGE', val: '142.5 Ha', icon: <Globe size={14} /> }
+            ].map((stat, i) => (
+              <div key={i} className="bg-[#0F1409] p-4 md:p-8 rounded-xl md:rounded-[2rem] border border-white/5 hover:border-[#C8F53E]/30 transition-all group">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="text-[9px] font-black text-white/30 uppercase tracking-widest">{stat.label}</span>
+                  <div className="text-[#C8F53E]/30 group-hover:text-[#C8F53E] transition-colors">{stat.icon}</div>
+                </div>
+                <p className={`font-bebas text-3xl md:text-5xl italic ${stat.color || 'text-white'}`}>{stat.val}</p>
               </div>
-              <p className={`font-bebas text-3xl md:text-5xl italic ${stat.color || 'text-white'}`}>{stat.val}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* SCAN RESULT + RECENT SCANS ROW */}
-        <div className="grid grid-cols-1 xl:grid-cols-[450px_1fr] gap-8 mb-12">
-          {/* Scan Panel */}
-          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-6 md:p-10 flex flex-col h-full relative overflow-hidden">
-            <div className="flex justify-between items-center mb-10">
-              <div className="flex items-center gap-3">
-                <span className={`w-2 h-2 rounded-full ${uploadState === 'uploading' ? 'bg-[#FFB347]' : 'bg-[#C8F53E]'} animate-pulse`} />
-                <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-[0.4em]">{uploadState === 'uploading' ? 'SCANNING IN PROGRESS' : 'NEURAL SCAN RESULT'}</p>
+          {/* SCAN RESULT + RECENT SCANS ROW */}
+          <div className="grid grid-cols-1 xl:grid-cols-[450px_1fr] gap-8">
+            {/* Scan Panel */}
+            <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-6 md:p-10 flex flex-col h-full relative overflow-hidden">
+              <div className="flex justify-between items-center mb-10">
+                <div className="flex items-center gap-3">
+                  <span className={`w-2 h-2 rounded-full ${uploadState === 'uploading' ? 'bg-[#FFB347]' : 'bg-[#C8F53E]'} animate-pulse`} />
+                  <p className="text-[10px] font-black text-[#C8F53E] uppercase tracking-[0.4em]">{uploadState === 'uploading' ? 'SCANNING IN PROGRESS' : 'NEURAL SCAN RESULT'}</p>
+                </div>
+                <span className="text-[9px] text-white/30 uppercase tracking-widest">LIVE UPLINK</span>
               </div>
-              <span className="text-[9px] text-white/30 uppercase tracking-widest">LIVE UPLINK</span>
-            </div>
 
-            <div className="relative flex-grow bg-black/60 rounded-[2.5rem] border border-white/10 overflow-hidden mb-10 min-h-[320px]">
-              <img src={preview || "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80"} className={`w-full h-full object-cover ${preview ? 'opacity-100' : 'grayscale opacity-20'}`} alt="Field Scan" />
-              {uploadState === 'uploading' && <div className="scan-line" />}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <Target className={`text-[#C8F53E] w-32 h-32 ${uploadState === 'uploading' ? 'opacity-100 scale-110' : 'opacity-20'} transition-all duration-500 animate-pulse`} />
-              </div>
-            </div>
-
-            <div className="space-y-8">
-              <div className="flex justify-between items-end">
-                <div>
-                  <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2 font-mono">FIELD HEALTH SCORE</p>
-                  <p className="text-8xl font-bebas italic text-[#C8F53E] leading-none">{result?.healthScore || 78}<span className="text-2xl text-white/10 ml-2 font-sans not-italic">/100</span></p>
+              <div className="relative flex-grow bg-black/60 rounded-[2.5rem] border border-white/10 overflow-hidden mb-10 min-h-[320px]">
+                <img src={preview || "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80"} className={`w-full h-full object-cover ${preview ? 'opacity-100' : 'grayscale opacity-20'}`} alt="Field Scan" />
+                {uploadState === 'uploading' && <div className="scan-line" />}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <Target className={`text-[#C8F53E] w-32 h-32 ${uploadState === 'uploading' ? 'opacity-100 scale-110' : 'opacity-20'} transition-all duration-500 animate-pulse`} />
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {[
-                  { l: 'DETECTED', v: result?.disease?.toUpperCase() || 'MODERATE FUNGAL STRESS', c: 'text-white' },
-                  { l: 'CROP', v: result?.cropName?.toUpperCase() || 'RICE', c: 'text-white' }
-                ].map((row, i) => (
-                  <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-white/5 border border-white/5">
-                    <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] font-mono">{row.l}</span>
-                    <span className={`text-[10px] font-black uppercase italic ${row.c}`}>{row.v}</span>
+              <div className="space-y-8">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mb-2 font-mono">FIELD HEALTH SCORE</p>
+                    <p className="text-8xl font-bebas italic text-[#C8F53E] leading-none">{result?.healthScore || 78}<span className="text-2xl text-white/10 ml-2 font-sans not-italic">/100</span></p>
                   </div>
-                ))}
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    { l: 'DETECTED', v: result?.disease?.toUpperCase() || 'MODERATE FUNGAL STRESS', c: 'text-white' },
+                    { l: 'CROP', v: result?.cropName?.toUpperCase() || 'RICE', c: 'text-white' }
+                  ].map((row, i) => (
+                    <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-white/5 border border-white/5">
+                      <span className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] font-mono">{row.l}</span>
+                      <span className={`text-[10px] font-black uppercase italic ${row.c}`}>{row.v}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById('neural-scanner');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="w-full bg-[#C8F53E] text-[#060A04] py-6 rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-2xl cursor-pointer"
+                >
+                  INITIALIZE FIELD SCAN <ArrowRight size={16} />
+                </button>
+              </div>
+            </div>
+
+            {/* Table Panel */}
+            <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col">
+              <div className="flex justify-between items-center mb-12">
+                <h2 className="font-bebas text-4xl italic tracking-wide">RECENT SCANS</h2>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-[#C8F53E]/30 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#C8F53E]/5 transition-all cursor-pointer"
+                >
+                  + NEW SCAN
+                </button>
               </div>
 
-              <button className="w-full bg-[#C8F53E] text-[#060A04] py-6 rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 shadow-2xl">
-                VIEW FULL REPORT <ArrowRight size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* Table Panel */}
-          <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col">
-            <div className="flex justify-between items-center mb-12">
-              <h2 className="font-bebas text-4xl italic tracking-wide">RECENT SCANS</h2>
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-[#C8F53E]/30 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#C8F53E]/5 transition-all"
-              >
-                + NEW SCAN
-              </button>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="border-b border-white/5">
-                  <tr>
-                    {['FIELD', 'CROP', 'DISEASE', 'CONF', 'TIME'].map((h, i) => (
-                      <th key={i} className="pb-6 text-[9px] font-black text-white/30 uppercase tracking-widest">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 font-mono">
-                  {recentScans.map((row, i) => (
-                    <tr key={i} className="group hover:bg-[#C8F53E]/[0.03] transition-all">
-                      <td className="py-6 font-bold text-white text-xs">{row.field}</td>
-                      <td className="py-6 text-[10px] text-white/50">{row.cropName}</td>
-                      <td className="py-6 text-[10px] text-white/50">{row.disease}</td>
-                      <td className="py-6 text-[11px] font-black text-[#C8F53E]">{row.confidence}</td>
-                      <td className="py-6 text-[10px] text-white/30">{row.time}</td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="border-b border-white/5">
+                    <tr>
+                      {['FIELD', 'CROP', 'DISEASE', 'CONF', 'TIME'].map((h, i) => (
+                        <th key={i} className="pb-6 text-[9px] font-black text-white/30 uppercase tracking-widest">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 font-mono">
+                    {recentScans.map((row, i) => (
+                      <tr key={i} className="group hover:bg-[#C8F53E]/[0.03] transition-all">
+                        <td className="py-6 font-bold text-white text-xs">{row.field}</td>
+                        <td className="py-6 text-[10px] text-white/50">{row.cropName}</td>
+                        <td className="py-6 text-[10px] text-white/50">{row.disease}</td>
+                        <td className="py-6 text-[11px] font-black text-[#C8F53E]">{row.confidence}</td>
+                        <td className="py-6 text-[10px] text-white/30">{row.time}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
 
         {/* INFRASTRUCTURE MONITORING */}
-        <section className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-6 md:p-12 overflow-hidden">
+        <section id="backbone-infra" className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-6 md:p-12 overflow-hidden scroll-mt-6">
           <div className="flex justify-between items-center mb-12">
             <h2 className="font-bebas text-4xl italic tracking-wide">INFRASTRUCTURE MONITORING</h2>
-            <button className="bg-[#C8F53E]/10 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border border-[#C8F53E]/20 hover:bg-[#C8F53E]/20 transition-all">+ ADD MONITOR</button>
+            <button
+              type="button"
+              onClick={() => alert('All LeafGuard AI monitoring nodes (API Gateway, Vision Neural Server, Drone Uplink) are healthy and active with 99.98% uptime.')}
+              className="bg-[#C8F53E]/10 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border border-[#C8F53E]/20 hover:bg-[#C8F53E]/20 transition-all cursor-pointer"
+            >
+              + ADD MONITOR
+            </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-[min(400px,100%)_1fr] gap-12">
@@ -1207,6 +1314,257 @@ export default function Dashboard() {
           </div>
         </section>
       </main>
+
+      {/* SYSTEM CONFIGURATION MODAL */}
+      <AnimatePresence>
+        {showConfigModal && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#0A0E07] border border-[#C8F53E]/30 rounded-3xl p-6 md:p-8 max-w-xl w-full shadow-2xl text-white space-y-6 relative"
+            >
+              <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E]">
+                    <Sliders size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bebas text-2xl tracking-wide">SYSTEM CONFIGURATION</h3>
+                    <p className="text-[9px] font-mono text-[#C8F53E] uppercase tracking-widest">LEAF_OS NODE CONFIG · V4.2</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  className="text-white/40 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4 font-mono text-xs">
+                {/* AI Model selection */}
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-2">
+                  <label className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest block">
+                    NEURAL INFERENCE ENGINE
+                  </label>
+                  <select
+                    value={config.model}
+                    onChange={(e) => setConfig({ ...config, model: e.target.value })}
+                    className="w-full bg-[#060A04] border border-[#C8F53E]/20 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
+                  >
+                    <option value="gemini-1.5-flash">Google Gemini 1.5 Flash (Multi-Modal Vision Primary)</option>
+                    <option value="groq-llama-3.3-70b">Groq LLaMA 3.3 70B (High Speed Agro-Prescription)</option>
+                    <option value="hybrid-ensemble">Hybrid Multi-Node Ensemble (Highest Accuracy)</option>
+                  </select>
+                </div>
+
+                {/* Sensitivity Mode */}
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-2">
+                  <label className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest block">
+                    DIAGNOSIS SENSITIVITY
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'balanced', label: 'Balanced (94%)' },
+                      { id: 'aggressive', label: 'High (98%)' },
+                      { id: 'strict', label: 'Strict (88%)' }
+                    ].map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setConfig({ ...config, sensitivity: item.id })}
+                        className={`py-2 px-3 rounded-xl border text-[10px] font-bold uppercase transition-all ${
+                          config.sensitivity === item.id
+                            ? 'bg-[#C8F53E] text-[#060A04] border-[#C8F53E]'
+                            : 'bg-black/40 text-white/60 border-white/10 hover:border-white/20'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Toggles */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div
+                    onClick={() => setConfig({ ...config, droneSync: !config.droneSync })}
+                    className="bg-white/5 p-4 rounded-2xl border border-white/5 flex items-center justify-between cursor-pointer hover:border-[#C8F53E]/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Wifi size={16} className={config.droneSync ? 'text-[#C8F53E]' : 'text-white/30'} />
+                      <span className="text-[10px] font-bold">Drone Auto-Sync</span>
+                    </div>
+                    <span className={`w-3 h-3 rounded-full ${config.droneSync ? 'bg-[#C8F53E]' : 'bg-white/20'}`} />
+                  </div>
+
+                  <div
+                    onClick={() => setConfig({ ...config, alertWebhooks: !config.alertWebhooks })}
+                    className="bg-white/5 p-4 rounded-2xl border border-white/5 flex items-center justify-between cursor-pointer hover:border-[#C8F53E]/30"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Zap size={16} className={config.alertWebhooks ? 'text-[#C8F53E]' : 'text-white/30'} />
+                      <span className="text-[10px] font-bold">Alert Webhooks</span>
+                    </div>
+                    <span className={`w-3 h-3 rounded-full ${config.alertWebhooks ? 'bg-[#C8F53E]' : 'bg-white/20'}`} />
+                  </div>
+                </div>
+
+                {/* Default Language */}
+                <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-2">
+                  <label className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest block">
+                    DEFAULT VOICE & ADVISORY REGION
+                  </label>
+                  <select
+                    value={config.defaultLang}
+                    onChange={(e) => setConfig({ ...config, defaultLang: e.target.value })}
+                    className="w-full bg-[#060A04] border border-[#C8F53E]/20 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
+                  >
+                    <option value="bn-IN">West Bengal & Bangladesh (বাংলা - Bengali)</option>
+                    <option value="hi-IN">Northern & Central India (हिंदी - Hindi)</option>
+                    <option value="en-IN">Global Standard (English)</option>
+                  </select>
+                </div>
+              </div>
+
+              {configSaved && (
+                <div className="p-3 bg-[#C8F53E]/10 border border-[#C8F53E]/30 rounded-xl text-[#C8F53E] text-[10px] font-mono flex items-center gap-2">
+                  <Check size={14} />
+                  <span>Configuration saved and active across node cluster!</span>
+                </div>
+              )}
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfigSaved(true);
+                    setTimeout(() => {
+                      setConfigSaved(false);
+                      setShowConfigModal(false);
+                    }, 1000);
+                  }}
+                  className="flex-1 bg-[#C8F53E] text-[#060A04] font-black py-3 rounded-xl text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  SAVE & APPLY CONFIG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowConfigModal(false)}
+                  className="px-6 border border-white/10 hover:bg-white/5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer text-white/60 hover:text-white"
+                >
+                  CLOSE
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* SYSTEM ALERTS MODAL */}
+      <AnimatePresence>
+        {showAlertsModal && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#0A0E07] border border-[#FF4F4F]/40 rounded-3xl p-6 md:p-8 max-w-2xl w-full shadow-2xl text-white space-y-6 relative"
+            >
+              <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FF4F4F]/10 flex items-center justify-center text-[#FF4F4F]">
+                    <AlertTriangle size={22} />
+                  </div>
+                  <div>
+                    <h3 className="font-bebas text-2xl tracking-wide">ACTIVE SYSTEM ALERTS (03)</h3>
+                    <p className="text-[9px] font-mono text-[#FF4F4F] uppercase tracking-widest">EPIDEMIOLOGICAL SURVEILLANCE NOTIFICATIONS</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAlertsModal(false)}
+                  className="text-white/40 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-3 font-mono text-xs max-h-[50vh] overflow-y-auto pr-1">
+                {[
+                  {
+                    pin: '712101',
+                    district: 'Hooghly (Chinsurah)',
+                    disease: 'Late Blight (Phytophthora infestans)',
+                    crop: 'Potato',
+                    level: 'CRITICAL OUTBREAK',
+                    cases: '6 cases / 48h',
+                    badge: 'bg-[#FF4F4F]'
+                  },
+                  {
+                    pin: '713101',
+                    district: 'Burdwan (Purba Bardhaman)',
+                    disease: 'Rice Blast (Magnaporthe oryzae)',
+                    crop: 'Paddy Rice',
+                    level: 'CRITICAL OUTBREAK',
+                    cases: '5 cases / 48h',
+                    badge: 'bg-[#FF4F4F]'
+                  },
+                  {
+                    pin: '742101',
+                    district: 'Murshidabad (Baharampur)',
+                    disease: 'Yellow Rust (Puccinia striiformis)',
+                    crop: 'Wheat',
+                    level: 'MODERATE SPREAD',
+                    cases: '3 cases / 48h',
+                    badge: 'bg-[#FFB347]'
+                  }
+                ].map((alert, i) => (
+                  <div key={i} className="bg-white/5 border border-white/10 p-4 rounded-2xl space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-black text-[#C8F53E] uppercase tracking-widest">
+                        PIN {alert.pin} · {alert.district}
+                      </span>
+                      <span className={`${alert.badge} text-[#060A04] text-[8px] font-black px-2.5 py-0.5 rounded-full uppercase`}>
+                        {alert.level}
+                      </span>
+                    </div>
+                    <p className="text-white font-bold text-sm">{alert.disease}</p>
+                    <div className="flex justify-between text-white/50 text-[10px]">
+                      <span>Target Crop: {alert.crop}</span>
+                      <span className="text-[#FF4F4F] font-bold">{alert.cases}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAlertsModal(false);
+                    const el = document.getElementById('grid-geography');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="flex-1 bg-[#C8F53E] text-[#060A04] font-black py-3 rounded-xl text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  VIEW ON OUTBREAK HEATMAP →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAlertsModal(false)}
+                  className="px-6 border border-white/10 hover:bg-white/5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer text-white/60 hover:text-white"
+                >
+                  DISMISS
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
