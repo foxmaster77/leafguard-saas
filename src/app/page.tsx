@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import Footer from '@/components/Footer';
 
@@ -1022,9 +1023,9 @@ export default function HomePage() {
         <div style={{ position: 'relative', zIndex: 2 }}>
           <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(3rem,7vw,6rem)', fontStyle: 'italic', fontWeight: 900, marginBottom: '1.2rem' }}>READY TO PROTECT YOUR HARVEST?</h2>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', maxWidth: '560px', margin: '0 auto 2rem', lineHeight: 1.75 }}>Protecting harvests across 23 countries. Trusted by commercial farms, agri-corporations, and government pilot programs.</p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem' }}>
-            <button style={{ background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.12em', padding: '0.9rem 2rem', border: 'none', cursor: 'pointer' }}>START MY PILOT</button>
-            <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.1em', padding: '0.9rem 1.8rem', cursor: 'pointer' }}>VIEW PRICING</button>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+            <Link href="/login" style={{ background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.12em', padding: '0.9rem 2rem', textDecoration: 'none', display: 'inline-block' }}>START MY PILOT</Link>
+            <Link href="/pricing" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.1em', padding: '0.9rem 1.8rem', textDecoration: 'none', display: 'inline-block' }}>VIEW PRICING</Link>
           </div>
           <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.12em' }}>🔒 NO CREDIT CARD REQUIRED · CANCEL ANYTIME · GDPR COMPLIANT</p>
         </div>
