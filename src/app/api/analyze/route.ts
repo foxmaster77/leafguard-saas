@@ -144,6 +144,8 @@ JSON Schema:
           body: JSON.stringify({
             model: GROQ_MODEL,
             max_tokens: 1000,
+            reasoning_effort: "none",
+            response_format: { type: "json_object" },
             messages: [{ role: 'user', content: contentParts }]
           })
         });
@@ -167,7 +169,11 @@ JSON Schema:
       throw new Error(`AI analysis providers failed to respond. Tried: ${geminiStatus}, ${groqStatus}. Check server logs for per-provider error details.`);
     }
 
-    const clean = jsonResponseText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const clean = jsonResponseText
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim();
     const match = clean.match(/\{[\s\S]*\}/);
     const parsed = JSON.parse(match ? match[0] : clean);
 
