@@ -26,6 +26,7 @@ export default function HomePage() {
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [consoleLogs, setConsoleLogs] = useState<string[]>(['> Waiting for input']);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -77,18 +78,18 @@ export default function HomePage() {
       recognition.onerror = (event: any) => {
         console.warn('Speech recognition error:', event.error);
         setIsListening(false);
-        addLog(`> Voice input fallback active: type text below.`);
+        addLog(`> Voice fallback: type symptom description below.`);
       };
 
       recognition.onend = () => {
         setIsListening(false);
-        addLog(`> Voice capture complete.`);
+        addLog(`> Voice recording complete.`);
       };
 
       recognitionRef.current = recognition;
       recognition.start();
     } catch (e: any) {
-      console.error('Speech recognition start error:', e);
+      console.error('Speech recognition error:', e);
       setIsListening(false);
     }
   };
@@ -121,6 +122,13 @@ export default function HomePage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!file.type.startsWith('image/')) {
+        setImageError('Selected file is not a valid image format.');
+        setImagePreview(null);
+        addLog('> Error: Invalid file format (not an image).');
+        return;
+      }
+      setImageError(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         const b64 = reader.result as string;
@@ -128,11 +136,19 @@ export default function HomePage() {
         setAnalysisResult(null);
         setConsoleLogs(['> Image loaded. Ready for scan...']);
       };
+      reader.onerror = () => {
+        setImageError('Failed to read selected image.');
+        addLog('> Error reading image file.');
+      };
       reader.readAsDataURL(file);
     }
   };
 
   const analyzeImage = async (base64?: string | null, mediaType?: string) => {
+    if (imageError) {
+      alert('Please select a valid image before running diagnosis.');
+      return;
+    }
     const activeImage = base64 !== undefined ? base64 : imagePreview;
     
     if (!activeImage && !transcript.trim()) {
@@ -173,6 +189,9 @@ export default function HomePage() {
       if (activeImage) {
         const res_fetch = await fetch(activeImage);
         const blob = await res_fetch.blob();
+        if (!blob.type.startsWith('image/')) {
+          throw new Error('Image data is corrupted or invalid format.');
+        }
         const file = new File([blob], 'crop_capture.jpg', { type: mediaType || blob.type || 'image/jpeg' });
         formData.append('image', file);
       }
@@ -199,17 +218,16 @@ export default function HomePage() {
         }
         setAnalyzing(false);
       }, Math.max(logs.length * 500 + 300, targetMs));
-    } catch (err) {
-      addLog('> Error connecting to AgroGuard AI node.');
+    } catch (err: any) {
+      addLog(`> Error connecting to AgroGuard AI node: ${err?.message || 'Check connection'}`);
       setAnalyzing(false);
     }
   };
 
   const runSample = async (type: 'WHEAT' | 'SOY') => {
-    const url = type === 'WHEAT'
-      ? 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=800&q=80'
-      : 'https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=800&q=80';
+    const url = type === 'WHEAT' ? '/samples/wheat.jpg' : '/samples/soy.jpg';
 
+    setImageError(null);
     setConsoleLogs([`> Fetching sample ${type}...`]);
     if (type === 'WHEAT') {
       setTranscript(selectedLang === 'bn-IN' ? 'গম গাছের পাতায় হলুদ দাগ এবং শুকিয়ে যাওয়া ভাব দেখা যাচ্ছে।' : selectedLang === 'hi-IN' ? 'गेहूं के पत्तों पर पीले धब्बे दिख रहे हैं।' : 'Yellow spots appearing on wheat leaves.');
@@ -219,16 +237,28 @@ export default function HomePage() {
 
     try {
       const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} failed to load ${type} sample`);
+      }
       const blob = await response.blob();
+      if (!blob.type.startsWith('image/')) {
+        throw new Error(`Invalid image type (${blob.type})`);
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         const base64data = reader.result as string;
         setImagePreview(base64data);
+        setImageError(null);
         analyzeImage(base64data, blob.type);
       };
+      reader.onerror = () => {
+        setImageError(`Failed to decode sample ${type} image.`);
+        addLog(`> Failed to decode sample ${type} image.`);
+      };
       reader.readAsDataURL(blob);
-    } catch (e) {
-      addLog('> Failed to load sample image.');
+    } catch (e: any) {
+      setImageError(`Failed to load sample ${type} image.`);
+      addLog(`> Failed to load sample image: ${e?.message || e}`);
     }
   };
 
@@ -423,13 +453,45 @@ export default function HomePage() {
             
             {/* Image Dropzone */}
             <div
-              style={{ border: '2px dashed rgba(200,245,62,0.25)', height: '180px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer', borderRadius: '4px', transition: 'all 0.2s', position: 'relative', overflow: 'hidden' }}
+              style={{
+                border: `2px dashed ${imageError ? '#FF4F4F' : 'rgba(200,245,62,0.25)'}`,
+                height: '180px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                transition: 'all 0.2s',
+                position: 'relative',
+                overflow: 'hidden',
+                background: imageError ? 'rgba(255,79,79,0.06)' : 'transparent'
+              }}
               onClick={() => fileInputRef.current?.click()}
-              onMouseEnter={e => { if (!imagePreview) { e.currentTarget.style.borderColor = '#C8F53E'; e.currentTarget.style.background = 'rgba(200,245,62,0.03)' } }}
-              onMouseLeave={e => { if (!imagePreview) { e.currentTarget.style.borderColor = 'rgba(200,245,62,0.25)'; e.currentTarget.style.background = 'transparent' } }}
+              onMouseEnter={e => { if (!imagePreview && !imageError) { e.currentTarget.style.borderColor = '#C8F53E'; e.currentTarget.style.background = 'rgba(200,245,62,0.03)' } }}
+              onMouseLeave={e => { if (!imagePreview && !imageError) { e.currentTarget.style.borderColor = 'rgba(200,245,62,0.25)'; e.currentTarget.style.background = 'transparent' } }}
             >
-              {imagePreview ? (
-                <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              {imagePreview && !imageError ? (
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  onError={() => {
+                    setImageError('Image failed to render. Please upload a valid image.');
+                    addLog('> Error: Image preview failed to render.');
+                  }}
+                  onLoad={() => {
+                    setImageError(null);
+                  }}
+                />
+              ) : imageError ? (
+                <div style={{ textAlign: 'center', padding: '1rem' }}>
+                  <span style={{ fontSize: '1.8rem', color: '#FF4F4F' }}>⚠️</span>
+                  <p style={{ fontWeight: 700, color: '#FF4F4F', margin: '4px 0 0', fontSize: '0.85rem' }}>IMAGE LOAD ERROR</p>
+                  <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.7)', margin: '2px 0 0' }}>{imageError}</p>
+                  <p style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#C8F53E', margin: '6px 0 0' }}>CLICK TO TRY ANOTHER IMAGE</p>
+                </div>
               ) : (
                 <>
                   <span style={{ fontSize: '2rem', opacity: 0.7 }}>⚡</span>
@@ -499,24 +561,24 @@ export default function HomePage() {
             {/* Submit Diagnosis Button */}
             <button
               onClick={() => analyzeImage()}
-              disabled={analyzing}
+              disabled={analyzing || !!imageError}
               style={{
                 width: '100%',
                 marginTop: '1.2rem',
-                background: analyzing ? 'rgba(200,245,62,0.3)' : '#C8F53E',
-                color: '#060A04',
+                background: (analyzing || !!imageError) ? 'rgba(200,245,62,0.2)' : '#C8F53E',
+                color: (analyzing || !!imageError) ? 'rgba(255,255,255,0.4)' : '#060A04',
                 fontWeight: 900,
                 fontFamily: 'monospace',
                 fontSize: '0.85rem',
                 letterSpacing: '0.12em',
                 padding: '0.9rem',
                 border: 'none',
-                cursor: analyzing ? 'not-allowed' : 'pointer',
+                cursor: (analyzing || !!imageError) ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 borderRadius: '4px'
               }}
             >
-              {analyzing ? 'DIAGNOSING CROP PATHOGEN...' : 'RUN MULTIMODAL DIAGNOSIS →'}
+              {analyzing ? 'DIAGNOSING CROP PATHOGEN...' : imageError ? 'INVALID IMAGE — FIX TO PROCEED' : 'RUN MULTIMODAL DIAGNOSIS →'}
             </button>
 
             <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', margin: '1.2rem 0 0.6rem', textTransform: 'uppercase' }}>OR TEST WITH SAMPLE DATA:</p>
