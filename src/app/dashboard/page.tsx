@@ -5,7 +5,8 @@ import dynamic from 'next/dynamic';
 import {
   ShieldCheck, Terminal, Search, Map as MapIcon, Activity, Database, Settings,
   LogOut, Bell, Clock, User, Upload, AlertTriangle, Thermometer, CloudRain,
-  Wind, Globe, ArrowRight, RotateCcw, Target, CheckCircle, XCircle
+  Wind, Globe, ArrowRight, RotateCcw, Target, CheckCircle, XCircle,
+  Film, Video, ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -23,6 +24,15 @@ const Ticker = () => (
   </div>
 );
 
+type FrameResult = {
+  frameIndex: number;
+  timestamp: string;
+  thumbUrl: string;
+  status: 'analyzing' | 'done' | 'failed';
+  data: any | null;
+  error?: string;
+};
+
 export default function Dashboard() {
   const [time, setTime] = useState('');
   const [isMounted, setIsMounted] = useState(false);
@@ -31,6 +41,10 @@ export default function Dashboard() {
   const [result, setResult] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [daysFilter, setDaysFilter] = useState<7 | 30>(7);
+  // Video multi-frame scan state
+  const [isVideoScan, setIsVideoScan] = useState(false);
+  const [frameScanMsg, setFrameScanMsg] = useState('');
+  const [videoFrameResults, setVideoFrameResults] = useState<FrameResult[]>([]);
 
   // Outbreak Heatmap Data State with rich initial West Bengal seed data
   const [outbreakData, setOutbreakData] = useState<{
@@ -126,160 +140,265 @@ export default function Dashboard() {
     setPreview(null);
     setResult(null);
     setErrorMsg('');
+    setIsVideoScan(false);
+    setFrameScanMsg('');
+    setVideoFrameResults([]);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const processUploadFile = async (file: File): Promise<{ blob: Blob; previewUrl: string }> => {
-    if (file.type.startsWith('video/')) {
-      return new Promise((resolve, reject) => {
-        const video = document.createElement('video');
-        const url = URL.createObjectURL(file);
-        video.src = url;
-        video.muted = true;
-        video.playsInline = true;
-        const timeout = setTimeout(() => {
-          URL.revokeObjectURL(url);
-          reject(new Error('Video frame extraction timed out.'));
-        }, 10000);
-
-        video.onloadeddata = () => {
-          video.currentTime = Math.min(1, (video.duration || 2) / 2);
-        };
-        video.onseeked = () => {
-          clearTimeout(timeout);
-          try {
-            const canvas = document.createElement('canvas');
-            const maxDim = 1200;
-            let w = video.videoWidth || 800;
-            let h = video.videoHeight || 600;
-            if (w > maxDim || h > maxDim) {
-              if (w > h) {
-                h = Math.round((h * maxDim) / w);
-                w = maxDim;
-              } else {
-                w = Math.round((w * maxDim) / h);
-                h = maxDim;
-              }
-            }
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            ctx?.drawImage(video, 0, 0, w, h);
-            canvas.toBlob((blob) => {
-              URL.revokeObjectURL(url);
-              if (blob) {
-                const preview = canvas.toDataURL('image/jpeg', 0.85);
-                resolve({ blob, previewUrl: preview });
-              } else {
-                reject(new Error('Could not capture frame from video.'));
-              }
-            }, 'image/jpeg', 0.85);
-          } catch (e: any) {
-            URL.revokeObjectURL(url);
-            reject(new Error(`Failed to process video: ${e.message}`));
-          }
-        };
-        video.onerror = () => {
-          clearTimeout(timeout);
-          URL.revokeObjectURL(url);
-          reject(new Error('Video format is unreadable or unsupported. Please upload a photo instead.'));
-        };
-        video.load();
-      });
-    } else if (file.type.startsWith('image/')) {
-      return new Promise((resolve, reject) => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-          URL.revokeObjectURL(url);
-          const maxDim = 1600;
-          let w = img.naturalWidth || img.width;
-          let h = img.naturalHeight || img.height;
-          if (w > maxDim || h > maxDim) {
-            if (w > h) {
-              h = Math.round((h * maxDim) / w);
-              w = maxDim;
-            } else {
-              w = Math.round((w * maxDim) / h);
-              h = maxDim;
-            }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, w, h);
-          canvas.toBlob((blob) => {
-            if (blob) {
-              const preview = canvas.toDataURL('image/jpeg', 0.85);
-              resolve({ blob, previewUrl: preview });
-            } else {
-              reject(new Error('Failed to process image.'));
-            }
-          }, 'image/jpeg', 0.85);
-        };
-        img.onerror = () => {
-          URL.revokeObjectURL(url);
-          reject(new Error('Selected image could not be loaded. Please choose a valid JPG/PNG.'));
-        };
-        img.src = url;
-      });
-    } else {
-      throw new Error('Unsupported file type. Please upload a crop photo (JPG/PNG) or MP4 video.');
-    }
+  // ─── IMAGE FRAME UTILITY ────────────────────────────────────────────────────
+  const resizeImageFile = async (file: File): Promise<{ blob: Blob; previewUrl: string }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const maxDim = 1600;
+        let w = img.naturalWidth || img.width;
+        let h = img.naturalHeight || img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+          else { w = Math.round((w * maxDim) / h); h = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d')?.drawImage(img, 0, 0, w, h);
+        canvas.toBlob((blob) => {
+          if (blob) resolve({ blob, previewUrl: canvas.toDataURL('image/jpeg', 0.85) });
+          else reject(new Error('Failed to process image.'));
+        }, 'image/jpeg', 0.85);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Image could not be loaded. Please choose a valid JPG/PNG.')); };
+      img.src = url;
+    });
   };
 
-  const handleFileSelect = async (file: File) => {
+  // ─── VIDEO FRAME EXTRACTION ─────────────────────────────────────────────────
+  const extractVideoFrames = async (
+    file: File,
+    onFrame: (idx: number, total: number, thumbUrl: string, blob: Blob, tsSec: number) => void
+  ): Promise<void> => {
+    const MAX_DURATION = 30; // seconds
+    const MAX_SIZE_MB = 30;
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+      throw new Error(`Video is too large (max ${MAX_SIZE_MB}MB). Please trim it first.`);
+    }
+    const RATIOS = [0.2, 0.4, 0.6, 0.8];
+    const url = URL.createObjectURL(file);
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.src = url;
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      const masterTimeout = setTimeout(() => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Video loading timed out. Try a shorter clip.'));
+      }, 20000);
+
+      video.onloadedmetadata = async () => {
+        clearTimeout(masterTimeout);
+        const duration = Math.min(video.duration || 10, MAX_DURATION);
+        const maxW = 1024;
+        let vw = video.videoWidth || 800;
+        let vh = video.videoHeight || 600;
+        if (vw > maxW) { vh = Math.round((vh * maxW) / vw); vw = maxW; }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = vw; canvas.height = vh;
+        const ctx = canvas.getContext('2d')!;
+
+        const seekAndCapture = (ratio: number): Promise<{ blob: Blob; thumbUrl: string; tsSec: number }> =>
+          new Promise((res, rej) => {
+            const tsSec = duration * ratio;
+            const seekTimer = setTimeout(() => rej(new Error(`Seek timed out at ${tsSec.toFixed(1)}s`)), 8000);
+            video.onseeked = () => {
+              clearTimeout(seekTimer);
+              ctx.drawImage(video, 0, 0, vw, vh);
+              canvas.toBlob((b) => {
+                if (b) res({ blob: b, thumbUrl: canvas.toDataURL('image/jpeg', 0.75), tsSec });
+                else rej(new Error('Canvas blob failed'));
+              }, 'image/jpeg', 0.80);
+            };
+            video.currentTime = tsSec;
+          });
+
+        try {
+          for (let i = 0; i < RATIOS.length; i++) {
+            const { blob, thumbUrl, tsSec } = await seekAndCapture(RATIOS[i]);
+            onFrame(i, RATIOS.length, thumbUrl, blob, tsSec);
+          }
+          URL.revokeObjectURL(url);
+          resolve();
+        } catch (e: any) {
+          URL.revokeObjectURL(url);
+          reject(e);
+        }
+      };
+      video.onerror = () => {
+        clearTimeout(masterTimeout);
+        URL.revokeObjectURL(url);
+        reject(new Error('Video format not supported. Please use MP4 or MOV.'));
+      };
+      video.load();
+    });
+  };
+
+  // ─── ANALYZE A SINGLE FRAME BLOB VIA EXISTING /api/analyze ─────────────────
+  const analyzeFrameBlob = async (blob: Blob, frameLabel: string): Promise<any> => {
+    const formData = new FormData();
+    formData.append('image', new File([blob], `${frameLabel}.jpg`, { type: 'image/jpeg' }));
+    formData.append('language', 'en-IN');
+    formData.append('transcript', `Video field scan – ${frameLabel}`);
+    formData.append('pincode', '712101');
+    const res = await fetch('/api/analyze', { method: 'POST', body: formData });
+    const text = await res.text();
+    let data: any;
+    try { data = JSON.parse(text); } catch {
+      throw new Error(res.ok ? 'Invalid JSON from server' : `HTTP ${res.status}`);
+    }
+    if (!res.ok || data.error) throw new Error(data?.error || `HTTP ${res.status}`);
+    return data;
+  };
+
+  // ─── FULL VIDEO SCAN PIPELINE ────────────────────────────────────────────────
+  const handleVideoScan = async (file: File) => {
+    setIsVideoScan(true);
     setUploadState('uploading');
-    setErrorMsg('');
+    setVideoFrameResults([]);
+    setFrameScanMsg('> Loading video metadata...');
+
+    // Collected frames in order; we fill placeholders first
+    const collected: { blob: Blob; thumbUrl: string; tsSec: number }[] = [];
+    const placeholders: FrameResult[] = [];
 
     try {
-      const { blob, previewUrl } = await processUploadFile(file);
-      setPreview(previewUrl);
+      await extractVideoFrames(file, (idx, total, thumbUrl, blob, tsSec) => {
+        collected.push({ blob, thumbUrl, tsSec });
+        const placeholder: FrameResult = {
+          frameIndex: idx,
+          timestamp: `${tsSec.toFixed(1)}s`,
+          thumbUrl,
+          status: 'analyzing',
+          data: null
+        };
+        placeholders.push(placeholder);
+        setVideoFrameResults([...placeholders]);
+        setFrameScanMsg(`> Extracting frames... (${idx + 1}/${total})`);
+        setPreview(thumbUrl);
+      });
+    } catch (err: any) {
+      setErrorMsg(err?.message || 'Frame extraction failed.');
+      setUploadState('error');
+      return;
+    }
 
+    // Analyze frames with concurrency=2
+    const results: FrameResult[] = [...placeholders];
+    const CONCURRENCY = 2;
+    for (let batch = 0; batch < collected.length; batch += CONCURRENCY) {
+      const slice = collected.slice(batch, batch + CONCURRENCY);
+      const idxSlice = Array.from({ length: slice.length }, (_, k) => batch + k);
+      setFrameScanMsg(
+        idxSlice.length === 1
+          ? `> Analyzing frame ${batch + 1} of ${collected.length}...`
+          : `> Analyzing frames ${batch + 1}–${batch + slice.length} of ${collected.length}...`
+      );
+      await Promise.all(slice.map(async ({ blob, tsSec }, k) => {
+        const globalIdx = batch + k;
+        try {
+          const data = await analyzeFrameBlob(blob, `frame_${globalIdx + 1}_at_${tsSec.toFixed(1)}s`);
+          results[globalIdx] = { ...results[globalIdx], status: 'done', data };
+        } catch (e: any) {
+          results[globalIdx] = { ...results[globalIdx], status: 'failed', error: e?.message || 'Inconclusive' };
+        }
+        setVideoFrameResults([...results]);
+      }));
+    }
+
+    // Compute primary finding: highest-severity done frame
+    const SEVERITY_ORDER = ['Critical', 'High', 'Medium', 'Low', 'Healthy'];
+    const doneFrames = results.filter(r => r.status === 'done' && r.data);
+    const primaryFrame = doneFrames.sort((a, b) => {
+      const ai = SEVERITY_ORDER.indexOf(a.data.riskLevel || 'Healthy');
+      const bi = SEVERITY_ORDER.indexOf(b.data.riskLevel || 'Healthy');
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    })[0];
+
+    if (!primaryFrame) {
+      setErrorMsg('All frames were inconclusive. Please try a different video.');
+      setUploadState('error');
+      return;
+    }
+
+    setResult(primaryFrame.data);
+    setPreview(primaryFrame.thumbUrl);
+    setUploadState('success');
+    setFrameScanMsg(`> Analysis complete. Primary finding from frame at ${primaryFrame.timestamp}.`);
+
+    // Update recents
+    const d = primaryFrame.data;
+    setRecentUploads(prev => [{ name: file.name, time: 'Just now', dot: 'bg-[#C8F53E]' }, ...prev.slice(0, 2)]);
+    setRecentScans(prev => [{
+      field: file.name,
+      cropName: d.cropName || 'Unknown',
+      disease: (d.disease || 'HEALTHY').toUpperCase(),
+      confidence: typeof d.confidence === 'number' ? `${d.confidence}%` : (d.confidence || '—'),
+      time: 'Just now'
+    }, ...prev.slice(0, 4)]);
+  };
+
+  // ─── IMAGE SCAN PIPELINE ─────────────────────────────────────────────────────
+  const handleImageScan = async (file: File) => {
+    setIsVideoScan(false);
+    setUploadState('uploading');
+    setErrorMsg('');
+    try {
+      const { blob, previewUrl } = await resizeImageFile(file);
+      setPreview(previewUrl);
       const formData = new FormData();
-      const fileToUpload = new File([blob], 'field_capture.jpg', { type: 'image/jpeg' });
-      formData.append('image', fileToUpload);
+      formData.append('image', new File([blob], 'field_capture.jpg', { type: 'image/jpeg' }));
       formData.append('language', 'en-IN');
       formData.append('transcript', 'Field scan diagnosis');
       formData.append('pincode', '712101');
-
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        body: formData,
-      });
-
+      const res = await fetch('/api/analyze', { method: 'POST', body: formData });
       const text = await res.text();
       let data: any = null;
-      try {
-        data = JSON.parse(text);
-      } catch (jsonErr) {
-        if (!res.ok) {
-          throw new Error(`Server returned HTTP ${res.status} (${res.statusText || 'Service error'})`);
-        }
-        throw new Error('Invalid response received from server.');
+      try { data = JSON.parse(text); } catch {
+        throw new Error(res.ok ? 'Invalid JSON from server' : `HTTP ${res.status}`);
       }
-      
       if (res.ok && !data.error) {
         setResult(data);
         setUploadState('success');
-        // Update Recents
         setRecentUploads(prev => [{ name: file.name, time: 'Just now', dot: 'bg-[#C8F53E]' }, ...prev.slice(0, 2)]);
-        const newScan = {
+        setRecentScans(prev => [{
           field: file.name,
           cropName: data.cropName,
           disease: (data.disease || 'HEALTHY').toUpperCase(),
           confidence: typeof data.confidence === 'number' ? `${data.confidence}%` : (data.confidence || '90%'),
           time: 'Just now'
-        };
-        setRecentScans(prev => [newScan, ...prev.slice(0, 4)]);
+        }, ...prev.slice(0, 4)]);
       } else {
         setErrorMsg(data?.error || `Analysis failed (HTTP ${res.status})`);
         setUploadState('error');
       }
     } catch (err: any) {
-      console.error('Field scan upload error:', err);
+      console.error('Image scan error:', err);
       setErrorMsg(err?.message || 'Network error occurred');
+      setUploadState('error');
+    }
+  };
+
+  // ─── DISPATCH HANDLER ────────────────────────────────────────────────────────
+  const handleFileSelect = (file: File) => {
+    setErrorMsg('');
+    setVideoFrameResults([]);
+    if (file.type.startsWith('video/')) {
+      handleVideoScan(file);
+    } else if (file.type.startsWith('image/')) {
+      handleImageScan(file);
+    } else {
+      setErrorMsg('Unsupported file type. Please upload a JPG/PNG photo or MP4/MOV video.');
       setUploadState('error');
     }
   };
@@ -543,7 +662,7 @@ export default function Dashboard() {
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 flex flex-col relative overflow-hidden group">
             <input 
               type="file" 
-              accept="image/*,video/*" 
+              accept="image/jpeg,image/png,image/webp,video/mp4,video/quicktime,video/mov" 
               className="hidden" 
               ref={fileInputRef} 
               onChange={(e) => { 
@@ -591,41 +710,112 @@ export default function Dashboard() {
                     <Upload size={28} />
                   </div>
                   <h3 className="text-xl font-black mb-2 uppercase tracking-tight">INITIALIZE SCAN</h3>
-                  <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-8">DRONE FEED · PHOTO · VIDEO</p>
+                  <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-3">PHOTO OR VIDEO</p>
+                  <div className="flex items-center gap-2 mb-8 text-[8px] font-mono text-white/20 uppercase">
+                    <span className="flex items-center gap-1"><Upload size={9} /> JPG · PNG</span>
+                    <span className="text-white/10">|</span>
+                    <span className="flex items-center gap-1"><Film size={9} /> MP4 · MOV · MAX 30MB</span>
+                  </div>
                   <button className="bg-[#C8F53E] text-[#060A04] px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-2xl">UPLOAD SOURCE</button>
                 </div>
               )}
 
               {uploadState === 'uploading' && (
-                <div className="flex-grow flex flex-col items-center justify-center font-mono text-[10px] space-y-2">
+                <div className="flex-grow flex flex-col justify-center font-mono text-[10px] space-y-3 px-2">
                   <div className="sweep-animation" />
-                  {lines.slice(0, terminalIndex).map((line, i) => (
-                    <p key={i} className="text-[#C8F53E] tracking-widest uppercase self-start">
-                      {line}
-                      {i === terminalIndex - 1 && <span className="animate-pulse">_</span>}
-                    </p>
-                  ))}
+                  {isVideoScan ? (
+                    <>
+                      <div className="flex items-center gap-3 mb-2">
+                        <Film size={16} className="text-[#C8F53E] animate-pulse" />
+                        <span className="text-[#C8F53E] font-black uppercase tracking-widest text-[9px]">VIDEO SCAN IN PROGRESS</span>
+                      </div>
+                      <p className="text-[#C8F53E]/80 tracking-wide self-start">{frameScanMsg}<span className="animate-pulse">_</span></p>
+                      {videoFrameResults.length > 0 && (
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                          {videoFrameResults.map((fr) => (
+                            <div key={fr.frameIndex} className="relative rounded-xl overflow-hidden border border-white/10 aspect-video">
+                              <img src={fr.thumbUrl} className="w-full h-full object-cover" />
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                {fr.status === 'analyzing' && <span className="w-4 h-4 border-2 border-[#C8F53E] border-t-transparent rounded-full animate-spin" />}
+                                {fr.status === 'done' && <CheckCircle size={14} className="text-[#C8F53E]" />}
+                                {fr.status === 'failed' && <XCircle size={14} className="text-[#FF4F4F]" />}
+                              </div>
+                              <span className="absolute bottom-1 left-1 text-[8px] font-mono text-white/60 bg-black/60 px-1 rounded">{fr.timestamp}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    lines.slice(0, terminalIndex).map((line, i) => (
+                      <p key={i} className="text-[#C8F53E] tracking-widest uppercase self-start">
+                        {line}
+                        {i === terminalIndex - 1 && <span className="animate-pulse">_</span>}
+                      </p>
+                    ))
+                  )}
                 </div>
               )}
 
               {uploadState === 'success' && (
-                <div className="flex-grow flex flex-col justify-center">
-                  <div className="bg-black/80 backdrop-blur-md p-6 rounded-3xl border border-[#C8F53E]/30 space-y-4">
-                    <div className="flex items-center gap-3 text-[#C8F53E]">
-                      <CheckCircle size={18} />
-                      <span className="text-[10px] font-black uppercase tracking-widest">ANALYSIS COMPLETE</span>
+                <div className="flex-grow flex flex-col justify-center gap-4">
+                  {/* Primary Finding Card */}
+                  <div className="bg-black/80 backdrop-blur-md p-5 rounded-3xl border border-[#C8F53E]/30 space-y-3">
+                    <div className="flex items-center gap-2 text-[#C8F53E]">
+                      <CheckCircle size={14} />
+                      <span className="text-[9px] font-black uppercase tracking-widest">
+                        {isVideoScan ? 'VIDEO SCAN COMPLETE' : 'ANALYSIS COMPLETE'}
+                      </span>
                     </div>
-                    <div className="space-y-1">
-                      <p className="text-[9px] font-black text-white/30 uppercase mb-1">DETECTION</p>
-                      <p className="text-xl font-black italic text-white uppercase">{result?.disease}</p>
+                    <div>
+                      <p className="text-[9px] font-black text-white/30 uppercase mb-1">PRIMARY FINDING</p>
+                      <p className="text-base font-black italic text-white uppercase leading-tight">{result?.disease}</p>
+                      {result?.cropName && <p className="text-[10px] text-white/40 mt-0.5">{result.cropName}</p>}
                     </div>
-                    <button 
+                    <button
                       onClick={resetUpload}
-                      className="w-full bg-[#C8F53E] text-[#060A04] py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all mt-2"
+                      className="w-full bg-[#C8F53E] text-[#060A04] py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
                     >
-                      VIEW REPORT BELOW
+                      NEW SCAN
                     </button>
                   </div>
+
+                  {/* Video frame thumbnails */}
+                  {isVideoScan && videoFrameResults.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[8px] font-black text-white/30 uppercase tracking-widest">FRAME RESULTS</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {videoFrameResults.map((fr) => {
+                          const riskLevel = fr.data?.riskLevel || '';
+                          const borderCol = riskLevel === 'Critical' || riskLevel === 'High'
+                            ? 'border-[#FF4F4F]/60'
+                            : riskLevel === 'Medium'
+                            ? 'border-[#FFB347]/60'
+                            : fr.status === 'failed'
+                            ? 'border-white/10'
+                            : 'border-[#C8F53E]/30';
+                          return (
+                            <div key={fr.frameIndex} className={`relative rounded-xl overflow-hidden border ${borderCol} aspect-video bg-black/60`}>
+                              <img src={fr.thumbUrl} className="w-full h-full object-cover opacity-80" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+                              <div className="absolute bottom-0 left-0 right-0 p-1.5">
+                                {fr.status === 'done' ? (
+                                  <>
+                                    <p className="text-[8px] font-black text-white leading-tight truncate">{fr.data?.disease || '—'}</p>
+                                    <p className="text-[7px] text-[#C8F53E] font-mono">
+                                      {typeof fr.data?.confidence === 'number' ? `${fr.data.confidence}%` : fr.data?.confidence || ''} · {fr.timestamp}
+                                    </p>
+                                  </>
+                                ) : (
+                                  <p className="text-[8px] text-white/40">Inconclusive · {fr.timestamp}</p>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
