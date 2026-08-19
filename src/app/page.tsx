@@ -389,19 +389,19 @@ export default function HomePage() {
               CROPGUARD AI · PRECISION CROP_OS V4.0
             </div>
 
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3.8rem,8vw,6.8rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: 0.9, margin: '0 0 1.5rem', letterSpacing: '0.01em' }}>
-              <span style={{ color: 'white' }}>CATCH DISEASE </span>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3.8rem,8vw,6.8rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: 0.92, margin: '0 0 1.5rem', letterSpacing: '0.01em' }}>
+              <span style={{ color: 'white', display: 'block' }}>CATCH DISEASE</span>
               <span style={{
                 background: 'linear-gradient(135deg, #C8F53E 0%, #38BDF8 55%, #22C55E 100%)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 display: 'inline-block',
+                paddingRight: '0.3em',
                 filter: 'drop-shadow(0 0 35px rgba(200,245,62,0.35))'
               }}>
                 14 DAYS BEFORE
               </span>
-              <br />
-              <span style={{ color: 'white' }}>IT&apos;S VISIBLE.</span>
+              <span style={{ color: 'white', display: 'block' }}>IT&apos;S VISIBLE.</span>
             </h1>
 
             <p style={{ fontSize: '1.08rem', color: 'rgba(255,255,255,0.7)', maxWidth: '520px', lineHeight: 1.75, marginBottom: '2.2rem' }}>
