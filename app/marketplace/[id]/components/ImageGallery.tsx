@@ -1,3 +1,5 @@
+"use client";
+
 type Props = { images: string[] };
 
 export default function ImageGallery({ images }: Props) {
