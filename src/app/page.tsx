@@ -341,7 +341,7 @@ export default function HomePage() {
             <button style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontWeight: 700, fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.1em', padding: '0.9rem 1.8rem', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#C8F53E'; e.currentTarget.style.color = '#C8F53E' }} onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.25)'; e.currentTarget.style.color = 'white' }}>ENTERPRISE PILOT</button>
           </div>
           <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-            {['● 4.2s avg detection time', '● 14,000+ fields scanned', '● 94% detection accuracy'].map((s, i) => (
+            {['● 4.2s avg detection time', '● West Bengal Rice, Wheat & Potato Belt', '● 96% verified accuracy'].map((s, i) => (
               <span key={i} className="stat-pill" style={{ background: 'rgba(200,245,62,0.06)', border: '1px solid rgba(200,245,62,0.18)', borderRadius: '99px', padding: '0.4rem 1rem', fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.6)', animationDelay: `${i * 0.1 + 0.3}s` }}>{s}</span>
             ))}
           </div>
@@ -358,7 +358,7 @@ export default function HomePage() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
             <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem' }}>Confidence</span>
-            <span style={{ color: '#C8F53E', fontWeight: 900, fontSize: '1.1rem' }}>94%</span>
+            <span style={{ color: '#C8F53E', fontWeight: 900, fontSize: '1.1rem' }}>96%</span>
           </div>
           <div style={{ background: 'rgba(200,245,62,0.08)', border: '1px solid rgba(200,245,62,0.15)', padding: '0.8rem', borderRadius: '4px', fontSize: '0.8rem', color: 'rgba(255,255,255,0.7)' }}>
             ● Apply fungicide in 3–5 days. Targeted sector 4-B coverage recommended.
@@ -368,12 +368,12 @@ export default function HomePage() {
 
       {/* PARTNERS MARQUEE */}
       <section style={{ background: '#0A0E07', borderTop: '1px solid rgba(200,245,62,0.06)', borderBottom: '1px solid rgba(200,245,62,0.06)', padding: '1.5rem 0', overflow: 'hidden' }}>
-        <p style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: '0.6rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '1rem' }}>GLOBAL INFRASTRUCTURE PARTNERS</p>
+        <p style={{ textAlign: 'center', fontFamily: 'monospace', fontSize: '0.6rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '1rem' }}>CORE TECHNOLOGY STACK & PARTNERS</p>
         <div style={{ overflow: 'hidden', WebkitMaskImage: 'linear-gradient(to right,transparent,black 10%,black 90%,transparent)', maskImage: 'linear-gradient(to right,transparent,black 10%,black 90%,transparent)' }}>
           <div style={{ display: 'flex', gap: '1.5rem', animation: 'marquee 25s linear infinite', width: 'max-content' }}
             onMouseEnter={e => (e.currentTarget.style.animationPlayState = 'paused')}
             onMouseLeave={e => (e.currentTarget.style.animationPlayState = 'running')}>
-            {['AGRITECH', 'FARMSENSE', 'TERRAYIELD', 'CROPCHAIN', 'AGROPILOT', 'AGRITECH', 'FARMSENSE', 'TERRAYIELD', 'CROPCHAIN', 'AGROPILOT'].map((b, i) => (
+            {['Google Gemini', 'Groq', 'OpenWeather', 'Supabase', 'Vercel', 'Google Gemini', 'Groq', 'OpenWeather', 'Supabase', 'Vercel'].map((b, i) => (
               <div key={i} className="partner-card" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.1)', padding: '0.8rem 2rem', fontFamily: 'monospace', fontWeight: 700, color: 'white', fontSize: '0.85rem', transition: 'all 0.2s', flexShrink: 0 }}>{b}</div>
             ))}
           </div>
@@ -388,9 +388,9 @@ export default function HomePage() {
         </div>
         <div className="home-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
           {[
-            { icon: '🔬', title: 'AI Disease Detection', desc: 'Multi-spectral neural networks detect 94 disease signatures from a single image.', stat: '90%+ CONFIDENCE ON ALL SCANS' },
+            { icon: '🔬', title: 'AI Disease Detection', desc: 'Multi-spectral neural networks detect 94 disease signatures from a single image.', stat: '96% CONFIDENCE ON VERIFIED SCANS' },
             { icon: '🌦️', title: 'Weather + Risk Alerts', desc: 'Live weather integration forecasts disease pressure up to 5 days in advance.', stat: 'REAL-TIME · 50KM RISK RADIUS' },
-            { icon: '🗺️', title: 'Global Farm Dashboard', desc: 'Monitor every field, every scan, and every alert from a single command center.', stat: '142+ FARMS MONITORED GLOBALLY' },
+            { icon: '🗺️', title: 'Regional Outbreak Radar', desc: 'Voice diagnosis, video field scanning, and district-level pathogen heatmaps.', stat: 'VOICE · VIDEO SCAN · OUTBREAK ALERTS' },
           ].map((c, i) => (
             <div key={i} className="reveal feature-card" style={{ background: '#0F1409', border: '1px solid rgba(255,255,255,0.05)', padding: '2rem', transition: 'all 0.25s', borderLeft: '1px solid rgba(255,255,255,0.05)', cursor: 'default' }}>
               <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>{c.icon}</div>
@@ -414,7 +414,7 @@ export default function HomePage() {
         <div style={{ position: 'relative', height: '500px', border: '1px solid rgba(200,245,62,0.1)', borderRadius: '4px', overflow: 'hidden', maxWidth: '1100px', margin: '0 auto 2.5rem' }}>
           <GlobalMap />
           <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 1000, background: 'rgba(6,10,4,0.92)', border: '1px solid rgba(200,245,62,0.15)', padding: '0.8rem 1.2rem', backdropFilter: 'blur(10px)' }}>
-            {[['10', 'DISTRICTS'], ['29+', 'OUTBREAKS'], ['96%', 'ACCURACY']].map(([n, l]) => (
+            {[['8+', 'DISTRICTS'], ['29+', 'OUTBREAKS'], ['96%', 'ACCURACY']].map(([n, l]) => (
               <div key={l} style={{ marginBottom: '0.4rem' }}>
                 <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.3rem', color: '#C8F53E', marginRight: '0.5rem' }}>{n}</span>
                 <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>{l}</span>
@@ -423,7 +423,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="home-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', maxWidth: '1100px', margin: '0 auto' }}>
-          {[['10', 'Districts Active'], ['29+', 'Clusters Logged'], ['96%', 'Multimodal Accuracy'], ['₹10k/yr', 'Govt Aid Mapped']].map(([n, l], i) => (
+          {[['8+', 'Districts Active'], ['29+', 'Clusters Logged'], ['96%', 'Cellular Accuracy'], ['₹10k/yr', 'Govt Aid Mapped']].map(([n, l], i) => (
             <div key={i} className="reveal" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.08)', padding: '1.5rem', textAlign: 'center' }}>
               <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '2.5rem', color: '#C8F53E', fontStyle: 'italic' }}>{n}</div>
               <div style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>{l}</div>
@@ -1062,12 +1062,12 @@ export default function HomePage() {
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(6,10,4,0.75)', zIndex: 1 }} />
         <div style={{ position: 'relative', zIndex: 2 }}>
           <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(3rem,7vw,6rem)', fontStyle: 'italic', fontWeight: 900, marginBottom: '1.2rem' }}>READY TO PROTECT YOUR HARVEST?</h2>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', maxWidth: '560px', margin: '0 auto 2rem', lineHeight: 1.75 }}>Protecting harvests across 23 countries. Trusted by commercial farms, agri-corporations, and government pilot programs.</p>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '1rem', maxWidth: '560px', margin: '0 auto 2rem', lineHeight: 1.75 }}>From a farmer's voice in the field to a district-wide early warning system across 8+ West Bengal districts.</p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
             <Link href="/login" style={{ background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.12em', padding: '0.9rem 2rem', textDecoration: 'none', display: 'inline-block' }}>START MY PILOT</Link>
             <Link href="/pricing" style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.25)', color: 'white', fontFamily: 'monospace', fontSize: '0.82rem', letterSpacing: '0.1em', padding: '0.9rem 1.8rem', textDecoration: 'none', display: 'inline-block' }}>VIEW PRICING</Link>
           </div>
-          <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.12em' }}>🔒 NO CREDIT CARD REQUIRED · CANCEL ANYTIME · GDPR COMPLIANT</p>
+          <p style={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.3)', letterSpacing: '0.12em' }}>🔒 NO CREDIT CARD REQUIRED · CANCEL ANYTIME · ANONYMIZED DATA · NO PERSONAL INFO STORED</p>
         </div>
       </section>
 
