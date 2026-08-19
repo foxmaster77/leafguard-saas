@@ -21,6 +21,7 @@ const S = {
 
 const links = [
   { href: '/', label: 'HOME' }, { href: '/product', label: 'PRODUCT' },
+  { href: '/marketplace', label: 'MARKETPLACE' },
   { href: '/dashboard', label: 'DASHBOARD' }, { href: '/pricing', label: 'PRICING' },
   { href: '/contact', label: 'CONTACT' }, { href: '/analyze', label: 'ANALYZE' },
 ];

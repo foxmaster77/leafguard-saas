@@ -14,7 +14,7 @@ export default function Footer() {
           </div>
           <div>
             <p style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#C8F53E', letterSpacing: '0.2em', marginBottom: '1rem', textTransform: 'uppercase' }}>PRODUCT</p>
-            {[['How it Works', '/product'], ['Live Dashboard', '/dashboard'], ['Pricing', '/pricing']].map(([l, h]) => (
+            {[['How it Works', '/product'], ['Marketplace', '/marketplace'], ['Live Dashboard', '/dashboard'], ['Pricing', '/pricing']].map(([l, h]) => (
               <div key={l} style={{ marginBottom: '0.6rem' }}><Link href={h} style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem', textDecoration: 'none' }}>{l}</Link></div>
             ))}
           </div>
