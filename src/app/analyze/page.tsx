@@ -478,7 +478,7 @@ export default function AnalyzePage() {
               />
             </div>
 
-            {/* Run Button */}
+            {/* Run Button - Primary Visual Focal Point */}
             <button
               onClick={() => analyzeImage()}
               disabled={analyzing || !!imageError}
@@ -489,25 +489,28 @@ export default function AnalyzePage() {
                 color: (analyzing || !!imageError) ? 'rgba(255,255,255,0.4)' : '#060A04',
                 fontWeight: 900,
                 fontFamily: 'monospace',
-                fontSize: '0.85rem',
+                fontSize: '0.92rem',
                 letterSpacing: '0.12em',
-                padding: '0.9rem',
-                border: 'none',
+                padding: '1.15rem',
+                border: '2px solid #C8F53E',
                 cursor: (analyzing || !!imageError) ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
-                borderRadius: '4px'
+                borderRadius: '6px',
+                boxShadow: (analyzing || !!imageError) ? 'none' : '0 0 35px rgba(200,245,62,0.45)'
               }}
             >
-              {analyzing ? 'DIAGNOSING CROP PATHOGEN...' : imageError ? 'INVALID IMAGE — FIX TO PROCEED' : 'RUN MULTIMODAL DIAGNOSIS →'}
+              {analyzing ? 'DIAGNOSING CROP PATHOGEN...' : imageError ? 'INVALID IMAGE — FIX TO PROCEED' : '⚡ RUN MULTIMODAL DIAGNOSIS →'}
             </button>
 
-            <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', margin: '1.2rem 0 0.6rem', textTransform: 'uppercase' }}>OR TEST WITH SAMPLE DATA:</p>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.1em', margin: '1.2rem 0 0.6rem', textTransform: 'uppercase' }}>OR SELECT PRE-CACHED TEST SAMPLE:</p>
             <div style={{ display: 'flex', gap: '0.6rem' }}>
               {['SAMPLE A (WHEAT)', 'SAMPLE B (SOY)'].map(s => (
                 <button
                   key={s}
                   onClick={() => runSample(s.includes('WHEAT') ? 'WHEAT' : 'SOY')}
-                  style={{ flex: 1, border: '1px solid rgba(200,245,62,0.3)', color: '#C8F53E', background: 'transparent', padding: '0.5rem', fontFamily: 'monospace', fontSize: '0.7rem', cursor: 'pointer', letterSpacing: '0.08em', transition: 'all 0.2s' }}
+                  style={{ flex: 1, border: '1px solid rgba(255,255,255,0.12)', color: 'rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.02)', padding: '0.6rem', fontFamily: 'monospace', fontSize: '0.68rem', cursor: 'pointer', letterSpacing: '0.04em', borderRadius: '4px', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(200,245,62,0.4)'; e.currentTarget.style.color = '#C8F53E'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
                 >
                   {s}
                 </button>
@@ -518,7 +521,7 @@ export default function AnalyzePage() {
           <div style={{ background: '#050805', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.2rem' }}>
               <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: '#C8F53E', letterSpacing: '0.12em' }}>● ANALYSIS CONSOLE</span>
-              <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>MODE: MULTIMODAL</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>MODE: MULTIMODAL GEMINI 2.0</span>
             </div>
 
             <div style={{ flexGrow: 1, minHeight: '180px' }}>
@@ -546,6 +549,24 @@ export default function AnalyzePage() {
             </div>
           </div>
         </div>
+
+        {/* SKELETON LOADER FOR ANALYZE PAGE */}
+        {analyzing && !analysisResult && (
+          <div style={{ marginTop: '2.5rem', background: '#0F1409', border: '1px solid rgba(200,245,62,0.25)', padding: '2.5rem', borderRadius: '8px' }}>
+            <div style={{ background: 'rgba(200,245,62,0.05)', border: '1px solid rgba(200,245,62,0.2)', padding: '1.2rem', borderRadius: '6px', marginBottom: '2rem' }}>
+              <div style={{ width: '180px', height: '14px', background: 'rgba(200,245,62,0.2)', borderRadius: '4px', marginBottom: '10px' }} />
+              <div style={{ width: '85%', height: '16px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px' }} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.2rem', marginBottom: '2rem' }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.2rem', borderRadius: '6px' }}>
+                  <div style={{ width: '70px', height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', marginBottom: '8px' }} />
+                  <div style={{ width: '120px', height: '22px', background: 'rgba(200,245,62,0.15)', borderRadius: '4px' }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* RESULTS PANEL */}
         {analysisResult && (

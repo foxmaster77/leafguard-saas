@@ -1605,11 +1605,11 @@ export default function Dashboard() {
                         Upload your first leaf image above to track health telemetry, real-time pathogen risk, and actionable chemical dosage plans.
                       </p>
                     </div>
-                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="bg-[#C8F53E] text-[#060A04] px-6 py-2.5 rounded-xl text-[10px] font-mono font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(200,245,62,0.25)] cursor-pointer"
+                        className="bg-[#C8F53E] text-[#060A04] px-8 py-3.5 rounded-xl text-xs font-mono font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-[0_0_25px_rgba(200,245,62,0.45)] border-2 border-[#C8F53E] cursor-pointer"
                       >
                         + UPLOAD LEAF IMAGE →
                       </button>
@@ -1641,9 +1641,9 @@ export default function Dashboard() {
                             notes: 'Treated via knapsack sprayer'
                           });
                         }}
-                        className="bg-white/5 hover:bg-white/10 text-[#C8F53E] border border-[#C8F53E]/20 px-5 py-2.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                        className="bg-transparent text-white/40 border border-white/10 hover:text-white/80 hover:border-white/25 px-4 py-2.5 rounded-xl text-[10px] font-mono font-medium uppercase tracking-wider transition-colors cursor-pointer"
                       >
-                        LOAD DEMO TELEMETRY ⚡
+                        ⚡ Seed Demo Data
                       </button>
                     </div>
                   </div>
@@ -2022,9 +2022,9 @@ export default function Dashboard() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-[#0A0E07] border border-[#C8F53E]/30 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl text-white space-y-6 relative"
+              className="bg-[#0A0E07] border border-[#C8F53E]/30 rounded-3xl p-6 md:p-8 max-w-lg w-full max-h-[88vh] overflow-y-auto shadow-2xl text-white space-y-6 relative custom-scroll"
             >
-              <div className="flex justify-between items-center border-b border-white/10 pb-4">
+              <div className="flex justify-between items-center border-b border-white/10 pb-4 sticky top-0 bg-[#0A0E07] z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E]">
                     <User size={20} />
@@ -2037,7 +2037,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setShowEditProfileModal(false)}
-                  className="text-white/40 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
+                  className="text-white/40 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   <X size={20} />
                 </button>
@@ -2050,6 +2050,7 @@ export default function Dashboard() {
                     type="text"
                     value={profileForm.name}
                     onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                    onFocus={e => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                     className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
                   />
                 </div>
@@ -2061,6 +2062,7 @@ export default function Dashboard() {
                       type="email"
                       value={profileForm.email}
                       onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
+                      onFocus={e => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                       className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
                     />
                   </div>
@@ -2070,6 +2072,7 @@ export default function Dashboard() {
                       type="text"
                       value={profileForm.phone || ''}
                       onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                      onFocus={e => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                       className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
                     />
                   </div>
@@ -2082,6 +2085,7 @@ export default function Dashboard() {
                       type="text"
                       value={profileForm.region}
                       onChange={e => setProfileForm({ ...profileForm, region: e.target.value })}
+                      onFocus={e => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                       className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
                     />
                   </div>
@@ -2091,6 +2095,7 @@ export default function Dashboard() {
                       type="text"
                       value={profileForm.landSize}
                       onChange={e => setProfileForm({ ...profileForm, landSize: e.target.value })}
+                      onFocus={e => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                       className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
                     />
                   </div>
@@ -2102,6 +2107,7 @@ export default function Dashboard() {
                     type="text"
                     value={profileForm.primaryCrops?.join(', ')}
                     onChange={e => setProfileForm({ ...profileForm, primaryCrops: e.target.value.split(',').map(c => c.trim()).filter(Boolean) })}
+                    onFocus={e => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                     placeholder="Paddy Rice, Potato, Mustard"
                     className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
                   />

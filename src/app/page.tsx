@@ -886,7 +886,7 @@ export default function HomePage() {
                 />
               </div>
 
-              {/* Submit Diagnosis Button */}
+              {/* Submit Diagnosis Button - Most Prominent Visual Element */}
               <button
                 onClick={() => analyzeImage()}
                 disabled={analyzing || !!imageError}
@@ -898,23 +898,25 @@ export default function HomePage() {
                   color: (analyzing || !!imageError) ? 'rgba(255,255,255,0.4)' : '#060A04',
                   fontWeight: 900,
                   fontFamily: 'DM Mono, monospace',
-                  fontSize: '0.85rem',
+                  fontSize: '0.92rem',
                   letterSpacing: '0.12em',
-                  padding: '0.95rem',
-                  border: 'none',
+                  padding: '1.15rem',
+                  border: '2px solid #C8F53E',
                   cursor: (analyzing || !!imageError) ? 'not-allowed' : 'pointer',
-                  borderRadius: '6px',
-                  boxShadow: (analyzing || !!imageError) ? 'none' : '0 0 20px rgba(200,245,62,0.3)'
+                  borderRadius: '8px',
+                  boxShadow: (analyzing || !!imageError) ? 'none' : '0 0 35px rgba(200,245,62,0.45)',
+                  transform: analyzing ? 'none' : 'scale(1.01)',
+                  transition: 'all 0.2s'
                 }}
               >
-                {analyzing ? 'ANALYZING PATHOGEN SIGNATURES...' : imageError ? 'INVALID IMAGE — FIX TO PROCEED' : 'EXECUTE NEURAL DIAGNOSIS →'}
+                {analyzing ? 'ANALYZING PATHOGEN SIGNATURES...' : imageError ? 'INVALID IMAGE — FIX TO PROCEED' : '⚡ EXECUTE NEURAL DIAGNOSIS →'}
               </button>
             </div>
 
-            {/* Quick Test Samples */}
+            {/* Quick Test Samples - Dimmed to Subtle Ghost Style */}
             <div style={{ marginTop: '1.4rem' }}>
               <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', margin: '0 0 0.6rem', textTransform: 'uppercase' }}>
-                OR RUN INSTANT SAMPLE DATA:
+                OR SELECT PRE-CACHED TEST SAMPLE:
               </p>
               <div className="sample-btn-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                 {[
@@ -925,20 +927,20 @@ export default function HomePage() {
                     key={s.id}
                     onClick={() => runSample(s.id as any)}
                     style={{
-                      border: '1px solid rgba(200,245,62,0.3)',
-                      color: '#C8F53E',
-                      background: 'rgba(200,245,62,0.04)',
+                      border: '1px solid rgba(255,255,255,0.12)',
+                      color: 'rgba(255,255,255,0.6)',
+                      background: 'rgba(255,255,255,0.02)',
                       padding: '0.6rem',
                       fontFamily: 'DM Mono, monospace',
                       fontSize: '0.68rem',
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: 'pointer',
-                      letterSpacing: '0.06em',
+                      letterSpacing: '0.04em',
                       borderRadius: '6px',
                       transition: 'all 0.2s'
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(200,245,62,0.15)'; e.currentTarget.style.borderColor = '#C8F53E'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(200,245,62,0.04)'; e.currentTarget.style.borderColor = 'rgba(200,245,62,0.3)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.borderColor = 'rgba(200,245,62,0.4)'; e.currentTarget.style.color = '#C8F53E'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = 'rgba(255,255,255,0.6)'; }}
                   >
                     {s.label}
                   </button>
@@ -955,7 +957,7 @@ export default function HomePage() {
                   ● NEURAL ANALYSIS CONSOLE
                 </span>
                 <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '4px' }}>
-                  GEMINI 1.5 MULTIMODAL
+                  GEMINI 2.0 MULTIMODAL
                 </span>
               </div>
 
@@ -991,6 +993,38 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* SKELETON LOADING STATE (ACTIVE DURING ANALYSIS) */}
+        {analyzing && !analysisResult && (
+          <div style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.25)', maxWidth: '1060px', margin: '2.5rem auto 0', padding: '2.5rem', borderRadius: '16px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+            {/* Voice Advisory Skeleton */}
+            <div style={{ background: 'rgba(200,245,62,0.05)', border: '1px solid rgba(200,245,62,0.2)', padding: '1.4rem', borderRadius: '10px', marginBottom: '2rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                <div style={{ width: '180px', height: '14px', background: 'rgba(200,245,62,0.2)', borderRadius: '4px', animation: 'blink 1.2s infinite' }} />
+                <div style={{ width: '90px', height: '26px', background: 'rgba(200,245,62,0.15)', borderRadius: '6px' }} />
+              </div>
+              <div style={{ width: '90%', height: '18px', background: 'rgba(255,255,255,0.08)', borderRadius: '4px', marginBottom: '8px' }} />
+              <div style={{ width: '65%', height: '18px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} />
+            </div>
+
+            {/* 3 Metric Cards Skeleton */}
+            <div className="home-result-metrics" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.2rem', marginBottom: '2.5rem' }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{ background: 'rgba(255,255,255,0.03)', padding: '1.4rem', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px' }}>
+                  <div style={{ width: '80px', height: '10px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', marginBottom: '12px' }} />
+                  <div style={{ width: '130px', height: '24px', background: 'rgba(200,245,62,0.15)', borderRadius: '4px', animation: 'blink 1.5s infinite' }} />
+                </div>
+              ))}
+            </div>
+
+            {/* Treatment Skeleton */}
+            <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', padding: '1.8rem', borderRadius: '10px' }}>
+              <div style={{ width: '150px', height: '12px', background: 'rgba(200,245,62,0.2)', borderRadius: '3px', marginBottom: '14px' }} />
+              <div style={{ width: '100%', height: '14px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', marginBottom: '8px' }} />
+              <div style={{ width: '80%', height: '14px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px' }} />
+            </div>
+          </div>
+        )}
 
         {/* RESULTS CARD (ANIMATED SHOWCASE) */}
         {analysisResult && (
