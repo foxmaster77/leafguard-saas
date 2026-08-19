@@ -29,6 +29,10 @@ html{scroll-behavior:smooth}
   .ecosystem-steps{grid-template-columns:1fr 1fr!important}
   .features-grid{grid-template-columns:1fr 1fr!important}
   .farmer-daily-grid{grid-template-columns:1fr!important}
+  .roi-calc-grid{grid-template-columns:1fr!important}
+  .timeline-nav-grid{grid-template-columns:repeat(2,1fr)!important}
+  .timeline-detail-grid{grid-template-columns:1fr!important}
+  .trust-badges-grid{grid-template-columns:repeat(2,1fr)!important}
 }
 @media(max-width:639px){
   .hero-grid{grid-template-columns:1fr!important;padding:80px 1rem 3rem!important}
@@ -39,6 +43,10 @@ html{scroll-behavior:smooth}
   .home-result-metrics{grid-template-columns:1fr!important}
   .home-treatment-grid{grid-template-columns:1fr!important}
   .home-how-grid{grid-template-columns:1fr!important}
+  .roi-calc-grid{grid-template-columns:1fr!important}
+  .timeline-nav-grid{grid-template-columns:1fr!important}
+  .timeline-detail-grid{grid-template-columns:1fr!important}
+  .trust-badges-grid{grid-template-columns:1fr!important}
   .mobile-p{padding:3.5rem 1rem!important}
 }
 `;
@@ -51,6 +59,13 @@ export default function HomePage() {
   const [imageError, setImageError] = useState<string | null>(null);
   const [consoleLogs, setConsoleLogs] = useState<string[]>(['> Waiting for input']);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 1. ROI Calculator State
+  const [landAcres, setLandAcres] = useState<number>(25);
+  const [selectedCrop, setSelectedCrop] = useState<'potato' | 'paddy' | 'wheat' | 'vegetables'>('potato');
+
+  // 2. 90-Day Crop Health Journey State
+  const [activeJourneyStep, setActiveJourneyStep] = useState<number>(1);
 
   // Feature 2 State: Language, Voice Input & TTS
   const [selectedLang, setSelectedLang] = useState<'bn-IN' | 'hi-IN' | 'en-IN'>('bn-IN');
@@ -828,6 +843,487 @@ export default function HomePage() {
       </section>
 
       {/* ════════════════════════════════════════════════
+          1. INTERACTIVE CROP LOSS PREVENTION & ROI CALCULATOR
+      ════════════════════════════════════════════════ */}
+      <section id="roi-calculator" className="mobile-p" style={{ background: '#090B0E', padding: '7rem 2rem', borderTop: '1px solid rgba(34,197,94,0.12)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, left: '20%', width: '400px', height: '400px', background: 'radial-gradient(circle, rgba(34,197,94,0.05), transparent 70%)', pointerEvents: 'none' }} />
+        
+        <div style={{ maxWidth: '1140px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
+          <div className="reveal" style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#22C55E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
+              <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#22C55E', marginRight: '6px', animation: 'blink 1.5s infinite', verticalAlign: 'middle' }} />
+              FINANCIAL IMPACT ENGINE · SIMULATOR
+            </p>
+            <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.4rem,5vw,3.8rem)', fontStyle: 'italic', fontWeight: 900, margin: '0 0 0.8rem' }}>
+              CROP LOSS PREVENTION &amp; ROI CALCULATOR.
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.98rem', maxWidth: '620px', margin: '0 auto', lineHeight: 1.6 }}>
+              Simulate economic protection and chemical waste reduction when deploying CropGuard AI precision diagnostics across your farm or cooperative cluster.
+            </p>
+          </div>
+
+          <div className="roi-calc-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '2rem', alignItems: 'stretch' }}>
+            {/* Left Column: Interactive Controls */}
+            <div className="reveal" style={{ background: '#11141A', border: '1px solid rgba(34,197,94,0.2)', borderRadius: '16px', padding: '2.2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', boxShadow: '0 12px 36px rgba(0,0,0,0.4)' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.68rem', color: '#22C55E', letterSpacing: '0.12em', fontWeight: 800 }}>PARAMETER 01 · LAND COVERAGE</span>
+                  <span style={{ background: 'rgba(34,197,94,0.1)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.25)', fontSize: '0.62rem', fontFamily: 'monospace', padding: '3px 9px', borderRadius: '99px', fontWeight: 700 }}>
+                    ~{Math.max(1, Math.round(landAcres / 2.5))} FARMER HOUSEHOLDS
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.75rem' }}>
+                  <label htmlFor="acreRange" style={{ fontSize: '0.95rem', fontWeight: 700, color: 'white' }}>
+                    Select Land Size (in Acres)
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '2.5rem', color: '#22C55E', lineHeight: 1 }}>{landAcres}</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)' }}>ACRES</span>
+                  </div>
+                </div>
+
+                {/* Range Slider */}
+                <div style={{ position: 'relative', margin: '1.5rem 0 1.2rem' }}>
+                  <input
+                    id="acreRange"
+                    type="range"
+                    min="1"
+                    max="500"
+                    step="1"
+                    value={landAcres}
+                    onChange={e => setLandAcres(Number(e.target.value))}
+                    aria-label="Select Land Size in Acres"
+                    style={{
+                      width: '100%',
+                      height: '8px',
+                      borderRadius: '8px',
+                      appearance: 'none',
+                      outline: 'none',
+                      background: `linear-gradient(to right, #22C55E ${(landAcres / 500) * 100}%, rgba(255,255,255,0.1) ${(landAcres / 500) * 100}%)`,
+                      cursor: 'pointer'
+                    }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)' }}>
+                    <span>1 Acre (Individual)</span>
+                    <span>100 Acres (FPO)</span>
+                    <span>500 Acres (District)</span>
+                  </div>
+                </div>
+
+                {/* Quick Select Preset Buttons */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                    Quick Presets:
+                  </p>
+                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    {[
+                      { val: 5, label: '5 Ac (Smallholder)' },
+                      { val: 25, label: '25 Ac (Cluster)' },
+                      { val: 50, label: '50 Ac (Village)' },
+                      { val: 100, label: '100 Ac (FPO)' },
+                      { val: 250, label: '250 Ac (Block)' },
+                      { val: 500, label: '500 Ac (District)' },
+                    ].map(p => (
+                      <button
+                        key={p.val}
+                        onClick={() => setLandAcres(p.val)}
+                        style={{
+                          background: landAcres === p.val ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.03)',
+                          color: landAcres === p.val ? '#22C55E' : 'rgba(255,255,255,0.7)',
+                          border: `1px solid ${landAcres === p.val ? '#22C55E' : 'rgba(255,255,255,0.08)'}`,
+                          borderRadius: '6px',
+                          padding: '5px 10px',
+                          fontSize: '0.68rem',
+                          fontFamily: 'monospace',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Crop Type Selector */}
+                <div>
+                  <p style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.5rem' }}>
+                    Select Primary Crop:
+                  </p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
+                    {[
+                      { id: 'potato', label: '🥔 Potato', risk: 'High Blight Risk' },
+                      { id: 'paddy', label: '🌾 Paddy', risk: 'Blast / Rust' },
+                      { id: 'wheat', label: '🌾 Wheat', risk: 'Yellow Rust' },
+                      { id: 'vegetables', label: '🥬 Veg / Jute', risk: 'Mildew / Rot' },
+                    ].map(c => (
+                      <button
+                        key={c.id}
+                        onClick={() => setSelectedCrop(c.id as any)}
+                        style={{
+                          background: selectedCrop === c.id ? '#1A2E1E' : 'rgba(255,255,255,0.02)',
+                          color: selectedCrop === c.id ? '#34D399' : 'rgba(255,255,255,0.6)',
+                          border: `1px solid ${selectedCrop === c.id ? 'rgba(52,211,153,0.4)' : 'rgba(255,255,255,0.06)'}`,
+                          borderRadius: '6px',
+                          padding: '6px 4px',
+                          fontSize: '0.68rem',
+                          fontWeight: 600,
+                          textAlign: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s'
+                        }}
+                      >
+                        {c.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Simulation Note */}
+              <div style={{ marginTop: '1.8rem', background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '8px', padding: '0.8rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1rem' }}>💡</span>
+                <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.4 }}>
+                  Based on ICAR &amp; KVK West Bengal agronomy field benchmarks for pathogen mitigation via targeted early intervention.
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Calculated Dynamic Metrics & Call to Action */}
+            <div className="reveal" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Metric 1: Estimated Money Saved */}
+              <div style={{ background: '#11141A', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '14px', padding: '1.5rem', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', top: 0, right: 0, width: '90px', height: '90px', background: 'radial-gradient(circle, rgba(34,197,94,0.12), transparent 70%)' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#22C55E', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 800 }}>
+                    ESTIMATED MONEY SAVED
+                  </span>
+                  <span style={{ background: 'rgba(34,197,94,0.12)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.3)', fontSize: '0.58rem', fontFamily: 'monospace', fontWeight: 800, padding: '2px 7px', borderRadius: '4px' }}>
+                    ₹12,500 / ACRE SAVINGS
+                  </span>
+                </div>
+                <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.4rem,4vw,3.2rem)', color: '#22C55E', lineHeight: 1, margin: '0.2rem 0 0.5rem' }}>
+                  ₹{(landAcres * 12500).toLocaleString('en-IN')}
+                </div>
+                <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.6)', margin: 0, lineHeight: 1.4 }}>
+                  Avoided harvest forfeiture, reduced chemical overspending, and rescued yield potential across {landAcres} acres.
+                </p>
+              </div>
+
+              {/* Metric 2 & 3 in 2-column sub-grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                {/* Metric 2: Pesticide Waste Reduced */}
+                <div style={{ background: '#11141A', border: '1px solid rgba(56,189,248,0.25)', borderRadius: '14px', padding: '1.25rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: '#38BDF8', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, display: 'block', marginBottom: '0.4rem' }}>
+                    PESTICIDE WASTE REDUCED
+                  </span>
+                  <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '2.2rem', color: '#38BDF8', lineHeight: 1, margin: '0 0 0.4rem' }}>
+                    35%
+                  </div>
+                  <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.35 }}>
+                    ~{Math.round(landAcres * 3.8)}L toxic chemical runoff prevented via precision spot dosage.
+                  </p>
+                </div>
+
+                {/* Metric 3: Crop Yield Retained */}
+                <div style={{ background: '#11141A', border: '1px solid rgba(251,191,36,0.25)', borderRadius: '14px', padding: '1.25rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: '#FBBF24', letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800, display: 'block', marginBottom: '0.4rem' }}>
+                    CROP YIELD RETAINED
+                  </span>
+                  <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '2.2rem', color: '#FBBF24', lineHeight: 1, margin: '0 0 0.4rem' }}>
+                    UP TO 92%
+                  </div>
+                  <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.55)', margin: 0, lineHeight: 1.35 }}>
+                    Early 48h diagnosis halts transmission before fungal blight destroys full hectares.
+                  </p>
+                </div>
+              </div>
+
+              {/* Bottom CTA Card */}
+              <div style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(6,10,4,0.8))', border: '1px solid rgba(34,197,94,0.35)', borderRadius: '14px', padding: '1.3rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: 'auto' }}>
+                <div>
+                  <p style={{ fontSize: '0.88rem', fontWeight: 800, color: 'white', margin: 0 }}>
+                    Deploy CropGuard AI Across Your Cooperative
+                  </p>
+                  <p style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', margin: '2px 0 0', fontFamily: 'monospace' }}>
+                    Estimated ROI: 8.4x · Payback Window: &lt; 14 Days
+                  </p>
+                </div>
+                <Link
+                  href={`/contact?type=fpo&acres=${landAcres}`}
+                  style={{
+                    background: '#22C55E',
+                    color: '#052e16',
+                    fontWeight: 900,
+                    fontFamily: 'monospace',
+                    fontSize: '0.78rem',
+                    letterSpacing: '0.08em',
+                    padding: '0.75rem 1.4rem',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 0 20px rgba(34,197,94,0.25)'
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.03)'; e.currentTarget.style.boxShadow = '0 0 25px rgba(34,197,94,0.4)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 0 20px rgba(34,197,94,0.25)'; }}
+                >
+                  <span>CALCULATE FOR YOUR FPO</span>
+                  <span>→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════
+          2. 90-DAY CROP HEALTH JOURNEY (VISUAL TIMELINE COMPONENT)
+      ════════════════════════════════════════════════ */}
+      <section id="crop-journey" className="mobile-p" style={{ background: '#0C0F14', padding: '7rem 2rem', borderTop: '1px solid rgba(255,255,255,0.04)', position: 'relative' }}>
+        <div style={{ maxWidth: '1140px', margin: '0 auto' }}>
+          <div className="reveal" style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#38BDF8', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
+              <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#38BDF8', marginRight: '6px', animation: 'blink 1.5s infinite', verticalAlign: 'middle' }} />
+              SEASONAL SURVEILLANCE LIFECYCLE
+            </p>
+            <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.4rem,5vw,3.8rem)', fontStyle: 'italic', fontWeight: 900, margin: '0 0 0.8rem' }}>
+              90-DAY CROP HEALTH JOURNEY.
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.98rem', maxWidth: '620px', margin: '0 auto', lineHeight: 1.6 }}>
+              Follow a farmer and FPO tracking crop vitality from Day 01 sowing to Day 90 harvest with multimodal AI defense.
+            </p>
+          </div>
+
+          {/* Timeline Rail Controls */}
+          <div className="timeline-nav-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '2rem', position: 'relative' }}>
+            {[
+              {
+                stepNum: 1,
+                day: 'Day 01',
+                title: 'Sowing & Baseline Soil Check',
+                badge: 'GERMINATION',
+                color: '#34D399',
+                icon: '🌱',
+                status: 'Passed'
+              },
+              {
+                stepNum: 2,
+                day: 'Day 25',
+                title: 'First AI Scan (Early Spot Detection - Passed)',
+                badge: 'VEGETATIVE',
+                color: '#22C55E',
+                icon: '🔍',
+                status: '0 Lesions'
+              },
+              {
+                stepNum: 3,
+                day: 'Day 50',
+                title: 'Weather Risk Alert Triggered (Preemptive Treatment Applied)',
+                badge: 'FLOWERING',
+                color: '#FBBF24',
+                icon: '🌧️',
+                status: 'Action In 48h'
+              },
+              {
+                stepNum: 4,
+                day: 'Day 90',
+                title: 'Maximized Harvest Yield Output',
+                badge: 'HARVEST',
+                color: '#38BDF8',
+                icon: '🌾',
+                status: '92% Retained'
+              },
+            ].map((step, idx) => {
+              const isActive = activeJourneyStep === idx;
+              return (
+                <button
+                  key={step.stepNum}
+                  onClick={() => setActiveJourneyStep(idx)}
+                  className="reveal"
+                  style={{
+                    background: isActive ? '#141A22' : '#0F1217',
+                    border: `1px solid ${isActive ? step.color : 'rgba(255,255,255,0.06)'}`,
+                    borderRadius: '12px',
+                    padding: '1.2rem 1rem',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    boxShadow: isActive ? `0 0 25px ${step.color}20` : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    minHeight: '130px'
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', fontWeight: 800, color: step.color, background: `${step.color}15`, border: `1px solid ${step.color}35`, padding: '2px 7px', borderRadius: '4px' }}>
+                      {step.day}
+                    </span>
+                    <span style={{ fontSize: '1.1rem' }}>{step.icon}</span>
+                  </div>
+
+                  <div>
+                    <h3 style={{ fontSize: '0.82rem', fontWeight: 700, color: isActive ? 'white' : 'rgba(255,255,255,0.7)', margin: '0 0 0.4rem', lineHeight: 1.35 }}>
+                      {step.title}
+                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <span style={{ width: 5, height: 5, borderRadius: '50%', background: step.color, display: 'inline-block' }} />
+                      <span style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: 'rgba(255,255,255,0.45)' }}>{step.status}</span>
+                    </div>
+                  </div>
+
+                  {/* Active Indicator Underline */}
+                  {isActive && (
+                    <div style={{ position: 'absolute', bottom: 0, left: '10%', right: '10%', height: '2px', background: step.color, borderRadius: '2px' }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Active Step Detailed Inspection View */}
+          <div className="reveal timeline-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '1.5rem', background: '#11141A', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '2rem', boxShadow: '0 12px 36px rgba(0,0,0,0.35)' }}>
+            {/* Step Left: Narrative & Intervention Details */}
+            {activeJourneyStep === 0 && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.8rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#34D399', background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.3)', padding: '3px 8px', borderRadius: '4px', fontWeight: 800 }}>STAGE 1 · DAY 01 · GERMINATION</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>SOWING &amp; BASELINE SOIL CHECK</span>
+                </div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: 'white', marginBottom: '0.8rem', lineHeight: 1.25 }}>
+                  Calibrating Soil Moisture &amp; Seed Pathogen Safeguards
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, marginBottom: '1.2rem' }}>
+                  The farmer registers their GPS polygon on WhatsApp. The satellite Sentinel-2 SAR layer analyzes baseline soil moisture (64%) and soil organic carbon before seed sowing.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.2rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#34D399', margin: '0 0 3px' }}>AI RECOMMENDATION</p>
+                    <p style={{ fontSize: '0.75rem', color: 'white', fontWeight: 700, margin: 0 }}>Trichoderma viride seed coating @ 4g/kg</p>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#38BDF8', margin: '0 0 3px' }}>EMERGENCE TARGET</p>
+                    <p style={{ fontSize: '0.75rem', color: 'white', fontWeight: 700, margin: 0 }}>98% Uniform Crop Stand</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeJourneyStep === 1 && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.8rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#22C55E', background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', padding: '3px 8px', borderRadius: '4px', fontWeight: 800 }}>STAGE 2 · DAY 25 · VEGETATIVE</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>FIRST AI SCAN (EARLY SPOT DETECTION)</span>
+                </div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: 'white', marginBottom: '0.8rem', lineHeight: 1.25 }}>
+                  Edge AI Scans Young Leaves for Microscopic Spotting
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, marginBottom: '1.2rem' }}>
+                  Farmer clicks a photo of lower foliage via WhatsApp. Multimodal Gemini models detect zero fungal mycelium or Cercospora spotting, issuing a clean health certificate in 1.2s.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.2rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#22C55E', margin: '0 0 3px' }}>HEALTH VERIFICATION</p>
+                    <p style={{ fontSize: '0.75rem', color: 'white', fontWeight: 700, margin: 0 }}>98.4% Confidence · 0 Necrotic Foci</p>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#38BDF8', margin: '0 0 3px' }}>CHEMICAL SAVED</p>
+                    <p style={{ fontSize: '0.75rem', color: 'white', fontWeight: 700, margin: 0 }}>Zero Blanket Spray Needed (₹1,400 saved)</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeJourneyStep === 2 && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.8rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#FBBF24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', padding: '3px 8px', borderRadius: '4px', fontWeight: 800 }}>STAGE 3 · DAY 50 · FLOWERING</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>WEATHER RISK ALERT TRIGGERED</span>
+                </div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: 'white', marginBottom: '0.8rem', lineHeight: 1.25 }}>
+                  Preemptive Weather Risk Alert &amp; Targeted Treatment
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, marginBottom: '1.2rem' }}>
+                  OpenWeather radar detects 88% humidity + 4 days of intermittent rain in Hooghly. CropGuard automatically calls the farmer via Bhashini voice AI in Bengali advising preventative fungicide spray.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.2rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#FBBF24', margin: '0 0 3px' }}>PREEMPTIVE ACTION</p>
+                    <p style={{ fontSize: '0.75rem', color: 'white', fontWeight: 700, margin: 0 }}>Mancozeb 75% WP @ 2.5g/L Applied</p>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#EF4444', margin: '0 0 3px' }}>BLIGHT PREVENTION</p>
+                    <p style={{ fontSize: '0.75rem', color: 'white', fontWeight: 700, margin: 0 }}>Blocked 40% Epidemic Spread</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeJourneyStep === 3 && (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.8rem' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#38BDF8', background: 'rgba(56,189,248,0.1)', border: '1px solid rgba(56,189,248,0.3)', padding: '3px 8px', borderRadius: '4px', fontWeight: 800 }}>STAGE 4 · DAY 90 · HARVEST</span>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)' }}>MAXIMIZED HARVEST YIELD OUTPUT</span>
+                </div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 900, color: 'white', marginBottom: '0.8rem', lineHeight: 1.25 }}>
+                  Peak Yield Realization &amp; Live Mandi Price Lock
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.65)', lineHeight: 1.7, marginBottom: '1.2rem' }}>
+                  Crops harvested with zero secondary rot. Live data.gov.in Mandi integration connects farmer to highest bidding local Mandi at ₹1,840/Qtl, preserving full seasonal profits.
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.2rem' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#38BDF8', margin: '0 0 3px' }}>FINAL OUTPUT</p>
+                    <p style={{ fontSize: '0.75rem', color: 'white', fontWeight: 700, margin: 0 }}>92% Potential Yield Realized</p>
+                  </div>
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '0.75rem' }}>
+                    <p style={{ fontFamily: 'monospace', fontSize: '0.55rem', color: '#22C55E', margin: '0 0 3px' }}>NET SURPLUS</p>
+                    <p style={{ fontSize: '0.75rem', color: 'white', fontWeight: 700, margin: 0 }}>+₹12,500/Acre Profit Over Conventional</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step Right: Live Telemetry Visual Card */}
+            <div style={{ background: '#0A0C10', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '12px', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: '0.6rem', marginBottom: '1rem' }}>
+                <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#22C55E', letterSpacing: '0.1em' }}>● SATELLITE &amp; IOT TELEMETRY</span>
+                <span style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: 'rgba(255,255,255,0.4)' }}>GEO: HOOGHLY 22.89° N, 88.39° E</span>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '1rem' }}>
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '0.55rem', fontFamily: 'monospace', color: 'rgba(255,255,255,0.4)', display: 'block' }}>NDVI VEGETATION INDEX</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 900, fontFamily: 'monospace', color: activeJourneyStep === 0 ? '#34D399' : activeJourneyStep === 1 ? '#22C55E' : activeJourneyStep === 2 ? '#FBBF24' : '#38BDF8' }}>
+                    {activeJourneyStep === 0 ? '0.18 (Seed)' : activeJourneyStep === 1 ? '0.74 (Optimal)' : activeJourneyStep === 2 ? '0.68 (Watch)' : '0.88 (Peak)'}
+                  </span>
+                </div>
+                <div style={{ background: 'rgba(255,255,255,0.02)', padding: '0.6rem', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '0.55rem', fontFamily: 'monospace', color: 'rgba(255,255,255,0.4)', display: 'block' }}>AIR HUMIDITY / RAIN</span>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 900, fontFamily: 'monospace', color: 'white' }}>
+                    {activeJourneyStep === 2 ? '88% (High Risk)' : '62% (Moderate)'}
+                  </span>
+                </div>
+              </div>
+
+              <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.04)', borderRadius: '6px', padding: '0.65rem', fontFamily: 'monospace', fontSize: '0.62rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+                <p style={{ margin: '0 0 2px', color: '#22C55E' }}>&gt; System Status: Active Continuous Monitoring</p>
+                <p style={{ margin: 0 }}>&gt; WhatsApp Bot Dispatch: Connected (96.4% response rate)</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════
           FARMER DAILY — Kisan Chaupal + Live Mandi Rates
       ════════════════════════════════════════════════ */}
       <section className="mobile-p" style={{ background: '#09090B', padding: '7rem 2rem', borderTop: '1px solid rgba(255,255,255,0.04)' }}>
@@ -964,6 +1460,127 @@ export default function HomePage() {
               <div key={i} className="reveal" style={{ background: '#111318', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '8px', padding: '1.1rem', textAlign: 'center' }}>
                 <div style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: '1rem', color: '#22C55E', fontStyle: 'italic', marginBottom: '0.25rem', lineHeight: 1.2 }}>{t}</div>
                 <div style={{ fontFamily: 'monospace', fontSize: '0.58rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.04em', lineHeight: 1.4 }}>{d}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════════════════════════════
+          3. ENTERPRISE DATA PRIVACY & SECURITY BANNER
+      ════════════════════════════════════════════════ */}
+      <section id="data-privacy-security" className="mobile-p" style={{ background: '#090B0E', padding: '6.5rem 2rem', borderTop: '1px solid rgba(34,197,94,0.12)', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+        <div style={{ maxWidth: '1140px', margin: '0 auto' }}>
+          <div className="reveal" style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+            <p style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: '#22C55E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '0.6rem' }}>
+              <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#22C55E', marginRight: '6px', animation: 'blink 1.5s infinite', verticalAlign: 'middle' }} />
+              SOVEREIGN SECURITY INFRASTRUCTURE
+            </p>
+            <h2 style={{ fontFamily: "'Bebas Neue',sans-serif", fontSize: 'clamp(2.4rem,5vw,3.8rem)', fontStyle: 'italic', fontWeight: 900, margin: '0 0 0.8rem' }}>
+              ENTERPRISE DATA PRIVACY &amp; SECURITY.
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.98rem', maxWidth: '620px', margin: '0 auto', lineHeight: 1.6 }}>
+              Built to the highest national data governance standards. Zero monetization of farmer telemetry, full DPDP compliance, and bank-grade encryption.
+            </p>
+          </div>
+
+          <div className="trust-badges-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.2rem' }}>
+            {[
+              {
+                icon: (
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
+                ),
+                tag: 'DPDP COMPLIANT',
+                tagColor: '#22C55E',
+                title: 'Data Privacy',
+                desc: 'Fully compliant with Digital Personal Data Protection (DPDP) standards. No personal farmer data or phone numbers are shared or sold.',
+                sub: '🇮🇳 India DPDP Aligned'
+              },
+              {
+                icon: (
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38BDF8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                ),
+                tag: 'AES-256 ENCRYPTION',
+                tagColor: '#38BDF8',
+                title: 'AES-256 Encryption',
+                desc: 'All crop imagery and voice logs are encrypted end-to-end in transit (TLS 1.3) and at rest with zero-knowledge keys.',
+                sub: '🔐 Zero-Knowledge Storage'
+              },
+              {
+                icon: (
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#FBBF24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <path d="m4.93 4.93 4.24 4.24" />
+                    <path d="m14.83 9.17 4.24-4.24" />
+                    <path d="m14.83 14.83 4.24 4.24" />
+                    <path d="m9.17 14.83-4.24 4.24" />
+                    <circle cx="12" cy="12" r="4" />
+                  </svg>
+                ),
+                tag: '100% PUBLIC GOOD',
+                tagColor: '#FBBF24',
+                title: 'Zero Farmers Exploitation',
+                desc: '100% free open access for smallholder farmers. No paywalls on emergency disease diagnosis, no commercial advertising bias.',
+                sub: '🌱 Open Public Charter'
+              },
+              {
+                icon: (
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34D399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                  </svg>
+                ),
+                tag: 'OPEN API 3.1',
+                tagColor: '#34D399',
+                title: 'API First',
+                desc: 'Ready to integrate with State Agri-Dashboards, KVK Extension portals, and FPO management platforms with sub-200ms latency.',
+                sub: '⚡ Webhook & REST Ready'
+              },
+            ].map((b, i) => (
+              <div
+                key={i}
+                className="reveal sih-card"
+                style={{
+                  background: '#11141A',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  borderRadius: '14px',
+                  padding: '1.8rem 1.4rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  transition: 'all 0.25s',
+                  cursor: 'default',
+                  borderTop: `3px solid ${b.tagColor}40`
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
+                    <div style={{ background: `${b.tagColor}12`, border: `1px solid ${b.tagColor}30`, borderRadius: '8px', padding: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {b.icon}
+                    </div>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.55rem', fontWeight: 800, color: b.tagColor, letterSpacing: '0.06em' }}>
+                      {b.tag}
+                    </span>
+                  </div>
+
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'white', marginBottom: '0.6rem' }}>
+                    {b.title}
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)', lineHeight: 1.6, margin: 0 }}>
+                    {b.desc}
+                  </p>
+                </div>
+
+                <div style={{ marginTop: '1.4rem', paddingTop: '0.8rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.62rem', color: b.tagColor, fontWeight: 700 }}>
+                    {b.sub}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
