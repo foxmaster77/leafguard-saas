@@ -12,8 +12,9 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Dynamically import the heatmap with no SSR (it manages its own Leaflet CSS)
+// Dynamically import the heatmap & simulator with no SSR
 const OutbreakHeatmap = dynamic(() => import('@/components/OutbreakHeatmap'), { ssr: false });
+const SpreadSimulator = dynamic(() => import('@/components/SpreadSimulator'), { ssr: false });
 
 const Ticker = () => (
   <div className="bg-black/40 rounded-xl p-4 overflow-hidden relative border border-white/5">
@@ -87,6 +88,10 @@ export default function Dashboard() {
     ],
     totalDetections: 29
   });
+
+  // Predictive Spread Simulator States (pure client-side visualization)
+  const [activeSimulationDay, setActiveSimulationDay] = useState<number>(0);
+  const [simulatedClusters, setSimulatedClusters] = useState<any[]>([]);
 
 
   const [recentUploads, setRecentUploads] = useState([
@@ -738,7 +743,10 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8 mb-12">
           {/* Outbreak Heatmap Map Column — dynamic(ssr:false) handles client-only safely */}
           <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 relative overflow-hidden h-[280px] md:h-[450px]">
-            <OutbreakHeatmap clusters={outbreakData.pincodeClusters} />
+            <OutbreakHeatmap
+              clusters={activeSimulationDay > 0 && simulatedClusters.length > 0 ? simulatedClusters : outbreakData.pincodeClusters}
+              simulationDay={activeSimulationDay}
+            />
 
 
             <div className="absolute top-6 right-6 z-[1000] flex items-center gap-3 px-4 py-2 bg-[#060A04]/80 backdrop-blur-md rounded-full border border-[#C8F53E]/30">
@@ -978,6 +986,17 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* PREDICTIVE SPREAD SIMULATOR (PURE CLIENT-SIDE VISUALIZATION) */}
+        <div className="mb-12">
+          <SpreadSimulator
+            baseClusters={outbreakData.pincodeClusters}
+            onClustersUpdate={(sim, day) => {
+              setSimulatedClusters(sim);
+              setActiveSimulationDay(day);
+            }}
+          />
         </div>
 
         {/* Detailed Results Section */}

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-interface PincodeCluster {
+export interface PincodeCluster {
   pincode: string;
   district: string;
   latitude: number;
@@ -17,6 +17,7 @@ interface PincodeCluster {
 
 interface OutbreakHeatmapProps {
   clusters: PincodeCluster[];
+  simulationDay?: number;
 }
 
 // Dynamically import Leaflet components so they never run on the server
@@ -42,11 +43,13 @@ const CENTER: [number, number] = [23.5, 87.8];
 
 const COLORS = { RED: '#FF4F4F', YELLOW: '#FFB347', GREEN: '#C8F53E' };
 
-function getRadius(cases: number) {
-  return Math.min(Math.max((cases || 1) * 4, 10), 30);
+function getRadius(cases: number, simDay: number = 0) {
+  // Base radius scaling + dynamic growth expansion factor
+  const expansion = simDay > 0 ? 1 + simDay * 0.12 : 1;
+  return Math.min(Math.max((cases || 1) * 4 * expansion, 10), 45);
 }
 
-export default function OutbreakHeatmap({ clusters = [] }: OutbreakHeatmapProps) {
+export default function OutbreakHeatmap({ clusters = [], simulationDay = 0 }: OutbreakHeatmapProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -68,6 +71,16 @@ export default function OutbreakHeatmap({ clusters = [] }: OutbreakHeatmapProps)
 
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative', background: '#060A04' }}>
+      {/* Simulation Active Day HUD Overlay */}
+      {simulationDay > 0 && (
+        <div className="absolute top-4 left-4 z-[1000] px-3.5 py-1.5 rounded-full bg-red-950/90 border border-red-500/60 shadow-[0_0_20px_rgba(255,79,79,0.4)] backdrop-blur-md flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+          <span className="text-xs font-mono font-black text-red-300 tracking-wider">
+            PREDICTIVE MODEL: DAY {simulationDay} OF 7
+          </span>
+        </div>
+      )}
+
       <MapContainer
         key="outbreak-heatmap"
         center={CENTER}
@@ -84,24 +97,34 @@ export default function OutbreakHeatmap({ clusters = [] }: OutbreakHeatmapProps)
         {safeClusters.map((c) => {
           if (!c || typeof c.latitude !== 'number' || typeof c.longitude !== 'number') return null;
           const color = COLORS[c.outbreakLevel] ?? COLORS.GREEN;
-          const radius = getRadius(c.totalCases);
+          const radius = getRadius(c.totalCases, simulationDay);
 
           return (
             <React.Fragment key={c.pincode}>
-              {/* Outer glow ring */}
+              {/* Outer glow ring with smooth expansion */}
               <Circle
                 center={[c.latitude, c.longitude]}
-                radius={radius * 1200}
-                pathOptions={{ color, fillColor: color, fillOpacity: c.outbreakLevel === 'RED' ? 0.25 : 0.12, weight: 1 }}
+                radius={radius * 1300}
+                pathOptions={{
+                  color,
+                  fillColor: color,
+                  fillOpacity: c.outbreakLevel === 'RED' ? 0.28 : 0.14,
+                  weight: simulationDay > 0 ? 2 : 1
+                }}
               />
               {/* Core marker */}
               <CircleMarker
                 center={[c.latitude, c.longitude]}
                 radius={radius}
-                pathOptions={{ color, fillColor: color, fillOpacity: 0.85, weight: c.outbreakLevel === 'RED' ? 3 : 1 }}
+                pathOptions={{
+                  color,
+                  fillColor: color,
+                  fillOpacity: 0.88,
+                  weight: c.outbreakLevel === 'RED' ? 3 : 1
+                }}
               >
                 <Popup>
-                  <div style={{ background: '#0F1409', border: `1px solid ${color}`, padding: '0.9rem 1.2rem', borderRadius: '6px', minWidth: '220px', fontFamily: 'monospace', color: 'white' }}>
+                  <div style={{ background: '#0F1409', border: `1px solid ${color}`, padding: '0.9rem 1.2rem', borderRadius: '8px', minWidth: '230px', fontFamily: 'monospace', color: 'white' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                       <span style={{ fontSize: '0.7rem', color, fontWeight: 900, letterSpacing: '0.12em' }}>📍 PINCODE {c.pincode}</span>
                       <span style={{ background: color, color: '#060A04', fontSize: '0.6rem', fontWeight: 900, padding: '0.15rem 0.5rem', borderRadius: '99px', letterSpacing: '0.1em' }}>
@@ -112,8 +135,12 @@ export default function OutbreakHeatmap({ clusters = [] }: OutbreakHeatmapProps)
                     <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', marginTop: '0.6rem', paddingTop: '0.6rem' }}>
                       <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', margin: '0 0 0.3rem' }}>Primary Pathogen: <strong style={{ color: 'white' }}>{c.topDisease}</strong></p>
                       <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)', margin: '0 0 0.3rem' }}>Affected Crop: <strong style={{ color: 'white' }}>{c.cropType}</strong></p>
-                      <p style={{ fontSize: '0.75rem', color, margin: '0 0 0.3rem', fontWeight: 700 }}>Detections (48h): {c.cases48h} cases</p>
-                      <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Total Weekly Cases: {c.totalCases}</p>
+                      <p style={{ fontSize: '0.75rem', color, margin: '0 0 0.3rem', fontWeight: 700 }}>
+                        {simulationDay > 0 ? `Simulated (Day +${simulationDay}):` : 'Detections (48h):'} {c.cases48h} cases
+                      </p>
+                      <p style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+                        {simulationDay > 0 ? `Total Projected: ${c.totalCases} cases` : `Total Weekly Cases: ${c.totalCases}`}
+                      </p>
                     </div>
                   </div>
                 </Popup>
