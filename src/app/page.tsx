@@ -442,7 +442,7 @@ export default function HomePage() {
               CROPGUARD AI · PRECISION CROP_OS V4.0
             </div>
 
-            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(3.8rem,8vw,6.8rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: 0.92, margin: '0 0 1.5rem', letterSpacing: '0.01em' }}>
+            <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(2.5rem, 9.5vw, 6.8rem)', fontWeight: 900, fontStyle: 'italic', lineHeight: 0.94, margin: '0 0 1.5rem', letterSpacing: '0.01em', wordBreak: 'break-word' }}>
               <span style={{ color: 'white', display: 'block' }}>CATCH DISEASE</span>
               <span style={{
                 background: 'linear-gradient(135deg, #C8F53E 0%, #38BDF8 55%, #22C55E 100%)',
@@ -1189,13 +1189,13 @@ export default function HomePage() {
               <button
                 onClick={resetScanner}
                 className="glow-btn"
-                style={{ flex: 1, minWidth: '220px', background: '#C8F53E', color: '#060A04', border: 'none', padding: '0.9rem', fontWeight: 900, cursor: 'pointer', borderRadius: '6px', fontFamily: 'DM Mono, monospace', fontSize: '0.82rem' }}
+                style={{ flex: 1, minWidth: '140px', width: '100%', background: '#C8F53E', color: '#060A04', border: 'none', padding: '0.9rem 1.4rem', fontWeight: 900, cursor: 'pointer', borderRadius: '6px', fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', textAlign: 'center' }}
               >
                 SCAN ANOTHER CROP FIELD →
               </button>
               <Link
                 href="/dashboard"
-                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.9rem 1.6rem', fontWeight: 700, textDecoration: 'none', borderRadius: '6px', fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                style={{ flex: 1, minWidth: '140px', width: '100%', background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.9rem 1.4rem', fontWeight: 700, textDecoration: 'none', borderRadius: '6px', fontFamily: 'DM Mono, monospace', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = '#C8F53E'; e.currentTarget.style.color = '#C8F53E'; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = 'white'; }}
               >
