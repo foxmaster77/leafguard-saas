@@ -16,7 +16,7 @@ const S = {
   logoText: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.35rem', fontWeight: 700, color: '#C8F53E', letterSpacing: '0.08em', fontStyle: 'italic' } as React.CSSProperties,
   centerLinks: { display: 'flex', alignItems: 'center', gap: '2.5rem' } as React.CSSProperties,
   rightActions: { display: 'flex', alignItems: 'center', gap: '1.5rem' } as React.CSSProperties,
-  liveBtn: { background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.15em', padding: '0.6rem 1.4rem', border: 'none', cursor: 'pointer', transition: 'transform 0.2s ease', textDecoration: 'none', display: 'inline-block' } as React.CSSProperties,
+  liveBtn: { background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.15em', padding: '0.6rem 1.4rem', border: 'none', cursor: 'pointer', transition: 'transform 0.2s ease', textDecoration: 'none', display: 'inline-block', borderRadius: '4px' } as React.CSSProperties,
 };
 
 const links = [
@@ -39,27 +39,54 @@ export default function Navigation() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [menuOpen]);
+
   const closeMenu = () => setMenuOpen(false);
 
   return (
     <>
       <style>{`
         .nav-container { padding: 1rem 3rem; }
-        .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; z-index: 1001; }
+        .mobile-menu-btn {
+          display: none; background: none; border: none; cursor: pointer;
+          z-index: 1001; padding: 0.5rem; margin: -0.5rem;
+          min-width: 44px; min-height: 44px;
+          align-items: center; justify-content: center;
+        }
         .mobile-overlay {
           position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(6, 10, 4, 0.98);
+          background: rgba(6, 10, 4, 0.99);
           backdrop-filter: blur(10px);
           z-index: 999;
           display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2rem;
           transform: translateX(100%);
           transition: transform 0.3s ease-in-out;
+          overflow-y: auto;
+          padding: 4rem 2rem;
         }
         .mobile-overlay.open { transform: translateX(0); }
+        .mobile-nav-link {
+          font-family: 'DM Mono', monospace;
+          font-size: 1.5rem;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+          text-decoration: none;
+          padding: 0.5rem 1rem;
+          min-height: 44px;
+          display: flex;
+          align-items: center;
+        }
         @media (max-width: 768px) {
-          .nav-container { padding: 1rem 1.25rem; }
+          .nav-container { padding: 0.75rem 1.25rem; }
           .hide-on-mobile { display: none !important; }
-          .mobile-menu-btn { display: block; }
+          .mobile-menu-btn { display: flex; }
+        }
+        @media (max-width: 380px) {
+          .nav-container { padding: 0.75rem 1rem; }
         }
       `}</style>
       <nav className="nav-container" style={S.nav(scrolled)}>
@@ -93,10 +120,11 @@ export default function Navigation() {
       </div>
 
       {/* Mobile Hamburger */}
-      <button 
-        className="mobile-menu-btn" 
+      <button
+        className="mobile-menu-btn"
         onClick={() => setMenuOpen(!menuOpen)}
-        aria-label="Toggle menu"
+        aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        aria-expanded={menuOpen}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={menuOpen ? "#C8F53E" : "#fff"} strokeWidth="2" strokeLinecap="round">
           {menuOpen ? (
@@ -109,20 +137,18 @@ export default function Navigation() {
     </nav>
 
     {/* Mobile Menu Overlay */}
-    <div className={`mobile-overlay ${menuOpen ? 'open' : ''}`}>
+    <div className={`mobile-overlay ${menuOpen ? 'open' : ''}`} aria-hidden={!menuOpen}>
       {links.map(l => (
-        <Link key={`mobile-${l.href}`} href={l.href} onClick={closeMenu} style={{
-          fontFamily: 'monospace', fontSize: '1.2rem', letterSpacing: '0.18em',
-          textTransform: 'uppercase', textDecoration: 'none',
-          color: pathname === l.href ? '#C8F53E' : 'rgba(255,255,255,0.8)',
+        <Link key={`mobile-${l.href}`} href={l.href} onClick={closeMenu} className="mobile-nav-link" style={{
+          color: pathname === l.href ? '#C8F53E' : 'rgba(255,255,255,0.85)',
           fontWeight: pathname === l.href ? 700 : 400,
         }}>
           {l.label}
         </Link>
       ))}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', marginTop: '1rem' }}>
-        <Link href="/login" onClick={closeMenu} style={{ fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>LOGIN</Link>
-        <Link href="/dashboard" onClick={closeMenu} style={S.liveBtn}>LIVE DEMO</Link>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', alignItems: 'center', marginTop: '1rem', width: '100%', maxWidth: '280px' }}>
+        <Link href="/login" onClick={closeMenu} style={{ fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.6)', textDecoration: 'none', minHeight: '44px', display: 'flex', alignItems: 'center' }}>LOGIN</Link>
+        <Link href="/dashboard" onClick={closeMenu} style={{ ...S.liveBtn, width: '100%', textAlign: 'center', padding: '0.8rem', fontSize: '0.85rem' }}>LIVE DEMO</Link>
       </div>
     </div>
     </>

@@ -443,7 +443,7 @@ export default function HomePage() {
               Multi-spectral computer vision that detects microscopic fungal pathogens at the cellular stage — before whole-field crop loss occurs.
             </p>
 
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+            <div className="hero-actions" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
               <button
                 onClick={() => document.getElementById('ai-demo')?.scrollIntoView({ behavior: 'smooth' })}
                 className="glow-btn"
@@ -462,7 +462,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
+            <div className="hero-stats-row" style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
               {['● 0.9s Inference Latency', '● 96.4% Verified Accuracy', '● West Bengal Rice, Potato & Wheat Belt'].map((s, i) => (
                 <span key={i} className="stat-pill" style={{ background: 'rgba(200,245,62,0.06)', border: '1px solid rgba(200,245,62,0.18)', borderRadius: '99px', padding: '0.4rem 1rem', fontFamily: 'DM Mono, monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.65)', animationDelay: `${i * 0.1 + 0.3}s` }}>
                   {s}
@@ -670,7 +670,7 @@ export default function HomePage() {
           </p>
 
           {/* LANGUAGE SELECTOR PILLS */}
-          <div style={{ display: 'inline-flex', gap: '0.6rem', background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', padding: '0.4rem', borderRadius: '99px', marginTop: '1.8rem' }}>
+          <div className="lang-pill-group" style={{ display: 'inline-flex', gap: '0.6rem', background: '#0F1409', border: '1px solid rgba(200,245,62,0.2)', padding: '0.4rem', borderRadius: '99px', marginTop: '1.8rem' }}>
             {[
               { code: 'bn-IN', label: '🇧🇩/🇮🇳 বাংলা (Bangla)' },
               { code: 'hi-IN', label: '🇮🇳 हिंदी (Hindi)' },
@@ -896,7 +896,7 @@ export default function HomePage() {
               <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.62rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em', margin: '0 0 0.6rem', textTransform: 'uppercase' }}>
                 OR RUN INSTANT SAMPLE DATA:
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+              <div className="sample-btn-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
                 {[
                   { id: 'WHEAT', label: '🌾 SAMPLE A: WHEAT RUST' },
                   { id: 'SOY', label: '🥔 SAMPLE B: SOY / POTATO BLIGHT' },
@@ -1167,7 +1167,7 @@ export default function HomePage() {
             )}
 
             {/* Action Bar */}
-            <div style={{ marginTop: '2.2rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.8rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <div className="result-action-bar" style={{ marginTop: '2.2rem', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.8rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
               <button
                 onClick={resetScanner}
                 className="glow-btn"
@@ -1240,7 +1240,7 @@ export default function HomePage() {
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '1.05rem', maxWidth: '580px', margin: '0 auto 2.2rem', lineHeight: 1.75 }}>
             From a single farmer's voice in a remote field to district-wide automated early warning systems across West Bengal.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.8rem', flexWrap: 'wrap' }}>
+          <div className="cta-btn-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.8rem', flexWrap: 'wrap' }}>
             <Link href="/login" className="glow-btn" style={{ background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'DM Mono, monospace', fontSize: '0.85rem', letterSpacing: '0.12em', padding: '0.95rem 2.2rem', textDecoration: 'none', display: 'inline-block', borderRadius: '6px', boxShadow: '0 0 25px rgba(200,245,62,0.3)' }}>
               START MY PILOT
             </Link>
