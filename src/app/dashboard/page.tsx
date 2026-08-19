@@ -4,11 +4,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/context/AuthContext';
 import {
   ShieldCheck, Terminal, Search, Map as MapIcon, Activity, Database, Settings,
   LogOut, Bell, Clock, User, Upload, AlertTriangle, Thermometer, CloudRain,
   Wind, Globe, ArrowRight, RotateCcw, Target, CheckCircle, XCircle,
-  Film, Video, ChevronRight, X, Sliders, Check, Volume2, Wifi, Zap
+  Film, Video, ChevronRight, X, Sliders, Check, Volume2, Wifi, Zap,
+  Edit2, Trash2, CheckCircle2, ListTodo, FileText, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -45,15 +47,26 @@ export default function Dashboard() {
   const [result, setResult] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [daysFilter, setDaysFilter] = useState<7 | 30>(7);
+  const { user, profile, updateProfile, scanHistory, addScan, updateScanStatus, deleteScan } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeNav, setActiveNav] = useState<string>('COMMAND CENTER');
   const [showConfigModal, setShowConfigModal] = useState(false);
   const [showAlertsModal, setShowAlertsModal] = useState(false);
   const [configSaved, setConfigSaved] = useState(false);
 
+  // Farmer Profile & Scan Tracker States
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
+  const [profileForm, setProfileForm] = useState(profile);
+  const [scanFilter, setScanFilter] = useState<'all' | 'pending' | 'applied' | 'skipped'>('all');
+  const [scanSearch, setScanSearch] = useState('');
+
+  useEffect(() => {
+    setProfileForm(profile);
+  }, [profile]);
+
   // System Configuration States
   const [config, setConfig] = useState({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     sensitivity: 'balanced',
     droneSync: true,
     alertWebhooks: true,
@@ -394,8 +407,21 @@ export default function Dashboard() {
     setUploadState('success');
     setFrameScanMsg(`> Analysis complete. Primary finding from frame at ${primaryFrame.timestamp}.`);
 
-    // Update recents
+    // Update recents & persist to scan history
     const d = primaryFrame.data;
+    addScan({
+      cropName: d.cropName || 'Field Crop',
+      disease: d.disease || 'Healthy',
+      riskLevel: d.riskLevel || 'Moderate',
+      confidence: typeof d.confidence === 'number' ? d.confidence : 92,
+      thumbnailUrl: primaryFrame.thumbUrl,
+      pincode: '712101',
+      treatment: d.treatment || d.pesticide || 'Apply recommended foliar spray',
+      dosage: d.dosage || 'Standard concentration',
+      treatmentStatus: 'pending',
+      notes: `Video Scan: Frame @ ${primaryFrame.timestamp} · ${file.name}`
+    });
+
     setRecentUploads(prev => [{ name: file.name, time: 'Just now', dot: 'bg-[#C8F53E]' }, ...prev.slice(0, 2)]);
     setRecentScans(prev => [{
       field: file.name,
@@ -428,6 +454,21 @@ export default function Dashboard() {
       if (res.ok && !data.error) {
         setResult(data);
         setUploadState('success');
+
+        // Persist to scan history tracker
+        addScan({
+          cropName: data.cropName || 'Field Crop',
+          disease: data.disease || 'Healthy Canopy',
+          riskLevel: data.riskLevel || (data.healthy ? 'Low' : 'Moderate'),
+          confidence: typeof data.confidence === 'number' ? data.confidence : (data.healthScore || 95),
+          thumbnailUrl: previewUrl,
+          pincode: '712101',
+          treatment: data.treatment || data.pesticide || 'Consult local KVK extension',
+          dosage: data.dosage || 'Standard dosage',
+          treatmentStatus: 'pending',
+          notes: `Uploaded file: ${file.name}`
+        });
+
         setRecentUploads(prev => [{ name: file.name, time: 'Just now', dot: 'bg-[#C8F53E]' }, ...prev.slice(0, 2)]);
         setRecentScans(prev => [{
           field: file.name,
@@ -668,6 +709,66 @@ export default function Dashboard() {
             </div>
           </div>
         </header>
+
+        {/* FARMER PROFILE & FARM BOUNDARY CARD */}
+        <section className="mb-10 bg-[#0F1409] border border-[#C8F53E]/20 rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl shadow-black/40">
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            {/* Farmer Identity & Details */}
+            <div className="flex items-center gap-5">
+              <div className="w-16 h-16 rounded-2xl bg-[#C8F53E] text-[#060A04] flex items-center justify-center font-bebas text-2xl font-bold shadow-[0_0_25px_rgba(200,245,62,0.3)] shrink-0">
+                {profile.name ? profile.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'OP'}
+              </div>
+              <div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h2 className="text-2xl font-bold text-white font-sans">{profile.name}</h2>
+                  <span className="bg-[#C8F53E]/10 border border-[#C8F53E]/30 text-[#C8F53E] text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    ● VERIFIED OPERATOR
+                  </span>
+                </div>
+                <p className="text-xs text-white/50 font-mono mt-1">
+                  📍 {profile.region} · 📞 {profile.phone || '+91 98312 45678'} · ✉️ {profile.email}
+                </p>
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  <span className="text-[10px] font-mono text-white/40 uppercase">PRIMARY CROPS:</span>
+                  {profile.primaryCrops?.map((crop, i) => (
+                    <span key={i} className="text-[10px] font-mono bg-white/5 border border-white/10 text-white/80 px-2 py-0.5 rounded-md">
+                      🌾 {crop}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Farm KPI & Edit Button */}
+            <div className="flex items-center gap-4 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 border-white/5 pt-4 lg:pt-0">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="bg-black/40 border border-white/5 px-4 py-2.5 rounded-xl text-center">
+                  <span className="text-[9px] font-mono text-white/40 uppercase block">LAND SIZE</span>
+                  <span className="text-base font-bold text-[#C8F53E] font-mono">{profile.landSize}</span>
+                </div>
+                <div className="bg-black/40 border border-white/5 px-4 py-2.5 rounded-xl text-center">
+                  <span className="text-[9px] font-mono text-white/40 uppercase block">SCANS RECORDED</span>
+                  <span className="text-base font-bold text-white font-mono">{scanHistory.length}</span>
+                </div>
+                <div className="bg-black/40 border border-white/5 px-4 py-2.5 rounded-xl text-center col-span-2 sm:col-span-1">
+                  <span className="text-[9px] font-mono text-white/40 uppercase block">PENDING ACTION</span>
+                  <span className={`text-base font-bold font-mono ${scanHistory.filter(s => s.treatmentStatus === 'pending').length > 0 ? 'text-[#FFB347]' : 'text-[#C8F53E]'}`}>
+                    {scanHistory.filter(s => s.treatmentStatus === 'pending').length}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowEditProfileModal(true)}
+                className="bg-[#C8F53E]/10 hover:bg-[#C8F53E] text-[#C8F53E] hover:text-[#060A04] border border-[#C8F53E]/30 p-3 rounded-xl transition-all cursor-pointer shrink-0"
+                title="Edit Farm Profile"
+              >
+                <Edit2 size={16} />
+              </button>
+            </div>
+          </div>
+        </section>
 
         {/* TOP 3 OUTBREAK ZONES SUMMARY CARDS */}
         <div id="grid-geography" className="mb-8 scroll-mt-6">
@@ -1282,40 +1383,229 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Table Panel */}
-            <div className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-10 flex flex-col">
-              <div className="flex justify-between items-center mb-12">
-                <h2 className="font-bebas text-4xl italic tracking-wide">RECENT SCANS</h2>
+            {/* SCAN HISTORY & ACTIVITY TRACKER (TODO LIST) */}
+            <div id="recent-scans-tracker" className="bg-[#0F1409] rounded-[3rem] border border-white/5 p-6 md:p-10 flex flex-col scroll-mt-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <ListTodo className="text-[#C8F53E] w-6 h-6" />
+                    <h2 className="font-bebas text-3xl md:text-4xl italic tracking-wide">SCAN HISTORY &amp; TREATMENT TRACKER</h2>
+                  </div>
+                  <p className="text-[10px] font-mono text-white/40 uppercase tracking-widest mt-1">
+                    ACTIVE FIELD ACTION CHECKLIST · REAL-TIME PERSISTENCE
+                  </p>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-[#C8F53E]/30 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#C8F53E]/5 transition-all cursor-pointer"
+                  className="bg-[#C8F53E] text-[#060A04] px-6 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(200,245,62,0.2)] cursor-pointer"
                 >
-                  + NEW SCAN
+                  + UPLOAD SCAN
                 </button>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead className="border-b border-white/5">
-                    <tr>
-                      {['FIELD', 'CROP', 'DISEASE', 'CONF', 'TIME'].map((h, i) => (
-                        <th key={i} className="pb-6 text-[9px] font-black text-white/30 uppercase tracking-widest">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 font-mono">
-                    {recentScans.map((row, i) => (
-                      <tr key={i} className="group hover:bg-[#C8F53E]/[0.03] transition-all">
-                        <td className="py-6 font-bold text-white text-xs">{row.field}</td>
-                        <td className="py-6 text-[10px] text-white/50">{row.cropName}</td>
-                        <td className="py-6 text-[10px] text-white/50">{row.disease}</td>
-                        <td className="py-6 text-[11px] font-black text-[#C8F53E]">{row.confidence}</td>
-                        <td className="py-6 text-[10px] text-white/30">{row.time}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* Filter Tabs & Search Bar */}
+              <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 mb-6">
+                <div className="flex items-center gap-1.5 bg-black/40 p-1.5 rounded-xl border border-white/5 flex-wrap">
+                  {[
+                    { id: 'all', label: `ALL (${scanHistory.length})` },
+                    { id: 'pending', label: `⚠️ PENDING (${scanHistory.filter(s => s.treatmentStatus === 'pending').length})` },
+                    { id: 'applied', label: `✅ APPLIED (${scanHistory.filter(s => s.treatmentStatus === 'applied').length})` },
+                    { id: 'skipped', label: `⏹ SKIPPED (${scanHistory.filter(s => s.treatmentStatus === 'skipped').length})` }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setScanFilter(tab.id as any)}
+                      className={`px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold uppercase transition-all ${
+                        scanFilter === tab.id
+                          ? 'bg-[#C8F53E] text-[#060A04]'
+                          : 'text-white/50 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={scanSearch}
+                    onChange={e => setScanSearch(e.target.value)}
+                    placeholder="Search crop or disease..."
+                    className="w-full md:w-56 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-xs text-white placeholder-white/30 font-mono outline-none focus:border-[#C8F53E]/50"
+                  />
+                  {scanSearch && (
+                    <button
+                      onClick={() => setScanSearch('')}
+                      className="absolute right-2.5 top-2.5 text-white/40 hover:text-white text-xs"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Scans List / Todo Activity Tracker */}
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scroll">
+                {scanHistory
+                  .filter(s => {
+                    if (scanFilter !== 'all' && s.treatmentStatus !== scanFilter) return false;
+                    if (scanSearch.trim()) {
+                      const q = scanSearch.toLowerCase();
+                      return (
+                        s.cropName?.toLowerCase().includes(q) ||
+                        s.disease?.toLowerCase().includes(q) ||
+                        s.treatment?.toLowerCase().includes(q) ||
+                        s.notes?.toLowerCase().includes(q)
+                      );
+                    }
+                    return true;
+                  })
+                  .map((scan) => {
+                    const isHigh = scan.riskLevel === 'High' || scan.riskLevel === 'Critical';
+                    const isMod = scan.riskLevel === 'Moderate' || scan.riskLevel === 'Medium';
+                    const formatTime = (ts: number) => {
+                      const diff = Date.now() - ts;
+                      const mins = Math.floor(diff / (1000 * 60));
+                      if (mins < 1) return 'Just now';
+                      if (mins < 60) return `${mins}m ago`;
+                      const hours = Math.floor(mins / 60);
+                      if (hours < 24) return `${hours}h ago`;
+                      const days = Math.floor(hours / 24);
+                      return `${days}d ago`;
+                    };
+
+                    return (
+                      <div
+                        key={scan.id}
+                        className={`bg-black/30 border rounded-2xl p-5 transition-all group hover:border-[#C8F53E]/30 ${
+                          scan.treatmentStatus === 'applied'
+                            ? 'border-white/5 opacity-80'
+                            : scan.treatmentStatus === 'skipped'
+                            ? 'border-white/5 opacity-60'
+                            : isHigh
+                            ? 'border-[#FF4F4F]/30 bg-[#FF4F4F]/[0.02]'
+                            : 'border-white/10'
+                        }`}
+                      >
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                          {/* Thumbnail + Details */}
+                          <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-xl overflow-hidden bg-black/60 border border-white/10 shrink-0 relative">
+                              <img
+                                src={scan.thumbnailUrl || "https://images.unsplash.com/photo-1595113316349-9fa4ee24f884?w=300&q=80"}
+                                alt={scan.cropName}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                              <span className="absolute bottom-0 inset-x-0 bg-black/80 text-[8px] font-mono text-center text-[#C8F53E] py-0.5">
+                                {scan.confidence}%
+                              </span>
+                            </div>
+
+                            <div>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h4 className="font-bold text-white text-sm font-sans">{scan.cropName}</h4>
+                                <span className={`text-[9px] font-mono font-black px-2 py-0.5 rounded uppercase tracking-wider ${
+                                  isHigh
+                                    ? 'bg-[#FF4F4F]/20 text-[#FF4F4F] border border-[#FF4F4F]/40'
+                                    : isMod
+                                    ? 'bg-[#FFB347]/20 text-[#FFB347] border border-[#FFB347]/40'
+                                    : 'bg-[#C8F53E]/20 text-[#C8F53E] border border-[#C8F53E]/40'
+                                }`}>
+                                  {scan.disease}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-white/50 font-mono mt-1">
+                                🕒 {formatTime(scan.timestamp)} {scan.pincode && `· PIN ${scan.pincode}`} {scan.notes && `· ${scan.notes}`}
+                              </p>
+                              {scan.treatment && (
+                                <p className="text-xs text-[#C8F53E] font-mono mt-1.5 flex items-center gap-1.5">
+                                  <span>💊</span>
+                                  <span className="truncate max-w-[280px] sm:max-w-md">{scan.treatment}</span>
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Actionable Status Buttons (Todo Tracker) */}
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 border-white/5 pt-3 sm:pt-0">
+                            {scan.treatmentStatus === 'pending' ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => updateScanStatus(scan.id, 'applied')}
+                                  className="bg-[#C8F53E] text-[#060A04] hover:bg-[#C8F53E]/90 text-[10px] font-mono font-black px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(200,245,62,0.3)] cursor-pointer"
+                                >
+                                  <CheckCircle2 size={12} />
+                                  <span>MARK APPLIED</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => updateScanStatus(scan.id, 'skipped')}
+                                  className="bg-white/5 hover:bg-white/10 text-white/60 hover:text-white text-[10px] font-mono font-bold px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer"
+                                >
+                                  SKIP
+                                </button>
+                              </div>
+                            ) : scan.treatmentStatus === 'applied' ? (
+                              <div className="flex items-center gap-2">
+                                <span className="bg-[#22C55E]/15 border border-[#22C55E]/40 text-[#22C55E] text-[10px] font-mono font-black px-3 py-1 rounded-lg flex items-center gap-1.5">
+                                  <CheckCircle size={12} />
+                                  <span>TREATED ✅</span>
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateScanStatus(scan.id, 'pending')}
+                                  className="text-white/30 hover:text-white text-[10px] font-mono underline cursor-pointer"
+                                  title="Revert status to pending"
+                                >
+                                  Reset
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <span className="bg-white/5 border border-white/10 text-white/40 text-[10px] font-mono font-bold px-3 py-1 rounded-lg">
+                                  SKIPPED ⏹
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => updateScanStatus(scan.id, 'pending')}
+                                  className="text-white/30 hover:text-white text-[10px] font-mono underline cursor-pointer"
+                                  title="Revert status to pending"
+                                >
+                                  Reset
+                                </button>
+                              </div>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => deleteScan(scan.id)}
+                              className="text-white/20 hover:text-[#FF4F4F] p-1.5 rounded-lg hover:bg-white/5 transition-colors cursor-pointer"
+                              title="Delete from scan history"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                {scanHistory.length === 0 && (
+                  <div className="text-center py-12 bg-black/20 rounded-2xl border border-dashed border-white/10">
+                    <p className="text-white/40 font-mono text-xs">NO SCANS LOGGED YET</p>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="mt-3 text-xs text-[#C8F53E] font-mono font-bold underline cursor-pointer"
+                    >
+                      Upload your first crop photo →
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -1653,6 +1943,124 @@ export default function Dashboard() {
                   className="px-6 border border-white/10 hover:bg-white/5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer text-white/60 hover:text-white"
                 >
                   DISMISS
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* EDIT FARM PROFILE MODAL */}
+      <AnimatePresence>
+        {showEditProfileModal && (
+          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-[#0A0E07] border border-[#C8F53E]/30 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl text-white space-y-6 relative"
+            >
+              <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#C8F53E]/10 flex items-center justify-center text-[#C8F53E]">
+                    <User size={20} />
+                  </div>
+                  <div>
+                    <h3 className="font-bebas text-2xl tracking-wide">FARMER PROFILE &amp; LOCATION</h3>
+                    <p className="text-[9px] font-mono text-[#C8F53E] uppercase tracking-widest">UPDATE AGRI-HOLDING TELEMETRY</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowEditProfileModal(false)}
+                  className="text-white/40 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4 font-mono text-xs">
+                <div>
+                  <label className="text-[10px] text-white/50 uppercase block mb-1.5 font-bold">Farmer Name</label>
+                  <input
+                    type="text"
+                    value={profileForm.name}
+                    onChange={e => setProfileForm({ ...profileForm, name: e.target.value })}
+                    className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] text-white/50 uppercase block mb-1.5 font-bold">Contact Email</label>
+                    <input
+                      type="email"
+                      value={profileForm.email}
+                      onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
+                      className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-white/50 uppercase block mb-1.5 font-bold">Phone Number</label>
+                    <input
+                      type="text"
+                      value={profileForm.phone || ''}
+                      onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                      className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] text-white/50 uppercase block mb-1.5 font-bold">Region / District</label>
+                    <input
+                      type="text"
+                      value={profileForm.region}
+                      onChange={e => setProfileForm({ ...profileForm, region: e.target.value })}
+                      className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-white/50 uppercase block mb-1.5 font-bold">Land Size (Acres/Ha)</label>
+                    <input
+                      type="text"
+                      value={profileForm.landSize}
+                      onChange={e => setProfileForm({ ...profileForm, landSize: e.target.value })}
+                      className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-white/50 uppercase block mb-1.5 font-bold">Primary Crops (comma-separated)</label>
+                  <input
+                    type="text"
+                    value={profileForm.primaryCrops?.join(', ')}
+                    onChange={e => setProfileForm({ ...profileForm, primaryCrops: e.target.value.split(',').map(c => c.trim()).filter(Boolean) })}
+                    placeholder="Paddy Rice, Potato, Mustard"
+                    className="w-full bg-[#060A04] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#C8F53E]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateProfile(profileForm);
+                    setShowEditProfileModal(false);
+                  }}
+                  className="flex-1 bg-[#C8F53E] text-[#060A04] font-black py-3 rounded-xl text-[10px] uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                >
+                  SAVE FARM PROFILE →
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEditProfileModal(false)}
+                  className="px-6 border border-white/10 hover:bg-white/5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer text-white/60 hover:text-white"
+                >
+                  CANCEL
                 </button>
               </div>
             </motion.div>

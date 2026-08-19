@@ -134,7 +134,10 @@ img, video { max-width: 100%; height: auto; }
 `;
 
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function HomePage() {
+  const { addScan } = useAuth();
   const [pp, setPp] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
@@ -342,6 +345,21 @@ export default function HomePage() {
         if (res.ok && !data.error) {
           setAnalysisResult(data);
           addLog('> Multimodal inference complete. Pathogen localized in 0.9s.');
+          
+          // Persist to farmer scan history & tracker
+          addScan({
+            cropName: data.cropName || 'Field Crop',
+            disease: data.disease || 'Healthy Canopy',
+            riskLevel: data.riskLevel || (data.healthy ? 'Low' : 'Moderate'),
+            confidence: typeof data.confidence === 'number' ? data.confidence : (data.healthScore || 95),
+            thumbnailUrl: activeImage || (data.boundingBox ? null : '/samples/wheat.jpg'),
+            pincode: pincode,
+            treatment: data.treatment || data.pesticide || 'Consult local KVK extension',
+            dosage: data.dosage || 'Standard application',
+            treatmentStatus: 'pending',
+            notes: transcript ? `Symptom note: ${transcript.slice(0, 80)}` : 'Scanned via Web Console'
+          });
+
           if (data.voiceSummary) {
             speakResponse(data.voiceSummary, selectedLang);
           }
