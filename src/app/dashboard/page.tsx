@@ -620,7 +620,7 @@ export default function Dashboard() {
           <div className="flex items-center gap-4">
             <ShieldCheck size={24} className="text-[#C8F53E]" />
             <div>
-              <h1 className="font-bebas text-3xl tracking-wide italic">LEAFGUARD COMMAND</h1>
+              <h1 className="font-bebas text-3xl tracking-wide italic">CROPGUARD COMMAND</h1>
               <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">STATION: GRID-ALPHA-4 · SECURE</p>
             </div>
           </div>
@@ -646,7 +646,7 @@ export default function Dashboard() {
                 <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#FF4F4F] rounded-full text-[8px] font-black flex items-center justify-center border-2 border-[#060A04]">3</span>
               </div>
               <div className="text-right">
-                <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@LEAFGUARD.AI</p>
+                <p className="text-[11px] font-black uppercase tracking-tight">OPERATOR@CROPGUARD.AI</p>
                 <p className="text-[9px] font-bold text-[#C8F53E] uppercase tracking-[0.3em]">LEVEL 4 OPERATOR</p>
               </div>
               <button
@@ -1327,7 +1327,7 @@ export default function Dashboard() {
             <h2 className="font-bebas text-4xl italic tracking-wide">INFRASTRUCTURE MONITORING</h2>
             <button
               type="button"
-              onClick={() => alert('All LeafGuard AI monitoring nodes (API Gateway, Vision Neural Server, Drone Uplink) are healthy and active with 99.98% uptime.')}
+              onClick={() => alert('All CropGuard AI monitoring nodes (API Gateway, Vision Neural Server, Drone Uplink) are healthy and active with 99.98% uptime.')}
               className="bg-[#C8F53E]/10 text-[#C8F53E] px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border border-[#C8F53E]/20 hover:bg-[#C8F53E]/20 transition-all cursor-pointer"
             >
               + ADD MONITOR
