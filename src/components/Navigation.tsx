@@ -88,8 +88,8 @@ export default function Navigation() {
 
       {/* Right: Actions */}
       <div className="hide-on-mobile" style={S.rightActions}>
-        <Link href="/login" style={{ fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.2s' }}>LOGIN</Link>
-        <Link href="/dashboard" style={S.liveBtn} onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')} onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}>LIVE DEMO</Link>
+        <Link href="/login" style={{ fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.2s', padding: '0.5rem 0.8rem' }} onMouseEnter={e => (e.currentTarget.style.color = '#C8F53E')} onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>LOGIN</Link>
+        <Link href="/contact" style={S.liveBtn} onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')} onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}>BOOK A DEMO</Link>
       </div>
 
       {/* Mobile Hamburger */}
@@ -122,7 +122,7 @@ export default function Navigation() {
       ))}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', marginTop: '1rem' }}>
         <Link href="/login" onClick={closeMenu} style={{ fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>LOGIN</Link>
-        <Link href="/dashboard" onClick={closeMenu} style={S.liveBtn}>LIVE DEMO</Link>
+        <Link href="/contact" onClick={closeMenu} style={S.liveBtn}>BOOK A DEMO</Link>
       </div>
     </div>
     </>
