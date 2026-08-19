@@ -214,6 +214,7 @@ export default async function ProductDetailPage({ params }: Props) {
 
             {/* CTAs */}
             <ContactButtons
+              product={product}
               sellerName={product.seller.name}
               productTitle={product.title}
               priceFormatted={`${priceLabel} / ${product.unit}`}
