@@ -69,64 +69,68 @@ JSON Schema:
     let jsonResponseText = '';
 
     // Strategy 1: Try Gemini API if GEMINI_API_KEY is available
-    // Model: gemini-3.7-flash — confirmed active & tested with multimodal generateContent
-    // To verify current models: GET https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_KEY
-    const GEMINI_MODEL = 'gemini-3.7-flash';
+    // gemini-2.0-flash is the stable fast multimodal model (confirmed active)
+    // Fallback chain: gemini-2.0-flash → gemini-1.5-flash
+    const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash'];
     if (process.env.GEMINI_API_KEY) {
-      console.log(`[AgroGuard] Using Gemini model: ${GEMINI_MODEL}`);
-      try {
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
-        const parts: any[] = [{ text: promptText }];
-        if (base64Image) {
-          parts.unshift({
-            inline_data: {
-              mime_type: mimeType,
-              data: base64Image
-            }
+      for (const GEMINI_MODEL of GEMINI_MODELS) {
+        if (jsonResponseText) break;
+        console.log(`[CropGuard AI] Trying Gemini model: ${GEMINI_MODEL}`);
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${process.env.GEMINI_API_KEY}`;
+          const parts: any[] = [{ text: promptText }];
+          if (base64Image) {
+            parts.unshift({
+              inline_data: {
+                mime_type: mimeType,
+                data: base64Image
+              }
+            });
+          }
+
+          const requestBody = JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: { responseMimeType: "application/json" }
           });
-        }
 
-        const requestBody = JSON.stringify({
-          contents: [{ parts }],
-          generationConfig: { responseMimeType: "application/json" }
-        });
-
-        let geminiRes = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: requestBody
-        });
-
-        // Transient overload retry: on 503 specifically, wait 1.5s and retry once
-        if (geminiRes.status === 503) {
-          console.warn(`[AgroGuard] Gemini returned 503 (transient overload). Retrying in 1.5s...`);
-          await new Promise((resolve) => setTimeout(resolve, 1500));
-          geminiRes = await fetch(geminiUrl, {
+          let geminiRes = await fetch(geminiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: requestBody
+            body: requestBody,
+            signal: AbortSignal.timeout(18000) // 18s hard cap per attempt
           });
-        }
 
-        if (geminiRes.ok) {
-          const geminiData = await geminiRes.json();
-          jsonResponseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          if (jsonResponseText) console.log(`[AgroGuard] Gemini (${GEMINI_MODEL}) responded successfully.`);
-        } else {
-          const errBody = await geminiRes.text();
-          console.warn(`[AgroGuard] Gemini (${GEMINI_MODEL}) non-200 (${geminiRes.status}), falling back to Groq. Error: ${errBody}`);
+          // Transient overload retry: on 503 wait 800ms and retry once
+          if (geminiRes.status === 503) {
+            console.warn(`[CropGuard AI] ${GEMINI_MODEL} returned 503. Retrying in 800ms...`);
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            geminiRes = await fetch(geminiUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: requestBody,
+              signal: AbortSignal.timeout(15000)
+            });
+          }
+
+          if (geminiRes.ok) {
+            const geminiData = await geminiRes.json();
+            jsonResponseText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (jsonResponseText) console.log(`[CropGuard AI] Gemini (${GEMINI_MODEL}) responded successfully.`);
+          } else {
+            const errBody = await geminiRes.text();
+            console.warn(`[CropGuard AI] ${GEMINI_MODEL} non-200 (${geminiRes.status}). Error: ${errBody.slice(0, 200)}`);
+          }
+        } catch (geminiErr: any) {
+          console.warn(`[CropGuard AI] ${GEMINI_MODEL} call error:`, geminiErr?.message);
         }
-      } catch (geminiErr: any) {
-        console.warn(`[AgroGuard] Gemini (${GEMINI_MODEL}) call error:`, geminiErr?.message);
       }
     }
 
     // Strategy 2: Fallback to Groq API if Gemini wasn't available or failed
-    // Model: qwen/qwen3.6-27b — vision-capable multimodal model listed in console.groq.com/docs/vision
-    // To verify current models: GET https://api.groq.com/openai/v1/models (with Authorization: Bearer YOUR_KEY)
-    const GROQ_MODEL = 'qwen/qwen3.6-27b';
+    // llama-4-scout-17b-16e-instruct is Groq's current vision-capable multimodal model
+    const GROQ_MODEL = 'meta-llama/llama-4-scout-17b-16e-instruct';
     if (!jsonResponseText && process.env.GROQ_API_KEY) {
-      console.log(`[AgroGuard] Using Groq model: ${GROQ_MODEL}`);
+      console.log(`[CropGuard AI] Using Groq model: ${GROQ_MODEL}`);
       try {
         const contentParts: any[] = [];
         if (base64Image) {
@@ -146,27 +150,27 @@ JSON Schema:
           body: JSON.stringify({
             model: GROQ_MODEL,
             max_tokens: 1000,
-            reasoning_effort: "none",
             response_format: { type: "json_object" },
             messages: [{ role: 'user', content: contentParts }]
-          })
+          }),
+          signal: AbortSignal.timeout(18000)
         });
 
         if (groqRes.ok) {
           const groqData = await groqRes.json();
           jsonResponseText = groqData.choices?.[0]?.message?.content || '';
-          if (jsonResponseText) console.log(`[AgroGuard] Groq (${GROQ_MODEL}) responded successfully.`);
+          if (jsonResponseText) console.log(`[CropGuard AI] Groq (${GROQ_MODEL}) responded successfully.`);
         } else {
           const errBody = await groqRes.text();
-          console.error(`[AgroGuard] Groq (${GROQ_MODEL}) error (${groqRes.status}): ${errBody}`);
+          console.error(`[CropGuard AI] Groq (${GROQ_MODEL}) error (${groqRes.status}): ${errBody.slice(0, 200)}`);
         }
       } catch (groqErr: any) {
-        console.error(`[AgroGuard] Groq (${GROQ_MODEL}) call error:`, groqErr?.message);
+        console.error(`[CropGuard AI] Groq (${GROQ_MODEL}) call error:`, groqErr?.message);
       }
     }
 
     if (!jsonResponseText) {
-      const geminiStatus = process.env.GEMINI_API_KEY ? `Gemini/${GEMINI_MODEL}` : 'Gemini (no key)';
+      const geminiStatus = process.env.GEMINI_API_KEY ? `Gemini/gemini-2.0-flash` : 'Gemini (no key)';
       const groqStatus = process.env.GROQ_API_KEY ? `Groq/${GROQ_MODEL}` : 'Groq (no key)';
       throw new Error(`AI analysis providers failed to respond. Tried: ${geminiStatus}, ${groqStatus}. Check server logs for per-provider error details.`);
     }
