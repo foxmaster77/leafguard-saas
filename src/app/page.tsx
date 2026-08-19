@@ -483,7 +483,7 @@ export default function HomePage() {
             </div>
 
             <div className="hero-stats-row" style={{ display: 'flex', gap: '0.8rem', flexWrap: 'wrap' }}>
-              {['● 0.9s Inference Latency', '● 96.4% Verified Accuracy', '● West Bengal Rice, Potato & Wheat Belt'].map((s, i) => (
+              {['● 2-4s avg detection time', '● West Bengal rice, wheat & potato belt', '● Voice + video multimodal diagnosis'].map((s, i) => (
                 <span key={i} className="stat-pill" style={{ background: 'rgba(200,245,62,0.06)', border: '1px solid rgba(200,245,62,0.18)', borderRadius: '99px', padding: '0.4rem 1rem', fontFamily: 'DM Mono, monospace', fontSize: '0.7rem', color: 'rgba(255,255,255,0.65)', animationDelay: `${i * 0.1 + 0.3}s` }}>
                   {s}
                 </span>
@@ -600,13 +600,13 @@ export default function HomePage() {
       {/* PARTNERS MARQUEE */}
       <section style={{ background: '#0A0E07', borderTop: '1px solid rgba(200,245,62,0.08)', borderBottom: '1px solid rgba(200,245,62,0.08)', padding: '1.8rem 0', overflow: 'hidden' }}>
         <p style={{ textAlign: 'center', fontFamily: 'DM Mono, monospace', fontSize: '0.62rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '1.2rem' }}>
-          CORE TECHNOLOGY STACK &amp; AGRI-DATA BACKBONE
+          POWERED BY
         </p>
         <div style={{ overflow: 'hidden', WebkitMaskImage: 'linear-gradient(to right,transparent,black 10%,black 90%,transparent)', maskImage: 'linear-gradient(to right,transparent,black 10%,black 90%,transparent)' }}>
           <div style={{ display: 'flex', gap: '1.5rem', animation: 'marquee 28s linear infinite', width: 'max-content' }}
             onMouseEnter={e => (e.currentTarget.style.animationPlayState = 'paused')}
             onMouseLeave={e => (e.currentTarget.style.animationPlayState = 'running')}>
-            {['Google Gemini 1.5 Multimodal', 'TensorFlow Lite Edge', 'Govt. of India Bhashini NLP', 'OpenWeather Risk Radar', 'data.gov.in Agmarknet', 'Supabase Vector', 'Next.js 16 & Vercel', 'Google Gemini 1.5 Multimodal', 'TensorFlow Lite Edge', 'Govt. of India Bhashini NLP'].map((b, i) => (
+            {['Google Gemini', 'Groq', 'OpenWeather', 'Supabase', 'Vercel', 'Google Gemini', 'Groq', 'OpenWeather', 'Supabase', 'Vercel'].map((b, i) => (
               <div key={i} className="partner-card" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.12)', padding: '0.75rem 1.8rem', fontFamily: 'DM Mono, monospace', fontWeight: 700, color: 'white', fontSize: '0.82rem', transition: 'all 0.2s', flexShrink: 0, borderRadius: '4px' }}>
                 {b}
               </div>
@@ -630,7 +630,7 @@ export default function HomePage() {
         </div>
         <div className="home-features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.8rem', maxWidth: '1140px', margin: '0 auto' }}>
           {[
-            { icon: '🔬', title: 'Cellular AI Disease Detection', desc: 'Multi-spectral neural networks identify 94+ pathogen signatures from a single mobile photo.', stat: '96.4% CONFIDENCE ON VERIFIED SCANS' },
+            { icon: '🔬', title: 'Cellular AI Disease Detection', desc: "Multimodal AI detects crop diseases from a photo or a farmer's spoken description — in Bangla, Hindi, or English.", stat: 'VOICE + IMAGE + VIDEO INPUT' },
             { icon: '🌦️', title: 'Weather + Microclimate Risk Alerts', desc: 'Live atmospheric telemetry forecasts humidity-driven spore dispersion up to 5 days ahead.', stat: 'REAL-TIME · 50KM RISK RADIUS' },
             { icon: '🗺️', title: 'Regional Outbreak Radar', desc: 'Native voice diagnosis, video field scanning, and district-level epidemiological surveillance.', stat: 'VOICE · SATELLITE · OUTBREAK RADAR' },
           ].map((c, i) => (
@@ -649,7 +649,7 @@ export default function HomePage() {
         <div className="reveal" style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.62rem', color: '#C8F53E', letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: '0.8rem' }}>
             <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', background: '#C8F53E', marginRight: '6px', animation: 'blink 1.5s infinite', verticalAlign: 'middle' }} />
-            REGIONAL EPIDEMIOLOGICAL RADAR · 10 WB DISTRICTS ACTIVE
+            LIVE OUTBREAK HEATMAP · WEST BENGAL
           </p>
           <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(2.5rem,5vw,4.2rem)', fontStyle: 'italic', fontWeight: 900, margin: 0 }}>
             CROPGUARD AI IS WATCHING EVERY FIELD.
@@ -658,7 +658,7 @@ export default function HomePage() {
         <div style={{ position: 'relative', height: '500px', border: '1px solid rgba(200,245,62,0.15)', borderRadius: '12px', overflow: 'hidden', maxWidth: '1140px', margin: '0 auto 2.5rem', boxShadow: '0 0 50px rgba(200,245,62,0.06)' }}>
           <GlobalMap />
           <div style={{ position: 'absolute', top: '1rem', left: '1rem', zIndex: 1000, background: 'rgba(6,10,4,0.92)', border: '1px solid rgba(200,245,62,0.2)', borderRadius: '8px', padding: '0.8rem 1.2rem', backdropFilter: 'blur(12px)' }}>
-            {[['8+', 'DISTRICTS'], ['15k+', 'SCANS PROCESSED'], ['96%', 'ACCURACY']].map(([n, l]) => (
+            {[['10', 'WB DISTRICTS'], ['29+', 'LIVE OUTBREAKS'], ['96%', 'ACCURACY']].map(([n, l]) => (
               <div key={l} style={{ marginBottom: '0.4rem' }}>
                 <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.3rem', color: '#C8F53E', marginRight: '0.5rem' }}>{n}</span>
                 <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.6rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.1em' }}>{l}</span>
@@ -667,7 +667,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="home-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', maxWidth: '1140px', margin: '0 auto' }}>
-          {[['8+ Districts', 'Hooghly, Burdwan, Nadia, Malda & more'], ['15k+ Scans', 'Multimodal evaluations completed'], ['96% Accuracy', 'KVK scientist validation match'], ['₹10k/yr Govt Aid', 'Krishak Bandhu & PM-KISAN mapped']].map(([n, l], i) => (
+          {[['10 Districts', 'Hooghly, Burdwan, Nadia, Malda & 6 more'], ['29+ Outbreaks', 'Active spatial disease clusters tracked'], ['96% Accuracy', 'KVK scientist validation match'], ['₹10k/yr Govt Aid', 'Krishak Bandhu & PM-KISAN mapped']].map(([n, l], i) => (
             <div key={i} className="reveal hover-lift" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.1)', padding: '1.6rem', textAlign: 'center', borderRadius: '8px' }}>
               <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '2.2rem', color: '#C8F53E', fontStyle: 'italic', marginBottom: '0.3rem' }}>{n}</div>
               <div style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.06em' }}>{l}</div>
@@ -1344,9 +1344,9 @@ export default function HomePage() {
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#FF4F4F', animation: 'pulseRed 1.5s infinite', display: 'inline-block' }} />
                 <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.62rem', color: '#FF4F4F', letterSpacing: '0.12em', fontWeight: 800 }}>THREAT DETECTED</span>
               </div>
-              <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: '0.2rem', color: 'white' }}>SOYBEAN RUST</div>
-              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', marginBottom: '0.4rem' }}>SECTOR 4-B · HOOGHLY</div>
-              <div style={{ color: '#C8F53E', fontSize: '0.72rem', fontFamily: 'DM Mono, monospace' }}>📍 GPS: 22.89° N, 88.39° E</div>
+              <div style={{ fontWeight: 800, fontSize: '1.05rem', marginBottom: '0.2rem', color: 'white' }}>LATE BLIGHT</div>
+              <div style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.78rem', marginBottom: '0.4rem' }}>HOOGHLY DISTRICT · SECTOR 4-B</div>
+              <div style={{ color: '#C8F53E', fontSize: '0.72rem', fontFamily: 'DM Mono, monospace' }}>📍 GPS: 22.90° N, 88.39° E</div>
             </div>
           </div>
         </div>
@@ -1364,7 +1364,7 @@ export default function HomePage() {
             READY TO PROTECT YOUR HARVEST?
           </h2>
           <p style={{ color: 'rgba(255,255,255,0.55)', fontSize: '1.05rem', maxWidth: '580px', margin: '0 auto 2.2rem', lineHeight: 1.75 }}>
-            From a single farmer's voice in a remote field to district-wide automated early warning systems across West Bengal.
+            From a farmer&apos;s voice in the field to a district-wide early warning system — built for West Bengal, ready to scale.
           </p>
           <div className="cta-btn-row" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '1.8rem', flexWrap: 'wrap' }}>
             <Link href="/login" className="glow-btn" style={{ background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'DM Mono, monospace', fontSize: '0.85rem', letterSpacing: '0.12em', padding: '0.95rem 2.2rem', textDecoration: 'none', display: 'inline-block', borderRadius: '6px', boxShadow: '0 0 25px rgba(200,245,62,0.3)' }}>
@@ -1377,7 +1377,7 @@ export default function HomePage() {
             </Link>
           </div>
           <p style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.68rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em' }}>
-            🔒 NO CREDIT CARD REQUIRED · CANCEL ANYTIME · ANONYMIZED ZERO-PII STORAGE
+            🔒 NO CREDIT CARD REQUIRED · CANCEL ANYTIME · ANONYMIZED DATA · NO PERSONAL INFO STORED
           </p>
         </div>
       </section>

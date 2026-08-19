@@ -11,7 +11,7 @@ export default function Footer() {
           <div className="sm:col-span-2">
             <div className="font-bebas text-2xl md:text-3xl text-[#C8F53E] italic tracking-wider mb-2">CropGuard AI</div>
             <p className="text-white/40 text-xs sm:text-sm leading-relaxed max-w-sm">
-              Built for global agriculture. Enterprise Precision Crop Intelligence &amp; Cellular Pathogen Diagnostic Platform.
+              Built for Bengal&apos;s farmers. Voice-first crop intelligence.
             </p>
           </div>
           <div>
