@@ -582,7 +582,7 @@ export default function Dashboard() {
             <div className="w-10 h-10 bg-[#C8F53E] flex items-center justify-center rounded-xl">
               <ShieldCheck className="text-[#060A04] w-6 h-6" />
             </div>
-            <span className="font-bebas text-2xl tracking-widest text-[#C8F53E]">LEAF_OS V4</span>
+            <span className="font-bebas text-2xl tracking-widest text-[#C8F53E]">CROPGUARD_OS V4</span>
           </div>
           <button className="lg:hidden text-white" onClick={() => setMobileMenuOpen(false)}>
             <XCircle size={24} />
@@ -649,7 +649,7 @@ export default function Dashboard() {
         <div className="lg:hidden flex justify-between items-center mb-6 border-b border-white/5 pb-4">
           <div className="flex items-center gap-2">
             <ShieldCheck size={20} className="text-[#C8F53E]" />
-            <span className="font-bebas text-xl tracking-widest text-[#C8F53E]">LEAF_OS V4</span>
+            <span className="font-bebas text-xl tracking-widest text-[#C8F53E]">CROPGUARD_OS V4</span>
           </div>
           <button type="button" onClick={() => setMobileMenuOpen(true)} className="p-2 rounded-lg bg-white/5 text-white hover:bg-white/10">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -1594,15 +1594,79 @@ export default function Dashboard() {
                     );
                   })}
 
-                {scanHistory.length === 0 && (
-                  <div className="text-center py-12 bg-black/20 rounded-2xl border border-dashed border-white/10">
-                    <p className="text-white/40 font-mono text-xs">NO SCANS LOGGED YET</p>
+                {scanHistory.length === 0 ? (
+                  <div className="text-center py-12 px-6 bg-black/40 rounded-2xl border border-dashed border-[#C8F53E]/20 space-y-4">
+                    <div className="w-14 h-14 rounded-2xl bg-[#C8F53E]/10 border border-[#C8F53E]/30 text-[#C8F53E] flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(200,245,62,0.15)]">
+                      <Sparkles size={24} className="animate-pulse" />
+                    </div>
+                    <div>
+                      <h4 className="font-bebas text-2xl text-white tracking-wide">NO CROP SCANS LOGGED YET</h4>
+                      <p className="text-white/60 font-mono text-xs max-w-md mx-auto mt-1 leading-relaxed">
+                        Upload your first leaf image above to track health telemetry, real-time pathogen risk, and actionable chemical dosage plans.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="bg-[#C8F53E] text-[#060A04] px-6 py-2.5 rounded-xl text-[10px] font-mono font-black uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-[0_0_15px_rgba(200,245,62,0.25)] cursor-pointer"
+                      >
+                        + UPLOAD LEAF IMAGE →
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          addScan({
+                            cropName: 'Potato (Kufri Jyoti)',
+                            disease: 'Late Blight (Phytophthora)',
+                            riskLevel: 'High',
+                            confidence: 96,
+                            thumbnailUrl: 'https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=300&q=80',
+                            treatment: 'Spray Mancozeb 75% WP @ 2.5g/L immediately',
+                            dosage: '2.5g/L water',
+                            treatmentStatus: 'pending',
+                            pincode: '712101',
+                            notes: 'North Plot 4-B field screening'
+                          });
+                          addScan({
+                            cropName: 'Paddy Rice',
+                            disease: 'Rice Blast (Magnaporthe)',
+                            riskLevel: 'Moderate',
+                            confidence: 92,
+                            thumbnailUrl: 'https://images.unsplash.com/photo-1536657464919-892534f60d6e?w=300&q=80',
+                            treatment: 'Apply Tricyclazole 75% WP @ 0.6g/L',
+                            dosage: '0.6g/L water',
+                            treatmentStatus: 'applied',
+                            pincode: '713101',
+                            notes: 'Treated via knapsack sprayer'
+                          });
+                        }}
+                        className="bg-white/5 hover:bg-white/10 text-[#C8F53E] border border-[#C8F53E]/20 px-5 py-2.5 rounded-xl text-[10px] font-mono font-bold uppercase tracking-wider transition-colors cursor-pointer"
+                      >
+                        LOAD DEMO TELEMETRY ⚡
+                      </button>
+                    </div>
+                  </div>
+                ) : scanHistory.filter(s => {
+                    if (scanFilter !== 'all' && s.treatmentStatus !== scanFilter) return false;
+                    if (scanSearch.trim()) {
+                      const q = scanSearch.toLowerCase();
+                      return (
+                        s.cropName?.toLowerCase().includes(q) ||
+                        s.disease?.toLowerCase().includes(q) ||
+                        s.treatment?.toLowerCase().includes(q)
+                      );
+                    }
+                    return true;
+                  }).length === 0 && (
+                  <div className="text-center py-10 px-4 bg-black/30 rounded-2xl border border-white/5 space-y-2">
+                    <p className="text-white/40 font-mono text-xs">NO SCANS MATCH THE CURRENT FILTER</p>
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="mt-3 text-xs text-[#C8F53E] font-mono font-bold underline cursor-pointer"
+                      onClick={() => { setScanFilter('all'); setScanSearch(''); }}
+                      className="text-xs text-[#C8F53E] font-mono font-bold underline cursor-pointer"
                     >
-                      Upload your first crop photo →
+                      Reset filters &amp; show all scans →
                     </button>
                   </div>
                 )}
@@ -1716,7 +1780,7 @@ export default function Dashboard() {
                   </div>
                   <div>
                     <h3 className="font-bebas text-2xl tracking-wide">SYSTEM CONFIGURATION</h3>
-                    <p className="text-[9px] font-mono text-[#C8F53E] uppercase tracking-widest">LEAF_OS NODE CONFIG · V4.2</p>
+                    <p className="text-[9px] font-mono text-[#C8F53E] uppercase tracking-widest">CROPGUARD_OS NODE CONFIG · V4.2</p>
                   </div>
                 </div>
                 <button

@@ -135,9 +135,11 @@ img, video { max-width: 100%; height: auto; }
 
 
 import { useAuth } from '@/context/AuthContext';
+import WhatsAppModal from '@/components/WhatsAppModal';
 
 export default function HomePage() {
   const { addScan } = useAuth();
+  const [whatsAppOpen, setWhatsAppOpen] = useState(false);
   const [pp, setPp] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
@@ -1206,6 +1208,78 @@ export default function HomePage() {
         )}
       </section>
 
+      {/* WHATSAPP BOT INTEGRATION SHOWCASE BANNER */}
+      <section className="mobile-padding" style={{ background: 'linear-gradient(180deg, #060A04 0%, #081107 100%)', padding: '5rem 2rem', borderTop: '1px solid rgba(34,197,94,0.15)', borderBottom: '1px solid rgba(34,197,94,0.15)' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', background: 'radial-gradient(circle at 10% 50%, rgba(34,197,94,0.12), transparent 70%), #0D1610', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '20px', padding: '3rem 2rem', display: 'flex', flexDirection: 'column', mdDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: '2.5rem', boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 30px rgba(34,197,94,0.1)' } as any} className="flex-col lg:flex-row">
+          <div style={{ maxWidth: '640px' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.4)', borderRadius: '99px', padding: '0.35rem 1rem', marginBottom: '1rem' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 8px #22C55E' }} />
+              <span style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.72rem', color: '#22C55E', fontWeight: 800, letterSpacing: '0.1em' }}>
+                ZERO-APP LOW BANDWIDTH UPLINK
+              </span>
+            </div>
+            <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 'clamp(2.4rem, 5.5vw, 3.8rem)', fontStyle: 'italic', fontWeight: 900, margin: '0 0 0.8rem', color: 'white', lineHeight: 1.05 }}>
+              PREFER WHATSAPP? <span style={{ color: '#22C55E' }}>SCAN VIA BOT INSTANTLY.</span>
+            </h2>
+            <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.95rem', lineHeight: 1.7, margin: '0 0 1.2rem' }}>
+              Farmers don't need a high-end smartphone app. Simply snap a field leaf photo or send a 10-second voice note to our verified WhatsApp bot at <strong style={{ color: '#22C55E' }}>+91 98312-CROPAI</strong> for sub-second audio diagnosis in Bengali, Hindi, or English.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.2rem', fontFamily: 'DM Mono, monospace', fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>
+              <span>✓ 2G/3G Edge Optimized</span>
+              <span>✓ Native Dialect Voice Notes</span>
+              <span>✓ Verified Dealer Prescriptions</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', width: '100%', maxWidth: '320px' }}>
+            <button
+              onClick={() => setWhatsAppOpen(true)}
+              style={{
+                background: '#22C55E',
+                color: '#060A04',
+                fontWeight: 900,
+                fontFamily: 'DM Mono, monospace',
+                fontSize: '0.88rem',
+                letterSpacing: '0.1em',
+                padding: '1.1rem 1.8rem',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                textAlign: 'center',
+                boxShadow: '0 0 25px rgba(34,197,94,0.4)',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
+            >
+              SIMULATE WHATSAPP BOT 💬
+            </button>
+            <a
+              href="https://wa.me/919831245678?text=Hi%20CropGuard%20AI%20-%20I%20want%20to%20scan%20my%20crop%20leaf"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                background: 'transparent',
+                border: '1px solid rgba(34,197,94,0.4)',
+                color: '#22C55E',
+                fontFamily: 'DM Mono, monospace',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                padding: '0.75rem',
+                borderRadius: '8px',
+                textDecoration: 'none',
+                textAlign: 'center',
+                transition: 'background 0.2s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              OR OPEN IN WHATSAPP WEB ↗
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* FROM DATA TO DECISION */}
       <section className="mobile-padding" style={{ background: '#0A0E07', padding: '8rem 3rem' }}>
         <div className="home-cta-grid" style={{ maxWidth: '1140px', margin: '0 auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'center' }}>
@@ -1275,6 +1349,9 @@ export default function HomePage() {
       </section>
 
       <Footer />
+
+      {/* Simulated WhatsApp Bot Modal */}
+      <WhatsAppModal isOpen={whatsAppOpen} onClose={() => setWhatsAppOpen(false)} />
     </div>
   );
 }

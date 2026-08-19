@@ -3,7 +3,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { User, LogOut, LayoutDashboard, History, ChevronDown } from 'lucide-react';
+import { User, LogOut, LayoutDashboard, History, ChevronDown, MessageSquare, Globe } from 'lucide-react';
+import WhatsAppModal from '@/components/WhatsAppModal';
 
 const S = {
   nav: (scrolled: boolean): React.CSSProperties => ({
@@ -17,7 +18,7 @@ const S = {
   logo: { display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', textDecoration: 'none' } as React.CSSProperties,
   logoText: { fontFamily: "'Bebas Neue',sans-serif", fontSize: '1.35rem', fontWeight: 700, color: '#C8F53E', letterSpacing: '0.08em', fontStyle: 'italic' } as React.CSSProperties,
   centerLinks: { display: 'flex', alignItems: 'center', gap: '2.2rem' } as React.CSSProperties,
-  rightActions: { display: 'flex', alignItems: 'center', gap: '1.2rem' } as React.CSSProperties,
+  rightActions: { display: 'flex', alignItems: 'center', gap: '0.9rem' } as React.CSSProperties,
   liveBtn: { background: '#C8F53E', color: '#060A04', fontWeight: 900, fontFamily: 'DM Mono, monospace', fontSize: '0.72rem', letterSpacing: '0.12em', padding: '0.55rem 1.2rem', border: 'none', cursor: 'pointer', transition: 'transform 0.2s ease', textDecoration: 'none', display: 'inline-block', borderRadius: '4px' } as React.CSSProperties,
 };
 
@@ -36,7 +37,11 @@ export default function Navigation() {
   const [hovered, setHovered] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [whatsAppOpen, setWhatsAppOpen] = useState(false);
+  const [currentLang, setCurrentLang] = useState<'EN' | 'BN' | 'HI'>('BN');
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -138,6 +143,61 @@ export default function Navigation() {
 
       {/* Right: Actions / Auth User Profile */}
       <div className="hide-on-mobile" style={S.rightActions}>
+        {/* Bhashini Regional Language Switcher Pill */}
+        <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(200,245,62,0.2)', borderRadius: '99px', padding: '2px', gap: '2px' }}>
+          {[
+            { id: 'EN', label: 'EN' },
+            { id: 'BN', label: 'বাং' },
+            { id: 'HI', label: 'हिं' }
+          ].map(lang => (
+            <button
+              key={lang.id}
+              onClick={() => setCurrentLang(lang.id as any)}
+              style={{
+                background: currentLang === lang.id ? '#C8F53E' : 'transparent',
+                color: currentLang === lang.id ? '#060A04' : 'rgba(255,255,255,0.6)',
+                border: 'none',
+                borderRadius: '99px',
+                padding: '0.25rem 0.6rem',
+                fontSize: '0.65rem',
+                fontFamily: 'DM Mono, monospace',
+                fontWeight: currentLang === lang.id ? 900 : 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s'
+              }}
+              title={`Bhashini AI Language Uplink: ${lang.id}`}
+            >
+              {lang.label}
+            </button>
+          ))}
+        </div>
+
+        {/* WhatsApp Bot Trigger Button */}
+        <button
+          onClick={() => setWhatsAppOpen(true)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            background: 'rgba(34,197,94,0.12)',
+            border: '1px solid rgba(34,197,94,0.35)',
+            color: '#22C55E',
+            borderRadius: '99px',
+            padding: '0.42rem 0.85rem',
+            fontFamily: 'DM Mono, monospace',
+            fontSize: '0.7rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            boxShadow: '0 0 15px rgba(34,197,94,0.15)'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.22)'; e.currentTarget.style.borderColor = '#22C55E'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.12)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.35)'; }}
+        >
+          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 6px #22C55E' }} />
+          <span>WHATSAPP AI</span>
+        </button>
+
         {user ? (
           <div ref={dropdownRef} style={{ position: 'relative' }}>
             <button
@@ -339,6 +399,31 @@ export default function Navigation() {
         </div>
       )}
 
+      {/* Mobile WhatsApp Button */}
+      <button
+        onClick={() => { setWhatsAppOpen(true); closeMenu(); }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          background: 'rgba(34,197,94,0.18)',
+          border: '1px solid #22C55E',
+          color: '#22C55E',
+          borderRadius: '8px',
+          padding: '0.75rem',
+          fontFamily: 'DM Mono, monospace',
+          fontSize: '0.85rem',
+          fontWeight: 800,
+          width: '100%',
+          maxWidth: '280px',
+          marginBottom: '0.5rem',
+          cursor: 'pointer'
+        }}
+      >
+        <span>💬 SCAN VIA WHATSAPP BOT</span>
+      </button>
+
       {links.map(l => (
         <Link key={`mobile-${l.href}`} href={l.href} onClick={closeMenu} className="mobile-nav-link" style={{
           color: pathname === l.href ? '#C8F53E' : 'rgba(255,255,255,0.85)',
@@ -379,6 +464,9 @@ export default function Navigation() {
         )}
       </div>
     </div>
+
+    {/* Simulated WhatsApp Bot Modal */}
+    <WhatsAppModal isOpen={whatsAppOpen} onClose={() => setWhatsAppOpen(false)} />
     </>
   );
 }

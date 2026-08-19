@@ -225,7 +225,7 @@ export default function AnalyzePage() {
         setAnalyzing(false);
       }, Math.max(logs.length * 450 + 300, targetMs));
     } catch (err: any) {
-      addLog(`> Error connecting to AgroGuard AI node: ${err?.message || 'Check connection'}`);
+      addLog(`> Error connecting to CropGuard AI node: ${err?.message || 'Check connection'}`);
       setAnalyzing(false);
     }
   };
