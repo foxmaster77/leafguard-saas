@@ -32,6 +32,7 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [hovered, setHovered] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
+  const [activeLang, setActiveLang] = useState<'EN' | 'HI' | 'BN'>('EN');
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60);
@@ -41,23 +42,27 @@ export default function Navigation() {
 
   const closeMenu = () => setMenuOpen(false);
 
+  const whatsappUrl = `https://wa.me/919876543210?text=${encodeURIComponent(
+    'Hello CropGuard AI, I would like to test the WhatsApp leaf diagnosis bot for my farm / FPO.'
+  )}`;
+
   return (
     <>
       <style>{`
-        .nav-container { padding: 1rem 3rem; }
+        .nav-container { padding: 0.9rem 2.5rem; }
         .mobile-menu-btn { display: none; background: none; border: none; cursor: pointer; z-index: 1001; }
         .mobile-overlay {
           position: fixed; top: 0; left: 0; right: 0; bottom: 0;
           background: rgba(6, 10, 4, 0.98);
           backdrop-filter: blur(10px);
           z-index: 999;
-          display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2rem;
+          display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 1.5rem;
           transform: translateX(100%);
           transition: transform 0.3s ease-in-out;
         }
         .mobile-overlay.open { transform: translateX(0); }
-        @media (max-width: 768px) {
-          .nav-container { padding: 1rem 1.25rem; }
+        @media (max-width: 1024px) {
+          .nav-container { padding: 0.9rem 1.25rem; }
           .hide-on-mobile { display: none !important; }
           .mobile-menu-btn { display: block; }
         }
@@ -76,7 +81,7 @@ export default function Navigation() {
       <div className="hide-on-mobile" style={S.centerLinks}>
         {links.map(l => (
           <Link key={l.href} href={l.href} style={{
-            fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.18em',
+            fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.16em',
             textTransform: 'uppercase' as const, textDecoration: 'none',
             color: pathname === l.href || hovered === l.href ? '#C8F53E' : 'rgba(255,255,255,0.45)',
             transition: 'color 0.2s', fontWeight: pathname === l.href ? 700 : 400,
@@ -86,10 +91,77 @@ export default function Navigation() {
         ))}
       </div>
 
-      {/* Right: Actions */}
+      {/* Right: Language Toggle & Actions */}
       <div className="hide-on-mobile" style={S.rightActions}>
-        <Link href="/login" style={{ fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.2s', padding: '0.5rem 0.8rem' }} onMouseEnter={e => (e.currentTarget.style.color = '#C8F53E')} onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>LOGIN</Link>
-        <Link href="/contact" style={S.liveBtn} onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')} onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}>BOOK A DEMO</Link>
+        {/* Language Toggle Segmented Pill */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '99px', padding: '2px' }}>
+          {[
+            { id: 'EN', label: 'EN' },
+            { id: 'HI', label: 'हिंदी' },
+            { id: 'BN', label: 'বাংলা' }
+          ].map(lang => (
+            <button
+              key={lang.id}
+              onClick={() => setActiveLang(lang.id as any)}
+              style={{
+                background: activeLang === lang.id ? '#C8F53E' : 'transparent',
+                color: activeLang === lang.id ? '#060A04' : 'rgba(255,255,255,0.6)',
+                border: 'none',
+                borderRadius: '99px',
+                padding: '0.25rem 0.6rem',
+                fontSize: '0.65rem',
+                fontFamily: 'monospace',
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s'
+              }}
+            >
+              {lang.label}
+            </button>
+          ))}
+        </div>
+
+        <Link href="/login" style={{ fontFamily: 'monospace', fontSize: '0.72rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.4)', textDecoration: 'none', transition: 'color 0.2s', padding: '0.4rem 0.6rem' }} onMouseEnter={e => (e.currentTarget.style.color = '#C8F53E')} onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.4)')}>
+          LOGIN
+        </Link>
+
+        {/* Secondary CTA: WhatsApp */}
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            background: '#25D366',
+            color: 'white',
+            fontWeight: 800,
+            fontFamily: 'monospace',
+            fontSize: '0.68rem',
+            letterSpacing: '0.08em',
+            padding: '0.55rem 1rem',
+            borderRadius: '8px',
+            textDecoration: 'none',
+            transition: 'transform 0.2s, opacity 0.2s',
+            boxShadow: '0 0 16px rgba(37,211,102,0.25)'
+          }}
+          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
+          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          <span>💬</span>
+          <span>WHATSAPP BOT</span>
+        </a>
+
+        {/* Primary CTA: Try the Demo */}
+        <Link
+          href="/#ai-demo"
+          style={S.liveBtn}
+          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')}
+          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          TRY THE DEMO →
+        </Link>
       </div>
 
       {/* Mobile Hamburger */}
@@ -110,9 +182,36 @@ export default function Navigation() {
 
     {/* Mobile Menu Overlay */}
     <div className={`mobile-overlay ${menuOpen ? 'open' : ''}`}>
+      {/* Mobile Language Selector */}
+      <div style={{ display: 'inline-flex', alignItems: 'center', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '99px', padding: '4px', marginBottom: '0.5rem' }}>
+        {[
+          { id: 'EN', label: 'English' },
+          { id: 'HI', label: 'हिंदी' },
+          { id: 'BN', label: 'বাংলা' }
+        ].map(lang => (
+          <button
+            key={lang.id}
+            onClick={() => setActiveLang(lang.id as any)}
+            style={{
+              background: activeLang === lang.id ? '#C8F53E' : 'transparent',
+              color: activeLang === lang.id ? '#060A04' : 'rgba(255,255,255,0.7)',
+              border: 'none',
+              borderRadius: '99px',
+              padding: '0.4rem 1rem',
+              fontSize: '0.75rem',
+              fontFamily: 'monospace',
+              fontWeight: 800,
+              cursor: 'pointer'
+            }}
+          >
+            {lang.label}
+          </button>
+        ))}
+      </div>
+
       {links.map(l => (
         <Link key={`mobile-${l.href}`} href={l.href} onClick={closeMenu} style={{
-          fontFamily: 'monospace', fontSize: '1.2rem', letterSpacing: '0.18em',
+          fontFamily: 'monospace', fontSize: '1.1rem', letterSpacing: '0.18em',
           textTransform: 'uppercase', textDecoration: 'none',
           color: pathname === l.href ? '#C8F53E' : 'rgba(255,255,255,0.8)',
           fontWeight: pathname === l.href ? 700 : 400,
@@ -120,9 +219,34 @@ export default function Navigation() {
           {l.label}
         </Link>
       ))}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', alignItems: 'center', marginTop: '1rem' }}>
-        <Link href="/login" onClick={closeMenu} style={{ fontFamily: 'monospace', fontSize: '1rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.6)', textDecoration: 'none' }}>LOGIN</Link>
-        <Link href="/contact" onClick={closeMenu} style={S.liveBtn}>BOOK A DEMO</Link>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', marginTop: '1rem', width: '100%', maxWidth: '280px' }}>
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={closeMenu}
+          style={{
+            width: '100%',
+            textAlign: 'center',
+            background: '#25D366',
+            color: 'white',
+            fontWeight: 800,
+            fontFamily: 'monospace',
+            fontSize: '0.85rem',
+            padding: '0.8rem',
+            borderRadius: '8px',
+            textDecoration: 'none'
+          }}
+        >
+          💬 CONNECT VIA WHATSAPP
+        </a>
+        <Link href="/#ai-demo" onClick={closeMenu} style={{ ...S.liveBtn, width: '100%', textAlign: 'center', padding: '0.8rem' }}>
+          TRY THE DEMO →
+        </Link>
+        <Link href="/login" onClick={closeMenu} style={{ fontFamily: 'monospace', fontSize: '0.85rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.6)', textDecoration: 'none', marginTop: '0.4rem' }}>
+          LOGIN
+        </Link>
       </div>
     </div>
     </>
