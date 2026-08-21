@@ -46,7 +46,7 @@ const hubs = [
 const faqs = [
   {
     q: 'How fast can we onboard a 5,000-acre commercial farm or cooperative?',
-    a: 'Within 24 hours. Our agronomy engineering team ingests your farm boundary shapefiles (KML/GeoJSON) and calibrates Sentinel-2 / Planet satellite telemetry. Mobile AI edge models are activated instantly on your team\'s devices.'
+    a: 'Within 24 hours. Our technical team configures regional disease surveillance parameters, sets up district/block boundary mappings, and activates multi-language farmer advisory channels for your cooperative or region.'
   },
   {
     q: 'How do government pilot programs & farmer collective subsidies work?',
