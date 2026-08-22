@@ -4,7 +4,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { User, LogOut, LayoutDashboard, History, ChevronDown, MessageSquare, Globe } from 'lucide-react';
-import WhatsAppModal from '@/components/WhatsAppModal';
 
 const S = {
   nav: (scrolled: boolean): React.CSSProperties => ({
@@ -37,7 +36,6 @@ export default function Navigation() {
   const [hovered, setHovered] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [whatsAppOpen, setWhatsAppOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState<'EN' | 'BN' | 'HI'>('BN');
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -171,32 +169,6 @@ export default function Navigation() {
             </button>
           ))}
         </div>
-
-        {/* WhatsApp Bot Trigger Button */}
-        <button
-          onClick={() => setWhatsAppOpen(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: 'rgba(34,197,94,0.12)',
-            border: '1px solid rgba(34,197,94,0.35)',
-            color: '#22C55E',
-            borderRadius: '99px',
-            padding: '0.42rem 0.85rem',
-            fontFamily: 'DM Mono, monospace',
-            fontSize: '0.7rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            boxShadow: '0 0 15px rgba(34,197,94,0.15)'
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.22)'; e.currentTarget.style.borderColor = '#22C55E'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(34,197,94,0.12)'; e.currentTarget.style.borderColor = 'rgba(34,197,94,0.35)'; }}
-        >
-          <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22C55E', display: 'inline-block', boxShadow: '0 0 6px #22C55E' }} />
-          <span>WHATSAPP AI</span>
-        </button>
 
         {user ? (
           <div ref={dropdownRef} style={{ position: 'relative' }}>
@@ -399,31 +371,6 @@ export default function Navigation() {
         </div>
       )}
 
-      {/* Mobile WhatsApp Button */}
-      <button
-        onClick={() => { setWhatsAppOpen(true); closeMenu(); }}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '8px',
-          background: 'rgba(34,197,94,0.18)',
-          border: '1px solid #22C55E',
-          color: '#22C55E',
-          borderRadius: '8px',
-          padding: '0.75rem',
-          fontFamily: 'DM Mono, monospace',
-          fontSize: '0.85rem',
-          fontWeight: 800,
-          width: '100%',
-          maxWidth: '280px',
-          marginBottom: '0.5rem',
-          cursor: 'pointer'
-        }}
-      >
-        <span>💬 SCAN VIA WHATSAPP BOT</span>
-      </button>
-
       {links.map(l => (
         <Link key={`mobile-${l.href}`} href={l.href} onClick={closeMenu} className="mobile-nav-link" style={{
           color: pathname === l.href ? '#C8F53E' : 'rgba(255,255,255,0.85)',
@@ -464,9 +411,6 @@ export default function Navigation() {
         )}
       </div>
     </div>
-
-    {/* Simulated WhatsApp Bot Modal */}
-    <WhatsAppModal isOpen={whatsAppOpen} onClose={() => setWhatsAppOpen(false)} />
     </>
   );
 }
