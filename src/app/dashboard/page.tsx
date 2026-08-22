@@ -726,7 +726,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <p className="text-xs text-white/50 font-mono mt-1">
-                  📍 {profile.region} · 📞 {profile.phone || '+91 98312 45678'} · ✉️ {profile.email}
+                  📍 {profile.region} · ✉️ {profile.email}
                 </p>
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
                   <span className="text-[10px] font-mono text-white/40 uppercase">PRIMARY CROPS:</span>

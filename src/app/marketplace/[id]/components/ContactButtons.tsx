@@ -27,7 +27,7 @@ type Props = {
 export default function ContactButtons({
   product,
   sellerName,
-  phone = "+919876543210",
+  phone,
   productTitle,
   priceFormatted,
 }: Props) {
@@ -40,10 +40,6 @@ export default function ContactButtons({
   const finalPriceFormatted =
     priceFormatted || (product ? `${product.currency}${product.price.toLocaleString()} / ${product.unit}` : "");
 
-  const cleanPhone = phone.replace(/\D/g, "");
-  const whatsappMsg = `Hello ${finalSellerName}, I am interested in buying "${finalProductTitle}" (${finalPriceFormatted}) listed on CropGuard AI Marketplace. Is it available for immediate dispatch?`;
-  const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsappMsg)}`;
-
   const handleShare = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(window.location.href);
@@ -55,7 +51,7 @@ export default function ContactButtons({
   return (
     <>
       <div className="space-y-3">
-        {/* Primary Action 1: "Buy Now" Button (Opens Mock Checkout Modal) */}
+        {/* Primary Action: "Buy Now" Button (Opens Mock Checkout Modal) */}
         <button
           onClick={() => setModalOpen(true)}
           className="w-full flex items-center justify-center gap-2 py-4 px-5 rounded-2xl bg-[#C8F53E] hover:bg-[#b8e52e] text-[#060A04] font-black text-xs font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-[0_0_24px_rgba(200,245,62,0.35)] hover:scale-[1.02]"
@@ -65,25 +61,16 @@ export default function ContactButtons({
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
 
-        {/* Primary Action 2: Direct WhatsApp Order */}
-        <a
-          href={whatsappUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs font-mono tracking-wide transition-all cursor-pointer text-center"
-        >
-          <span className="text-base">💬</span>
-          <span>Chat with Grower on WhatsApp</span>
-        </a>
-
-        {/* Secondary Action: Call Seller */}
-        <a
-          href={`tel:${phone}`}
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gray-900 border border-white/10 hover:border-[#C8F53E]/50 text-white font-mono text-xs font-semibold hover:bg-gray-800 transition-all cursor-pointer text-center"
-        >
-          <Phone className="w-3.5 h-3.5 text-[#C8F53E]" />
-          <span>Call ({phone})</span>
-        </a>
+        {/* Secondary Action: Call Seller if available */}
+        {phone && (
+          <a
+            href={`tel:${phone.replace(/\s+/g, '')}`}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-gray-900 border border-white/10 hover:border-[#C8F53E]/50 text-white font-mono text-xs font-semibold hover:bg-gray-800 transition-all cursor-pointer text-center"
+          >
+            <Phone className="w-3.5 h-3.5 text-[#C8F53E]" />
+            <span>Call Seller</span>
+          </a>
+        )}
 
         {/* Share and Wishlist Bar */}
         <div className="flex items-center justify-between pt-2 border-t border-white/[0.08] text-xs text-gray-400 font-mono">

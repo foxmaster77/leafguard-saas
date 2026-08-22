@@ -458,7 +458,7 @@ export default function HomePage() {
             </h1>
 
             <p style={{ fontSize: '1.08rem', color: 'rgba(255,255,255,0.7)', maxWidth: '520px', lineHeight: 1.75, marginBottom: '2.2rem' }}>
-              Multi-spectral computer vision that detects microscopic fungal pathogens at the cellular stage — before whole-field crop loss occurs.
+              AI-powered crop disease detection from a photo, video, or voice description.
             </p>
 
             <div className="hero-actions" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
@@ -665,7 +665,7 @@ export default function HomePage() {
           </div>
         </div>
         <div className="home-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', maxWidth: '1140px', margin: '0 auto' }}>
-          {[['10 Districts', 'Hooghly, Burdwan, Nadia, Malda & 6 more'], ['29+ Outbreaks', 'Active spatial disease clusters tracked'], ['96% Accuracy', 'KVK scientist validation match'], ['₹10k/yr Govt Aid', 'Krishak Bandhu & PM-KISAN mapped']].map(([n, l], i) => (
+          {[['10 Districts', 'Hooghly, Burdwan, Nadia, Malda & 6 more'], ['29+ Outbreaks', 'Active spatial disease clusters tracked'], ['96% Accuracy', 'internal test validation'], ['₹10k/yr Govt Aid', 'Krishak Bandhu & PM-KISAN mapped']].map(([n, l], i) => (
             <div key={i} className="reveal hover-lift" style={{ background: '#0F1409', border: '1px solid rgba(200,245,62,0.1)', padding: '1.6rem', textAlign: 'center', borderRadius: '8px' }}>
               <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: '2.2rem', color: '#C8F53E', fontStyle: 'italic', marginBottom: '0.3rem' }}>{n}</div>
               <div style={{ fontFamily: 'DM Mono, monospace', fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', letterSpacing: '0.06em' }}>{l}</div>
@@ -1252,7 +1252,7 @@ export default function HomePage() {
               <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '2px', background: 'linear-gradient(to bottom,#C8F53E,rgba(200,245,62,0.1))' }} />
               {[
                 ['01', 'CAPTURE & INGEST', 'Upload field imagery, video, or voice symptoms via web interface in any lighting.'],
-                ['02', 'NEURAL MODEL INFERENCE', 'Multimodal Gemini & Edge TFLite evaluate cellular signatures in 0.9s.'],
+                ['02', 'NEURAL MODEL INFERENCE', 'Multimodal Gemini & Groq cloud inference evaluate disease signatures in 0.9s.'],
                 ['03', 'ACTIONABLE INTERVENTION', 'Receive exact chemical dosages, dealer availability, and state DBT matches.']
               ].map(([n, t, d], i) => (
                 <div key={i} style={{ marginBottom: i < 2 ? '2.5rem' : 0 }}>

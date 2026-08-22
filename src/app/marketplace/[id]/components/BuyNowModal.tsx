@@ -95,15 +95,6 @@ export default function BuyNowModal({ product, isOpen, onClose }: Props) {
     setOrderConfirmed(true);
   };
 
-  const cleanSellerPhone = (product.seller as any)?.phone
-    ? (product.seller as any).phone.replace(/\D/g, "")
-    : "919876543210";
-
-  const whatsappConfirmMsg = `Hello ${product.seller.name}, I have placed order request #${orderId} on CropGuard AI for ${quantity} ${product.unit} of "${product.title}" (${totalFormatted}). My name is ${buyerName} (${buyerPhone}). Please confirm delivery.`;
-  const whatsappUrl = `https://wa.me/${cleanSellerPhone}?text=${encodeURIComponent(
-    whatsappConfirmMsg
-  )}`;
-
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-3xl bg-[#0D1409] border border-[#C8F53E]/30 shadow-[0_0_50px_rgba(200,245,62,0.15)] text-white p-6 sm:p-8 space-y-6">
@@ -161,19 +152,10 @@ export default function BuyNowModal({ product, isOpen, onClose }: Props) {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs font-mono uppercase tracking-wider transition-all shadow-lg"
-              >
-                <span>💬 Open in WhatsApp</span>
-              </a>
-
+            <div className="flex justify-center pt-2">
               <button
                 onClick={onClose}
-                className="py-3.5 px-6 rounded-xl bg-gray-900 border border-white/15 text-white hover:border-white/30 text-xs font-mono font-bold transition-all cursor-pointer"
+                className="w-full py-3.5 px-6 rounded-xl bg-[#C8F53E] text-[#060A04] hover:bg-[#b8e52e] text-xs font-mono font-black uppercase tracking-wider transition-all cursor-pointer shadow-lg"
               >
                 Done
               </button>
@@ -302,12 +284,12 @@ export default function BuyNowModal({ product, isOpen, onClose }: Props) {
 
                 <div>
                   <label className="block text-[11px] font-mono text-gray-300 mb-1">
-                    Phone / WhatsApp <span className="text-[#C8F53E]">*</span>
+                    Contact Number <span className="text-[#C8F53E]">*</span>
                   </label>
                   <input
                     type="tel"
                     required
-                    placeholder="e.g. +91 98765 43210"
+                    placeholder="Enter contact number"
                     value={buyerPhone}
                     onChange={(e) => setBuyerPhone(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-gray-900 border border-white/10 text-white placeholder-gray-600 text-xs font-mono focus:outline-none focus:border-[#C8F53E]/70"

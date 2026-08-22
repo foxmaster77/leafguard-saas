@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -48,8 +48,7 @@ const DEFAULT_PROFILE: FarmerProfile = {
   region: 'Hooghly & Purba Bardhaman (WB)',
   landSize: '14.5 Acres',
   primaryCrops: ['Paddy Rice', 'Potato (Kufri Jyoti)', 'Mustard', 'Jute'],
-  joinedAt: 'Kharif Season 2025',
-  phone: '+91 98312 45678'
+  joinedAt: 'Kharif Season 2025'
 };
 
 const DEFAULT_SCANS: ScanItem[] = [
