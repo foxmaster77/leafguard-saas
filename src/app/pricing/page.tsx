@@ -581,7 +581,7 @@ export default function PricingPage() {
         {/* BOTTOM CTA: PARTNER WITH US */}
         <section className="bg-[#C8F53E] text-[#060A04] py-16 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 font-bebas text-[18vw] font-black opacity-10 select-none pointer-events-none whitespace-nowrap">
-            LEAFGUARD AI
+            CROPGUARD AI
           </div>
 
           <div className="max-w-4xl mx-auto text-center relative z-10">
