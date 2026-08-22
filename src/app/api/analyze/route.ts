@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
 
     const promptText = `You are CropGuard AI, an expert agricultural pathologist helping farmers in South Asia.
 Analyze this crop diagnostic request.
+Base your diagnosis primarily on the specific symptoms described in the farmer's voice transcript or visible in the image. If the transcript mentions yellow spots and drying leaves, prioritize diseases matching that exact symptom pattern (e.g., Yellow Rust) over other diseases with different visual symptoms (e.g., Late Blight, which presents as dark/water-soaked lesions, not yellow spots).
 ${transcript ? `Farmer Voice Input / Description: "${transcript}"` : ''}
 Target Response Language: ${langName}
 
@@ -96,7 +97,10 @@ JSON Schema:
 
           const requestBody = JSON.stringify({
             contents: [{ parts }],
-            generationConfig: { responseMimeType: "application/json" }
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature: 0.2
+            }
           });
 
           let geminiRes = await fetch(geminiUrl, {
@@ -154,6 +158,7 @@ JSON Schema:
           body: JSON.stringify({
             model: GROQ_MODEL,
             max_tokens: 1000,
+            temperature: 0.2,
             response_format: { type: "json_object" },
             messages: [{ role: 'user', content: contentParts }]
           }),
