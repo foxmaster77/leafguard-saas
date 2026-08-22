@@ -42,10 +42,10 @@ interface AuthContextType {
 }
 
 const DEFAULT_PROFILE: FarmerProfile = {
-  id: 'farmer-demo-01',
-  name: 'Debashis Mukherjee',
-  email: 'debashis.fpo@wb.gov.in',
-  region: 'Hooghly & Purba Bardhaman (WB)',
+  id: 'station-wb-01',
+  name: 'Field Station: Hooghly & Purba Bardhaman',
+  email: '',
+  region: 'Hooghly & Purba Bardhaman, West Bengal',
   landSize: '14.5 Acres',
   primaryCrops: ['Paddy Rice', 'Potato (Kufri Jyoti)', 'Mustard', 'Jute'],
   joinedAt: 'Kharif Season 2025'

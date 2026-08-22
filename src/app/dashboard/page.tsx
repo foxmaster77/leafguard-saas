@@ -713,20 +713,20 @@ export default function Dashboard() {
         {/* FARMER PROFILE & FARM BOUNDARY CARD */}
         <section className="mb-10 bg-[#0F1409] border border-[#C8F53E]/20 rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-2xl shadow-black/40">
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            {/* Farmer Identity & Details */}
+            {/* Field Station Identity & Details */}
             <div className="flex items-center gap-5">
               <div className="w-16 h-16 rounded-2xl bg-[#C8F53E] text-[#060A04] flex items-center justify-center font-bebas text-2xl font-bold shadow-[0_0_25px_rgba(200,245,62,0.3)] shrink-0">
-                {profile.name ? profile.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'OP'}
+                FS
               </div>
               <div>
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h2 className="text-2xl font-bold text-white font-sans">{profile.name}</h2>
+                  <h2 className="text-2xl font-bold text-white font-sans">{profile.name || 'Field Station: Hooghly & Purba Bardhaman, West Bengal'}</h2>
                   <span className="bg-[#C8F53E]/10 border border-[#C8F53E]/30 text-[#C8F53E] text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    ● VERIFIED OPERATOR
+                    ● ACTIVE FIELD STATION
                   </span>
                 </div>
                 <p className="text-xs text-white/50 font-mono mt-1">
-                  📍 {profile.region} · ✉️ {profile.email}
+                  📍 {profile.region || 'Hooghly & Purba Bardhaman, West Bengal'}{profile.email ? ` · ✉️ ${profile.email}` : ''}
                 </p>
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
                   <span className="text-[10px] font-mono text-white/40 uppercase">PRIMARY CROPS:</span>
@@ -2030,7 +2030,7 @@ export default function Dashboard() {
                     <User size={20} />
                   </div>
                   <div>
-                    <h3 className="font-bebas text-2xl tracking-wide">FARMER PROFILE &amp; LOCATION</h3>
+                    <h3 className="font-bebas text-2xl tracking-wide">FIELD STATION &amp; LOCATION</h3>
                     <p className="text-[9px] font-mono text-[#C8F53E] uppercase tracking-widest">UPDATE AGRI-HOLDING TELEMETRY</p>
                   </div>
                 </div>
@@ -2045,7 +2045,7 @@ export default function Dashboard() {
 
               <div className="space-y-4 font-mono text-xs">
                 <div>
-                  <label className="text-[10px] text-white/50 uppercase block mb-1.5 font-bold">Farmer Name</label>
+                  <label className="text-[10px] text-white/50 uppercase block mb-1.5 font-bold">Station / Farm Name</label>
                   <input
                     type="text"
                     value={profileForm.name}
